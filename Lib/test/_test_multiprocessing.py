@@ -651,13 +651,17 @@ class _TestProcess(BaseTestCase):
         from multiprocessing.forkserver import _forkserver
         _forkserver.ensure_running()
 
+        # First process sleeps 500 ms
+        delay = 0.5
+
         evt = self.Event()
-        proc = self.Process(target=self._sleep_and_set_event, args=(evt, 1.0))
+        proc = self.Process(target=self._sleep_and_set_event, args=(evt, delay))
         proc.start()
 
         pid = _forkserver._forkserver_pid
         os.kill(pid, signum)
-        time.sleep(1.0)  # give it time to die
+        # give time to the fork server to die and time to proc to complete
+        time.sleep(delay * 2.0)
 
         evt2 = self.Event()
         proc2 = self.Process(target=self._sleep_and_set_event, args=(evt2,))
@@ -2351,10 +2355,10 @@ class _TestPool(BaseTestCase):
         self.assertRaises(SayWhenError, it.__next__)
 
     def test_imap_unordered(self):
-        it = self.pool.imap_unordered(sqr, list(range(1000)))
-        self.assertEqual(sorted(it), list(map(sqr, list(range(1000)))))
+        it = self.pool.imap_unordered(sqr, list(range(10)))
+        self.assertEqual(sorted(it), list(map(sqr, list(range(10)))))
 
-        it = self.pool.imap_unordered(sqr, list(range(1000)), chunksize=53)
+        it = self.pool.imap_unordered(sqr, list(range(1000)), chunksize=100)
         self.assertEqual(sorted(it), list(map(sqr, list(range(1000)))))
 
     def test_imap_unordered_handle_iterable_exception(self):
