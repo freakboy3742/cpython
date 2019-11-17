@@ -106,6 +106,8 @@ class BuildPyTestCase(support.TempdirManager,
                          ['boiledeggs.%s.pyc' % sys.implementation.cache_tag])
 
     @unittest.skipIf(sys.dont_write_bytecode, 'byte-compile disabled')
+    @unittest.skipUnless((os.name == 'posix' and hasattr(os, 'fork') and os.allows_subprocesses),
+                         "distutils cannot spawn child processes")
     def test_byte_compile_optimized(self):
         project_dir, dist = self.create_dist(py_modules=['boiledeggs'])
         os.chdir(project_dir)

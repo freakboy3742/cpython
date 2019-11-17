@@ -26,9 +26,8 @@ class SpawnTestCase(support.TempdirManager,
             res = _nt_quote_args(args)
             self.assertEqual(res, wanted)
 
-
-    @unittest.skipUnless(os.name in ('nt', 'posix'),
-                         'Runs only under posix or nt')
+    @unittest.skipUnless(os.name == 'nt' or (os.name == 'posix' and hasattr(os, 'fork') and os.allows_subprocesses),
+                         "distutils cannot spawn child processes")
     def test_spawn(self):
         tmpdir = self.mkdtemp()
 

@@ -233,6 +233,8 @@ class UtilTestCase(support.EnvironGuard, unittest.TestCase):
 
         # XXX platforms to be covered: mac
 
+    @unittest.skipUnless((os.name == 'posix' and hasattr(os, 'fork') and os.allows_subprocesses),
+                         "distutils cannot spawn child processes")
     def test_check_environ(self):
         util._environ_checked = 0
         os.environ.pop('HOME', None)

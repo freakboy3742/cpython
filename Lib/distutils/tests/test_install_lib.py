@@ -35,6 +35,8 @@ class InstallLibTestCase(support.TempdirManager,
         self.assertEqual(cmd.optimize, 2)
 
     @unittest.skipIf(sys.dont_write_bytecode, 'byte-compile disabled')
+    @unittest.skipUnless((os.name == 'posix' and hasattr(os, 'fork') and os.allows_subprocesses),
+                         "distutils cannot spawn child processes")
     def test_byte_compile(self):
         project_dir, dist = self.create_dist()
         os.chdir(project_dir)

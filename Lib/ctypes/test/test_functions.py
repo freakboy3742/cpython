@@ -7,6 +7,7 @@ Later...
 
 from ctypes import *
 from ctypes.test import need_symbol
+import os
 import sys, unittest
 
 try:

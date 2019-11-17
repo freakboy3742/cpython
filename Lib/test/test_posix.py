@@ -59,9 +59,12 @@ class PosixTester(unittest.TestCase):
         # no side-effects which we need to cleanup (e.g., fork, wait, abort)
         NO_ARG_FUNCTIONS = [ "ctermid", "getcwd", "getcwdb", "uname",
                              "times", "getloadavg",
-                             "getegid", "geteuid", "getgid", "getgroups",
+                             "getegid", "geteuid", "getgid",
                              "getpid", "getpgrp", "getppid", "getuid", "sync",
                            ]
+
+        if sys.platform not in ('ios', 'tvos', 'watchos'):
+            NO_ARG_FUNCTIONS.append("getgroups")
 
         for name in NO_ARG_FUNCTIONS:
             posix_func = getattr(posix, name, None)
