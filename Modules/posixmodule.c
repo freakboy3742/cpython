@@ -460,27 +460,33 @@ run_at_forkers(PyObject *lst, int reverse)
         }
     }
 }
+#endif
 
 void
 PyOS_BeforeFork(void)
 {
+#ifdef HAVE_FORK
     run_at_forkers(_PyInterpreterState_Get()->before_forkers, 1);
 
     _PyImport_AcquireLock();
+#endif
 }
 
 void
 PyOS_AfterFork_Parent(void)
 {
+#ifdef HAVE_FORK
     if (_PyImport_ReleaseLock() <= 0)
         Py_FatalError("failed releasing import lock after fork");
 
     run_at_forkers(_PyInterpreterState_Get()->after_forkers_parent, 0);
+#endif
 }
 
 void
 PyOS_AfterFork_Child(void)
 {
+#ifdef HAVE_FORK
     _PyRuntimeState *runtime = &_PyRuntime;
     _PyGILState_Reinit(runtime);
     _PyEval_ReInitThreads(runtime);
@@ -490,8 +496,10 @@ PyOS_AfterFork_Child(void)
     _PyInterpreterState_DeleteExceptMain(runtime);
 
     run_at_forkers(_PyInterpreterState_Get()->after_forkers_child, 0);
+#endif
 }
 
+#ifdef HAVE_FORK
 static int
 register_at_forker(PyObject **lst, PyObject *func)
 {

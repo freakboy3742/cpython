@@ -263,11 +263,13 @@ time_clock_settime_ns(PyObject *self, PyObject *args)
         return NULL;
     }
 
+#if !TARGET_OS_IPHONE
     ret = clock_settime((clockid_t)clk_id, &ts);
     if (ret != 0) {
         PyErr_SetFromErrno(PyExc_OSError);
         return NULL;
     }
+#endif
     Py_RETURN_NONE;
 }
 

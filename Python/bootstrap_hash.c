@@ -29,6 +29,10 @@
 #  include <sanitizer/msan_interface.h>
 #endif
 
+#ifdef __APPLE__
+#  include "TargetConditionals.h"
+#endif /* __APPLE__ */
+
 #ifdef Py_DEBUG
 int _Py_HashSecret_Initialized = 0;
 #else
