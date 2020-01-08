@@ -20,6 +20,8 @@
 #  pragma weak statvfs
 #  pragma weak fstatvfs
 
+#  include "TargetConditionals.h"
+
 #endif /* __APPLE__ */
 
 #define PY_SSIZE_T_CLEAN
@@ -84,6 +86,9 @@ corresponding Unix manual entries for more information on calls.");
 
 #ifdef HAVE_SYS_WAIT_H
 #include <sys/wait.h>           /* For WNOHANG */
+#endif
+#ifdef HAVE_LINUX_WAIT_H
+#include <linux/wait.h> // For P_PIDFD
 #endif
 
 #ifdef HAVE_SIGNAL_H
@@ -234,6 +239,8 @@ corresponding Unix manual entries for more information on calls.");
 #  undef HAVE_WAIT4
 #  undef HAVE_WAITPID
 #endif
+
+_Py_IDENTIFIER(__fspath__);
 
 /*[clinic input]
 # one of the few times we lie about this name!
@@ -460,33 +467,27 @@ run_at_forkers(PyObject *lst, int reverse)
         }
     }
 }
-#endif
 
 void
 PyOS_BeforeFork(void)
 {
-#ifdef HAVE_FORK
     run_at_forkers(_PyInterpreterState_Get()->before_forkers, 1);
 
     _PyImport_AcquireLock();
-#endif
 }
 
 void
 PyOS_AfterFork_Parent(void)
 {
-#ifdef HAVE_FORK
     if (_PyImport_ReleaseLock() <= 0)
         Py_FatalError("failed releasing import lock after fork");
 
     run_at_forkers(_PyInterpreterState_Get()->after_forkers_parent, 0);
-#endif
 }
 
 void
 PyOS_AfterFork_Child(void)
 {
-#ifdef HAVE_FORK
     _PyRuntimeState *runtime = &_PyRuntime;
     _PyGILState_Reinit(runtime);
     _PyEval_ReInitThreads(runtime);
@@ -496,10 +497,8 @@ PyOS_AfterFork_Child(void)
     _PyInterpreterState_DeleteExceptMain(runtime);
 
     run_at_forkers(_PyInterpreterState_Get()->after_forkers_child, 0);
-#endif
 }
 
-#ifdef HAVE_FORK
 static int
 register_at_forker(PyObject **lst, PyObject *func)
 {
@@ -562,7 +561,7 @@ _Py_Uid_Converter(PyObject *obj, void *p)
     if (index == NULL) {
         PyErr_Format(PyExc_TypeError,
                      "uid should be integer, not %.200s",
-                     Py_TYPE(obj)->tp_name);
+                     _PyType_Name(Py_TYPE(obj)));
         return 0;
     }
 
@@ -668,7 +667,7 @@ _Py_Gid_Converter(PyObject *obj, void *p)
     if (index == NULL) {
         PyErr_Format(PyExc_TypeError,
                      "gid should be integer, not %.200s",
-                     Py_TYPE(obj)->tp_name);
+                     _PyType_Name(Py_TYPE(obj)));
         return 0;
     }
 
@@ -835,11 +834,37 @@ dir_fd_converter(PyObject *o, void *p)
     else {
         PyErr_Format(PyExc_TypeError,
                      "argument should be integer or None, not %.200s",
-                     Py_TYPE(o)->tp_name);
+                     _PyType_Name(Py_TYPE(o)));
         return 0;
     }
 }
 
+typedef struct {
+    PyObject *billion;
+    PyObject *posix_putenv_garbage;
+    PyObject *DirEntryType;
+    PyObject *ScandirIteratorType;
+#if defined(HAVE_SCHED_SETPARAM) || defined(HAVE_SCHED_SETSCHEDULER) || defined(POSIX_SPAWN_SETSCHEDULER) || defined(POSIX_SPAWN_SETSCHEDPARAM)
+    PyObject *SchedParamType;
+#endif
+    PyObject *StatResultType;
+    PyObject *StatVFSResultType;
+    PyObject *TerminalSizeType;
+    PyObject *TimesResultType;
+    PyObject *UnameResultType;
+#if defined(HAVE_WAITID) && !defined(__APPLE__)
+    PyObject *WaitidResultType;
+#endif
+#if defined(HAVE_WAIT3) || defined(HAVE_WAIT4)
+    PyObject *struct_rusage;
+#endif
+    PyObject *st_mode;
+} _posixstate;
+
+static struct PyModuleDef posixmodule;
+
+#define _posixstate(o) ((_posixstate *)PyModule_GetState(o))
+#define _posixstate_global ((_posixstate *)PyModule_GetState(PyState_FindModule(&posixmodule)))
 
 /*
  * A PyArg_ParseTuple "converter" function
@@ -1009,7 +1034,6 @@ path_converter(PyObject *o, void *p)
 
     if (!is_index && !is_buffer && !is_unicode && !is_bytes) {
         /* Inline PyOS_FSPath() for better error messages. */
-        _Py_IDENTIFIER(__fspath__);
         PyObject *func, *res;
 
         func = _PyObject_LookupSpecial(o, &PyId___fspath__);
@@ -1030,8 +1054,8 @@ path_converter(PyObject *o, void *p)
         else {
             PyErr_Format(PyExc_TypeError,
                  "expected %.200s.__fspath__() to return str or bytes, "
-                 "not %.200s", Py_TYPE(o)->tp_name,
-                 Py_TYPE(res)->tp_name);
+                 "not %.200s", _PyType_Name(Py_TYPE(o)),
+                 _PyType_Name(Py_TYPE(res)));
             Py_DECREF(res);
             goto error_exit;
         }
@@ -1083,7 +1107,7 @@ path_converter(PyObject *o, void *p)
             path->allow_fd ? "string, bytes, os.PathLike or integer" :
             path->nullable ? "string, bytes, os.PathLike or None" :
                              "string, bytes or os.PathLike",
-            Py_TYPE(o)->tp_name)) {
+            _PyType_Name(Py_TYPE(o)))) {
             goto error_exit;
         }
         bytes = PyBytes_FromObject(o);
@@ -1114,7 +1138,7 @@ path_converter(PyObject *o, void *p)
             path->allow_fd ? "string, bytes, os.PathLike or integer" :
             path->nullable ? "string, bytes, os.PathLike or None" :
                              "string, bytes or os.PathLike",
-            Py_TYPE(o)->tp_name);
+            _PyType_Name(Py_TYPE(o)));
         goto error_exit;
     }
 
@@ -1398,14 +1422,10 @@ win32_get_reparse_tag(HANDLE reparse_point_handle, ULONG *reparse_tag)
 ** man environ(7).
 */
 #include <crt_externs.h>
-static char **environ;
-<<<<<<< HEAD
 #elif !defined(_MSC_VER) && (!defined(__WATCOMC__) || defined(__QNX__) || defined(__VXWORKS__))
-#if !TARGET_OS_TV && !TARGET_OS_WATCH
-=======
-#elif !defined(_MSC_VER) && (!defined(__WATCOMC__) || defined(__QNX__) || defined(__VXWORKS__))
->>>>>>> upstream/master
+#  if !TARGET_OS_TV && !TARGET_OS_WATCH
 extern char **environ;
+#  endif
 #endif /* !_MSC_VER */
 
 static PyObject *
@@ -1421,15 +1441,16 @@ convertenviron(void)
     d = PyDict_New();
     if (d == NULL)
         return NULL;
-#if defined(WITH_NEXT_FRAMEWORK) || (defined(__APPLE__) && defined(Py_ENABLE_SHARED))
-    if (environ == NULL)
-        environ = *_NSGetEnviron();
-#endif
 #ifdef MS_WINDOWS
     /* _wenviron must be initialized in this way if the program is started
        through main() instead of wmain(). */
     _wgetenv(L"");
     e = _wenviron;
+#elif defined(WITH_NEXT_FRAMEWORK) || (defined(__APPLE__) && defined(Py_ENABLE_SHARED))
+    /* environ is not accessible as an extern in a shared object on OSX; use
+       _NSGetEnviron to resolve it. The value changes if you add environment
+       variables between calls to Py_Initialize, so don't cache the value. */
+    e = *_NSGetEnviron();
 #else
     e = environ;
 #endif
@@ -1440,37 +1461,7 @@ convertenviron(void)
         PyObject *v;
 #ifdef MS_WINDOWS
         const wchar_t *p = wcschr(*e, L'=');
-<<<<<<< HEAD
-        if (p == NULL)
-            continue;
-        k = PyUnicode_FromWideChar(*e, (Py_ssize_t)(p-*e));
-        if (k == NULL) {
-            PyErr_Clear();
-            continue;
-        }
-        v = PyUnicode_FromWideChar(p+1, wcslen(p+1));
-        if (v == NULL) {
-            PyErr_Clear();
-            Py_DECREF(k);
-            continue;
-        }
-        if (PyDict_GetItem(d, k) == NULL) {
-            if (PyDict_SetItem(d, k, v) != 0)
-                PyErr_Clear();
-        }
-        Py_DECREF(k);
-        Py_DECREF(v);
-    }
-#elif !TARGET_OS_TV && !TARGET_OS_WATCH
-    if (environ == NULL)
-        return d;
-    /* This part ignores errors */
-    for (e = environ; *e != NULL; e++) {
-        PyObject *k;
-        PyObject *v;
-=======
 #else
->>>>>>> upstream/master
         const char *p = strchr(*e, '=');
 #endif
         if (p == NULL)
@@ -2107,14 +2098,6 @@ static PyStructSequence_Desc waitid_result_desc = {
     waitid_result_fields,
     5
 };
-static PyTypeObject* WaitidResultType;
-#endif
-
-static int initialized;
-static PyTypeObject* StatResultType;
-static PyTypeObject* StatVFSResultType;
-#if defined(HAVE_SCHED_SETPARAM) || defined(HAVE_SCHED_SETSCHEDULER) || defined(POSIX_SPAWN_SETSCHEDULER) || defined(POSIX_SPAWN_SETSCHEDPARAM)
-static PyTypeObject* SchedParamType;
 #endif
 static newfunc structseq_new;
 
@@ -2140,8 +2123,61 @@ statresult_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     return (PyObject*)result;
 }
 
+static int
+_posix_clear(PyObject *module)
+{
+    Py_CLEAR(_posixstate(module)->billion);
+    Py_CLEAR(_posixstate(module)->posix_putenv_garbage);
+    Py_CLEAR(_posixstate(module)->DirEntryType);
+    Py_CLEAR(_posixstate(module)->ScandirIteratorType);
+#if defined(HAVE_SCHED_SETPARAM) || defined(HAVE_SCHED_SETSCHEDULER) || defined(POSIX_SPAWN_SETSCHEDULER) || defined(POSIX_SPAWN_SETSCHEDPARAM)
+    Py_CLEAR(_posixstate(module)->SchedParamType);
+#endif
+    Py_CLEAR(_posixstate(module)->StatResultType);
+    Py_CLEAR(_posixstate(module)->StatVFSResultType);
+    Py_CLEAR(_posixstate(module)->TerminalSizeType);
+    Py_CLEAR(_posixstate(module)->TimesResultType);
+    Py_CLEAR(_posixstate(module)->UnameResultType);
+#if defined(HAVE_WAITID) && !defined(__APPLE__)
+    Py_CLEAR(_posixstate(module)->WaitidResultType);
+#endif
+#if defined(HAVE_WAIT3) || defined(HAVE_WAIT4)
+    Py_CLEAR(_posixstate(module)->struct_rusage);
+#endif
+    Py_CLEAR(_posixstate(module)->st_mode);
+    return 0;
+}
 
-static PyObject *billion = NULL;
+static int
+_posix_traverse(PyObject *module, visitproc visit, void *arg)
+{
+    Py_VISIT(_posixstate(module)->billion);
+    Py_VISIT(_posixstate(module)->posix_putenv_garbage);
+    Py_VISIT(_posixstate(module)->DirEntryType);
+    Py_VISIT(_posixstate(module)->ScandirIteratorType);
+#if defined(HAVE_SCHED_SETPARAM) || defined(HAVE_SCHED_SETSCHEDULER) || defined(POSIX_SPAWN_SETSCHEDULER) || defined(POSIX_SPAWN_SETSCHEDPARAM)
+    Py_VISIT(_posixstate(module)->SchedParamType);
+#endif
+    Py_VISIT(_posixstate(module)->StatResultType);
+    Py_VISIT(_posixstate(module)->StatVFSResultType);
+    Py_VISIT(_posixstate(module)->TerminalSizeType);
+    Py_VISIT(_posixstate(module)->TimesResultType);
+    Py_VISIT(_posixstate(module)->UnameResultType);
+#if defined(HAVE_WAITID) && !defined(__APPLE__)
+    Py_VISIT(_posixstate(module)->WaitidResultType);
+#endif
+#if defined(HAVE_WAIT3) || defined(HAVE_WAIT4)
+    Py_VISIT(_posixstate(module)->struct_rusage);
+#endif
+    Py_VISIT(_posixstate(module)->st_mode);
+    return 0;
+}
+
+static void
+_posix_free(void *module)
+{
+   _posix_clear((PyObject *)module);
+}
 
 static void
 fill_time(PyObject *v, int index, time_t sec, unsigned long nsec)
@@ -2155,7 +2191,7 @@ fill_time(PyObject *v, int index, time_t sec, unsigned long nsec)
     if (!(s && ns_fractional))
         goto exit;
 
-    s_in_ns = PyNumber_Multiply(s, billion);
+    s_in_ns = PyNumber_Multiply(s, _posixstate_global->billion);
     if (!s_in_ns)
         goto exit;
 
@@ -2188,7 +2224,8 @@ static PyObject*
 _pystat_fromstructstat(STRUCT_STAT *st)
 {
     unsigned long ansec, mnsec, cnsec;
-    PyObject *v = PyStructSequence_New(StatResultType);
+    PyObject *StatResultType = _posixstate_global->StatResultType;
+    PyObject *v = PyStructSequence_New((PyTypeObject *)StatResultType);
     if (v == NULL)
         return NULL;
 
@@ -4421,6 +4458,7 @@ os_system_impl(PyObject *module, PyObject *command)
     errno = ENOTSUP;
 #else
     result = system(bytes);
+#endif
     Py_END_ALLOW_THREADS
     return result;
 }
@@ -4569,14 +4607,11 @@ or via the attributes sysname, nodename, release, version, and machine.\n\
 See os.uname for more information.");
 
 static PyStructSequence_Desc uname_result_desc = {
-    "uname_result", /* name */
+    MODNAME ".uname_result", /* name */
     uname_result__doc__, /* doc */
     uname_result_fields,
     5
 };
-
-static PyTypeObject* UnameResultType;
-
 
 #ifdef HAVE_UNAME
 /*[clinic input]
@@ -4603,7 +4638,8 @@ os_uname_impl(PyObject *module)
     if (res < 0)
         return posix_error();
 
-    value = PyStructSequence_New(UnameResultType);
+    PyObject *UnameResultType = _posixstate(module)->UnameResultType;
+    value = PyStructSequence_New((PyTypeObject *)UnameResultType);
     if (value == NULL)
         return NULL;
 
@@ -4784,13 +4820,13 @@ split_py_long_to_s_and_ns(PyObject *py_long, time_t *s, long *ns)
 {
     int result = 0;
     PyObject *divmod;
-    divmod = PyNumber_Divmod(py_long, billion);
+    divmod = PyNumber_Divmod(py_long, _posixstate_global->billion);
     if (!divmod)
         goto exit;
     if (!PyTuple_Check(divmod) || PyTuple_GET_SIZE(divmod) != 2) {
         PyErr_Format(PyExc_TypeError,
                      "%.200s.__divmod__() must return a 2-tuple, not %.200s",
-                     Py_TYPE(py_long)->tp_name, Py_TYPE(divmod)->tp_name);
+                     _PyType_Name(Py_TYPE(py_long)), _PyType_Name(Py_TYPE(divmod)));
         goto exit;
     }
     *s = _PyLong_AsTime_t(PyTuple_GET_ITEM(divmod, 0));
@@ -6037,7 +6073,7 @@ check_null_or_callable(PyObject *obj, const char* obj_name)
 {
     if (obj && !PyCallable_Check(obj)) {
         PyErr_Format(PyExc_TypeError, "'%s' must be callable, not %s",
-                     obj_name, Py_TYPE(obj)->tp_name);
+                     obj_name, _PyType_Name(Py_TYPE(obj)));
         return -1;
     }
     return 0;
@@ -6241,12 +6277,12 @@ os.sched_param.__new__
     sched_priority: object
         A scheduling parameter.
 
-Current has only one field: sched_priority");
+Currently has only one field: sched_priority
 [clinic start generated code]*/
 
 static PyObject *
 os_sched_param_impl(PyTypeObject *type, PyObject *sched_priority)
-/*[clinic end generated code: output=48f4067d60f48c13 input=ab4de35a9a7811f2]*/
+/*[clinic end generated code: output=48f4067d60f48c13 input=eb42909a2c0e3e6c]*/
 {
     PyObject *res;
 
@@ -6257,7 +6293,6 @@ os_sched_param_impl(PyTypeObject *type, PyObject *sched_priority)
     PyStructSequence_SET_ITEM(res, 0, sched_priority);
     return res;
 }
-
 
 PyDoc_VAR(os_sched_param__doc__);
 
@@ -6278,7 +6313,8 @@ convert_sched_param(PyObject *param, struct sched_param *res)
 {
     long priority;
 
-    if (Py_TYPE(param) != SchedParamType) {
+    PyObject *SchedParamType = _posixstate_global->SchedParamType;
+    if (Py_TYPE(param) != (PyTypeObject *)SchedParamType) {
         PyErr_SetString(PyExc_TypeError, "must have a sched_param object");
         return 0;
     }
@@ -6349,7 +6385,8 @@ os_sched_getparam_impl(PyObject *module, pid_t pid)
 
     if (sched_getparam(pid, &param))
         return posix_error();
-    result = PyStructSequence_New(SchedParamType);
+    PyObject *SchedParamType = _posixstate_global->SchedParamType;
+    result = PyStructSequence_New((PyTypeObject *)SchedParamType);
     if (!result)
         return NULL;
     priority = PyLong_FromLong(param.sched_priority);
@@ -7558,8 +7595,7 @@ static PyObject *
 wait_helper(pid_t pid, int status, struct rusage *ru)
 {
     PyObject *result;
-    static PyObject *struct_rusage;
-    _Py_IDENTIFIER(struct_rusage);
+    PyObject *struct_rusage;
 
     if (pid == -1)
         return posix_error();
@@ -7570,18 +7606,17 @@ wait_helper(pid_t pid, int status, struct rusage *ru)
         memset(ru, 0, sizeof(*ru));
     }
 
-    if (struct_rusage == NULL) {
-        PyObject *m = PyImport_ImportModuleNoBlock("resource");
-        if (m == NULL)
-            return NULL;
-        struct_rusage = _PyObject_GetAttrId(m, &PyId_struct_rusage);
-        Py_DECREF(m);
-        if (struct_rusage == NULL)
-            return NULL;
-    }
+    PyObject *m = PyImport_ImportModuleNoBlock("resource");
+    if (m == NULL)
+        return NULL;
+    struct_rusage = PyObject_GetAttr(m, _posixstate_global->struct_rusage);
+    Py_DECREF(m);
+    if (struct_rusage == NULL)
+        return NULL;
 
     /* XXX(nnorwitz): Copied (w/mods) from resource.c, there should be only one. */
     result = PyStructSequence_New((PyTypeObject*) struct_rusage);
+    Py_DECREF(struct_rusage);
     if (!result)
         return NULL;
 
@@ -7732,7 +7767,8 @@ os_waitid_impl(PyObject *module, idtype_t idtype, id_t id, int options)
     if (si.si_pid == 0)
         Py_RETURN_NONE;
 
-    result = PyStructSequence_New(WaitidResultType);
+    PyObject *WaitidResultType = _posixstate(module)->WaitidResultType;
+    result = PyStructSequence_New((PyTypeObject *)WaitidResultType);
     if (!result)
         return NULL;
 
@@ -7855,6 +7891,30 @@ os_wait_impl(PyObject *module)
     return Py_BuildValue("Ni", PyLong_FromPid(pid), WAIT_STATUS_INT(status));
 }
 #endif /* HAVE_WAIT */
+
+#if defined(__linux__) && defined(__NR_pidfd_open)
+/*[clinic input]
+os.pidfd_open
+  pid: pid_t
+  flags: unsigned_int = 0
+
+Return a file descriptor referring to the process *pid*.
+
+The descriptor can be used to perform process management without races and
+signals.
+[clinic start generated code]*/
+
+static PyObject *
+os_pidfd_open_impl(PyObject *module, pid_t pid, unsigned int flags)
+/*[clinic end generated code: output=5c7252698947dc41 input=c3fd99ce947ccfef]*/
+{
+    int fd = syscall(__NR_pidfd_open, pid, flags);
+    if (fd < 0) {
+        return posix_error();
+    }
+    return PyLong_FromLong(fd);
+}
+#endif
 
 
 #if defined(HAVE_READLINK) || defined(MS_WINDOWS)
@@ -8183,8 +8243,6 @@ static PyStructSequence_Desc times_result_desc = {
     5
 };
 
-static PyTypeObject* TimesResultType;
-
 #ifdef MS_WINDOWS
 #define HAVE_TIMES  /* mandatory, for the method table */
 #endif
@@ -8196,7 +8254,8 @@ build_times_result(double user, double system,
     double children_user, double children_system,
     double elapsed)
 {
-    PyObject *value = PyStructSequence_New(TimesResultType);
+    PyObject *TimesResultType = _posixstate_global->TimesResultType;
+    PyObject *value = PyStructSequence_New((PyTypeObject *)TimesResultType);
     if (value == NULL)
         return NULL;
 
@@ -10017,10 +10076,6 @@ os_posix_fadvise_impl(PyObject *module, int fd, Py_off_t offset,
 
 #ifdef HAVE_PUTENV
 
-/* Save putenv() parameters as values here, so we can collect them when they
- * get re-set with another call for the same key. */
-static PyObject *posix_putenv_garbage;
-
 static void
 posix_putenv_garbage_setitem(PyObject *name, PyObject *value)
 {
@@ -10028,7 +10083,7 @@ posix_putenv_garbage_setitem(PyObject *name, PyObject *value)
      * this will cause previous value to be collected.  This has to
      * happen after the real putenv() call because the old value
      * was still accessible until then. */
-    if (PyDict_SetItem(posix_putenv_garbage, name, value))
+    if (PyDict_SetItem(_posixstate_global->posix_putenv_garbage, name, value))
         /* really not much we can do; just leak */
         PyErr_Clear();
     else
@@ -10165,7 +10220,7 @@ os_unsetenv_impl(PyObject *module, PyObject *name)
      * happen after the real unsetenv() call because the
      * old value was still accessible until then.
      */
-    if (PyDict_DelItem(posix_putenv_garbage, name)) {
+    if (PyDict_DelItem(_posixstate(module)->posix_putenv_garbage, name)) {
         /* really not much we can do; just leak */
         if (!PyErr_ExceptionMatches(PyExc_KeyError)) {
             return NULL;
@@ -10376,7 +10431,8 @@ os_WSTOPSIG_impl(PyObject *module, int status)
 
 static PyObject*
 _pystatvfs_fromstructstatvfs(struct statvfs st) {
-    PyObject *v = PyStructSequence_New(StatVFSResultType);
+    PyObject *StatVFSResultType = _posixstate_global->StatVFSResultType;
+    PyObject *v = PyStructSequence_New((PyTypeObject *)StatVFSResultType);
     if (v == NULL)
         return NULL;
 
@@ -12153,8 +12209,6 @@ os_memfd_create_impl(PyObject *module, PyObject *name, unsigned int flags)
 
 /* Terminal size querying */
 
-static PyTypeObject* TerminalSizeType;
-
 PyDoc_STRVAR(TerminalSize_docstring,
     "A tuple of (columns, lines) for holding terminal window size");
 
@@ -12245,7 +12299,8 @@ get_terminal_size(PyObject *self, PyObject *args)
     }
 #endif /* TERMSIZE_USE_CONIO */
 
-    termsize = PyStructSequence_New(TerminalSizeType);
+    PyObject *TerminalSizeType = _posixstate(self)->TerminalSizeType;
+    termsize = PyStructSequence_New((PyTypeObject *)TerminalSizeType);
     if (termsize == NULL)
         return NULL;
     PyStructSequence_SET_ITEM(termsize, 0, PyLong_FromLong(columns));
@@ -12443,9 +12498,9 @@ os_set_blocking_impl(PyObject *module, int fd, int blocking)
 
 
 /*[clinic input]
-class os.DirEntry "DirEntry *" "&DirEntryType"
+class os.DirEntry "DirEntry *" "DirEntryType"
 [clinic start generated code]*/
-/*[clinic end generated code: output=da39a3ee5e6b4b0d input=3138f09f7c683f1d]*/
+/*[clinic end generated code: output=da39a3ee5e6b4b0d input=3c18c7a448247980]*/
 
 typedef struct {
     PyObject_HEAD
@@ -12466,14 +12521,25 @@ typedef struct {
 #endif
 } DirEntry;
 
+static PyObject *
+_disabled_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
+{
+    PyErr_Format(PyExc_TypeError,
+        "cannot create '%.100s' instances", _PyType_Name(type));
+    return NULL;
+}
+
 static void
 DirEntry_dealloc(DirEntry *entry)
 {
+    PyTypeObject *tp = Py_TYPE(entry);
     Py_XDECREF(entry->name);
     Py_XDECREF(entry->path);
     Py_XDECREF(entry->stat);
     Py_XDECREF(entry->lstat);
-    Py_TYPE(entry)->tp_free((PyObject *)entry);
+    freefunc free_func = PyType_GetSlot(tp, Py_tp_free);
+    free_func(entry);
+    Py_DECREF(tp);
 }
 
 /* Forward reference */
@@ -12602,7 +12668,6 @@ DirEntry_test_mode(DirEntry *self, int follow_symlinks, unsigned short mode_bits
 #ifdef MS_WINDOWS
     unsigned long dir_bits;
 #endif
-    _Py_IDENTIFIER(st_mode);
 
 #ifdef MS_WINDOWS
     is_symlink = (self->win32_lstat.st_mode & S_IFMT) == S_IFLNK;
@@ -12625,7 +12690,7 @@ DirEntry_test_mode(DirEntry *self, int follow_symlinks, unsigned short mode_bits
             }
             goto error;
         }
-        st_mode = _PyObject_GetAttrId(stat, &PyId_st_mode);
+        st_mode = PyObject_GetAttr(stat, _posixstate_global->st_mode);
         if (!st_mode)
             goto error;
 
@@ -12773,38 +12838,23 @@ static PyMethodDef DirEntry_methods[] = {
     {NULL}
 };
 
-static PyTypeObject DirEntryType = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    MODNAME ".DirEntry",                    /* tp_name */
-    sizeof(DirEntry),                       /* tp_basicsize */
-    0,                                      /* tp_itemsize */
-    /* methods */
-    (destructor)DirEntry_dealloc,           /* tp_dealloc */
-    0,                                      /* tp_vectorcall_offset */
-    0,                                      /* tp_getattr */
-    0,                                      /* tp_setattr */
-    0,                                      /* tp_as_async */
-    (reprfunc)DirEntry_repr,                /* tp_repr */
-    0,                                      /* tp_as_number */
-    0,                                      /* tp_as_sequence */
-    0,                                      /* tp_as_mapping */
-    0,                                      /* tp_hash */
-    0,                                      /* tp_call */
-    0,                                      /* tp_str */
-    0,                                      /* tp_getattro */
-    0,                                      /* tp_setattro */
-    0,                                      /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT,                     /* tp_flags */
-    0,                                      /* tp_doc */
-    0,                                      /* tp_traverse */
-    0,                                      /* tp_clear */
-    0,                                      /* tp_richcompare */
-    0,                                      /* tp_weaklistoffset */
-    0,                                      /* tp_iter */
-    0,                                      /* tp_iternext */
-    DirEntry_methods,                       /* tp_methods */
-    DirEntry_members,                       /* tp_members */
+static PyType_Slot DirEntryType_slots[] = {
+    {Py_tp_new, _disabled_new},
+    {Py_tp_dealloc, DirEntry_dealloc},
+    {Py_tp_repr, DirEntry_repr},
+    {Py_tp_methods, DirEntry_methods},
+    {Py_tp_members, DirEntry_members},
+    {0, 0},
 };
+
+static PyType_Spec DirEntryType_spec = {
+    MODNAME ".DirEntry",
+    sizeof(DirEntry),
+    0,
+    Py_TPFLAGS_DEFAULT,
+    DirEntryType_slots
+};
+
 
 #ifdef MS_WINDOWS
 
@@ -12849,7 +12899,8 @@ DirEntry_from_find_data(path_t *path, WIN32_FIND_DATAW *dataW)
     ULONG reparse_tag;
     wchar_t *joined_path;
 
-    entry = PyObject_New(DirEntry, &DirEntryType);
+    PyObject *DirEntryType = _posixstate_global->DirEntryType;
+    entry = PyObject_New(DirEntry, (PyTypeObject *)DirEntryType);
     if (!entry)
         return NULL;
     entry->name = NULL;
@@ -12936,7 +12987,8 @@ DirEntry_from_posix_info(path_t *path, const char *name, Py_ssize_t name_len,
     DirEntry *entry;
     char *joined_path;
 
-    entry = PyObject_New(DirEntry, &DirEntryType);
+    PyObject *DirEntryType = _posixstate_global->DirEntryType;
+    entry = PyObject_New(DirEntry, (PyTypeObject *)DirEntryType);
     if (!entry)
         return NULL;
     entry->name = NULL;
@@ -13198,10 +13250,13 @@ ScandirIterator_finalize(ScandirIterator *iterator)
 static void
 ScandirIterator_dealloc(ScandirIterator *iterator)
 {
+    PyTypeObject *tp = Py_TYPE(iterator);
     if (PyObject_CallFinalizerFromDealloc((PyObject *)iterator) < 0)
         return;
 
-    Py_TYPE(iterator)->tp_free((PyObject *)iterator);
+    freefunc free_func = PyType_GetSlot(tp, Py_tp_free);
+    free_func(iterator);
+    Py_DECREF(tp);
 }
 
 static PyMethodDef ScandirIterator_methods[] = {
@@ -13211,56 +13266,22 @@ static PyMethodDef ScandirIterator_methods[] = {
     {NULL}
 };
 
-static PyTypeObject ScandirIteratorType = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    MODNAME ".ScandirIterator",             /* tp_name */
-    sizeof(ScandirIterator),                /* tp_basicsize */
-    0,                                      /* tp_itemsize */
-    /* methods */
-    (destructor)ScandirIterator_dealloc,    /* tp_dealloc */
-    0,                                      /* tp_vectorcall_offset */
-    0,                                      /* tp_getattr */
-    0,                                      /* tp_setattr */
-    0,                                      /* tp_as_async */
-    0,                                      /* tp_repr */
-    0,                                      /* tp_as_number */
-    0,                                      /* tp_as_sequence */
-    0,                                      /* tp_as_mapping */
-    0,                                      /* tp_hash */
-    0,                                      /* tp_call */
-    0,                                      /* tp_str */
-    0,                                      /* tp_getattro */
-    0,                                      /* tp_setattro */
-    0,                                      /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT,                     /* tp_flags */
-    0,                                      /* tp_doc */
-    0,                                      /* tp_traverse */
-    0,                                      /* tp_clear */
-    0,                                      /* tp_richcompare */
-    0,                                      /* tp_weaklistoffset */
-    PyObject_SelfIter,                      /* tp_iter */
-    (iternextfunc)ScandirIterator_iternext, /* tp_iternext */
-    ScandirIterator_methods,                /* tp_methods */
-    0,                                      /* tp_members */
-    0,                                      /* tp_getset */
-    0,                                      /* tp_base */
-    0,                                      /* tp_dict */
-    0,                                      /* tp_descr_get */
-    0,                                      /* tp_descr_set */
-    0,                                      /* tp_dictoffset */
-    0,                                      /* tp_init */
-    0,                                      /* tp_alloc */
-    0,                                      /* tp_new */
-    0,                                      /* tp_free */
-    0,                                      /* tp_is_gc */
-    0,                                      /* tp_bases */
-    0,                                      /* tp_mro */
-    0,                                      /* tp_cache */
-    0,                                      /* tp_subclasses */
-    0,                                      /* tp_weaklist */
-    0,                                      /* tp_del */
-    0,                                      /* tp_version_tag */
-    (destructor)ScandirIterator_finalize,   /* tp_finalize */
+static PyType_Slot ScandirIteratorType_slots[] = {
+    {Py_tp_new, _disabled_new},
+    {Py_tp_dealloc, ScandirIterator_dealloc},
+    {Py_tp_finalize, ScandirIterator_finalize},
+    {Py_tp_iter, PyObject_SelfIter},
+    {Py_tp_iternext, ScandirIterator_iternext},
+    {Py_tp_methods, ScandirIterator_methods},
+    {0, 0},
+};
+
+static PyType_Spec ScandirIteratorType_spec = {
+    MODNAME ".ScandirIterator",
+    sizeof(ScandirIterator),
+    0,
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_FINALIZE,
+    ScandirIteratorType_slots
 };
 
 /*[clinic input]
@@ -13296,7 +13317,8 @@ os_scandir_impl(PyObject *module, path_t *path)
         return NULL;
     }
 
-    iterator = PyObject_New(ScandirIterator, &ScandirIteratorType);
+    PyObject *ScandirIteratorType = _posixstate(module)->ScandirIteratorType;
+    iterator = PyObject_New(ScandirIterator, (PyTypeObject *)ScandirIteratorType);
     if (!iterator)
         return NULL;
 
@@ -13386,7 +13408,6 @@ PyOS_FSPath(PyObject *path)
 {
     /* For error message reasons, this function is manually inlined in
        path_converter(). */
-    _Py_IDENTIFIER(__fspath__);
     PyObject *func = NULL;
     PyObject *path_repr = NULL;
 
@@ -13400,7 +13421,7 @@ PyOS_FSPath(PyObject *path)
         return PyErr_Format(PyExc_TypeError,
                             "expected str, bytes or os.PathLike object, "
                             "not %.200s",
-                            Py_TYPE(path)->tp_name);
+                            _PyType_Name(Py_TYPE(path)));
     }
 
     path_repr = _PyObject_CallNoArg(func);
@@ -13412,8 +13433,8 @@ PyOS_FSPath(PyObject *path)
     if (!(PyUnicode_Check(path_repr) || PyBytes_Check(path_repr))) {
         PyErr_Format(PyExc_TypeError,
                      "expected %.200s.__fspath__() to return str or bytes, "
-                     "not %.200s", Py_TYPE(path)->tp_name,
-                     Py_TYPE(path_repr)->tp_name);
+                     "not %.200s", _PyType_Name(Py_TYPE(path)),
+                     _PyType_Name(Py_TYPE(path_repr)));
         Py_DECREF(path_repr);
         return NULL;
     }
@@ -13705,6 +13726,7 @@ static PyMethodDef posix_methods[] = {
     OS_WAIT4_METHODDEF
     OS_WAITID_METHODDEF
     OS_WAITPID_METHODDEF
+    OS_PIDFD_OPEN_METHODDEF
     OS_GETSID_METHODDEF
     OS_SETSID_METHODDEF
     OS_SETPGID_METHODDEF
@@ -14108,6 +14130,9 @@ all_ins(PyObject *m)
     if (PyModule_AddIntMacro(m, P_PID)) return -1;
     if (PyModule_AddIntMacro(m, P_PGID)) return -1;
     if (PyModule_AddIntMacro(m, P_ALL)) return -1;
+#ifdef P_PIDFD
+    if (PyModule_AddIntMacro(m, P_PIDFD)) return -1;
+#endif
 #endif
 #ifdef WEXITED
     if (PyModule_AddIntMacro(m, WEXITED)) return -1;
@@ -14322,12 +14347,12 @@ static struct PyModuleDef posixmodule = {
     PyModuleDef_HEAD_INIT,
     MODNAME,
     posix__doc__,
-    -1,
+    sizeof(_posixstate),
     posix_methods,
     NULL,
-    NULL,
-    NULL,
-    NULL
+    _posix_traverse,
+    _posix_clear,
+    _posix_free,
 };
 
 
@@ -14472,6 +14497,12 @@ INITFUNC(void)
     PyObject *list;
     const char * const *trace;
 
+    m = PyState_FindModule(&posixmodule);
+    if (m != NULL) {
+        Py_INCREF(m);
+        return m;
+    }
+
     m = PyModule_Create(&posixmodule);
     if (m == NULL)
         return NULL;
@@ -14493,94 +14524,106 @@ INITFUNC(void)
     PyModule_AddObject(m, "error", PyExc_OSError);
 
 #ifdef HAVE_PUTENV
-    if (posix_putenv_garbage == NULL)
-        posix_putenv_garbage = PyDict_New();
+    /* Save putenv() parameters as values here, so we can collect them when they
+     * get re-set with another call for the same key. */
+    _posixstate(m)->posix_putenv_garbage = PyDict_New();
 #endif
 
-    if (!initialized) {
 #if defined(HAVE_WAITID) && !defined(__APPLE__)
-        waitid_result_desc.name = MODNAME ".waitid_result";
-        WaitidResultType = PyStructSequence_NewType(&waitid_result_desc);
-        if (WaitidResultType == NULL) {
-            return NULL;
-        }
+    waitid_result_desc.name = MODNAME ".waitid_result";
+    PyObject *WaitidResultType = (PyObject *)PyStructSequence_NewType(&waitid_result_desc);
+    if (WaitidResultType == NULL) {
+        return NULL;
+    }
+    Py_INCREF(WaitidResultType);
+    PyModule_AddObject(m, "waitid_result", WaitidResultType);
+    _posixstate(m)->WaitidResultType = WaitidResultType;
 #endif
 
-        stat_result_desc.name = "os.stat_result"; /* see issue #19209 */
-        stat_result_desc.fields[7].name = PyStructSequence_UnnamedField;
-        stat_result_desc.fields[8].name = PyStructSequence_UnnamedField;
-        stat_result_desc.fields[9].name = PyStructSequence_UnnamedField;
-        StatResultType = PyStructSequence_NewType(&stat_result_desc);
-        if (StatResultType == NULL) {
-            return NULL;
-        }
-        structseq_new = StatResultType->tp_new;
-        StatResultType->tp_new = statresult_new;
+    stat_result_desc.name = "os.stat_result"; /* see issue #19209 */
+    stat_result_desc.fields[7].name = PyStructSequence_UnnamedField;
+    stat_result_desc.fields[8].name = PyStructSequence_UnnamedField;
+    stat_result_desc.fields[9].name = PyStructSequence_UnnamedField;
+    PyObject *StatResultType = (PyObject *)PyStructSequence_NewType(&stat_result_desc);
+    if (StatResultType == NULL) {
+        return NULL;
+    }
+    Py_INCREF(StatResultType);
+    PyModule_AddObject(m, "stat_result", StatResultType);
+    _posixstate(m)->StatResultType = StatResultType;
+    structseq_new = ((PyTypeObject *)StatResultType)->tp_new;
+    ((PyTypeObject *)StatResultType)->tp_new = statresult_new;
 
-        statvfs_result_desc.name = "os.statvfs_result"; /* see issue #19209 */
-        StatVFSResultType = PyStructSequence_NewType(&statvfs_result_desc);
-        if (StatVFSResultType == NULL) {
-            return NULL;
-        }
+    statvfs_result_desc.name = "os.statvfs_result"; /* see issue #19209 */
+    PyObject *StatVFSResultType = (PyObject *)PyStructSequence_NewType(&statvfs_result_desc);
+    if (StatVFSResultType == NULL) {
+        return NULL;
+    }
+    Py_INCREF(StatVFSResultType);
+    PyModule_AddObject(m, "statvfs_result", StatVFSResultType);
+    _posixstate(m)->StatVFSResultType = StatVFSResultType;
 #ifdef NEED_TICKS_PER_SECOND
 #  if defined(HAVE_SYSCONF) && defined(_SC_CLK_TCK)
-        ticks_per_second = sysconf(_SC_CLK_TCK);
+    ticks_per_second = sysconf(_SC_CLK_TCK);
 #  elif defined(HZ)
-        ticks_per_second = HZ;
+    ticks_per_second = HZ;
 #  else
-        ticks_per_second = 60; /* magic fallback value; may be bogus */
+    ticks_per_second = 60; /* magic fallback value; may be bogus */
 #  endif
 #endif
 
 #if defined(HAVE_SCHED_SETPARAM) || defined(HAVE_SCHED_SETSCHEDULER) || defined(POSIX_SPAWN_SETSCHEDULER) || defined(POSIX_SPAWN_SETSCHEDPARAM)
-        sched_param_desc.name = MODNAME ".sched_param";
-        SchedParamType = PyStructSequence_NewType(&sched_param_desc);
-        if (SchedParamType == NULL) {
-            return NULL;
-        }
-        SchedParamType->tp_new = os_sched_param;
-#endif
-
-        /* initialize TerminalSize_info */
-        TerminalSizeType = PyStructSequence_NewType(&TerminalSize_desc);
-        if (TerminalSizeType == NULL) {
-            return NULL;
-        }
-
-        /* initialize scandir types */
-        if (PyType_Ready(&ScandirIteratorType) < 0)
-            return NULL;
-        if (PyType_Ready(&DirEntryType) < 0)
-            return NULL;
+    sched_param_desc.name = MODNAME ".sched_param";
+    PyObject *SchedParamType = (PyObject *)PyStructSequence_NewType(&sched_param_desc);
+    if (SchedParamType == NULL) {
+        return NULL;
     }
-#if defined(HAVE_WAITID) && !defined(__APPLE__)
-    Py_INCREF((PyObject*) WaitidResultType);
-    PyModule_AddObject(m, "waitid_result", (PyObject*) WaitidResultType);
-#endif
-    Py_INCREF((PyObject*) StatResultType);
-    PyModule_AddObject(m, "stat_result", (PyObject*) StatResultType);
-    Py_INCREF((PyObject*) StatVFSResultType);
-    PyModule_AddObject(m, "statvfs_result",
-                       (PyObject*) StatVFSResultType);
-
-#if defined(HAVE_SCHED_SETPARAM) || defined(HAVE_SCHED_SETSCHEDULER)
     Py_INCREF(SchedParamType);
-    PyModule_AddObject(m, "sched_param", (PyObject *)SchedParamType);
+    PyModule_AddObject(m, "sched_param", SchedParamType);
+    _posixstate(m)->SchedParamType = SchedParamType;
+    ((PyTypeObject *)SchedParamType)->tp_new = os_sched_param;
 #endif
+
+    /* initialize TerminalSize_info */
+    PyObject *TerminalSizeType = (PyObject *)PyStructSequence_NewType(&TerminalSize_desc);
+    if (TerminalSizeType == NULL) {
+        return NULL;
+    }
+    Py_INCREF(TerminalSizeType);
+    PyModule_AddObject(m, "terminal_size", TerminalSizeType);
+    _posixstate(m)->TerminalSizeType = TerminalSizeType;
+
+    /* initialize scandir types */
+    PyObject *ScandirIteratorType = PyType_FromSpec(&ScandirIteratorType_spec);
+    if (ScandirIteratorType == NULL) {
+        return NULL;
+    }
+    _posixstate(m)->ScandirIteratorType = ScandirIteratorType;
+
+    PyObject *DirEntryType = PyType_FromSpec(&DirEntryType_spec);
+    if (DirEntryType == NULL) {
+        return NULL;
+    }
+    Py_INCREF(DirEntryType);
+    PyModule_AddObject(m, "DirEntry", DirEntryType);
+    _posixstate(m)->DirEntryType = DirEntryType;
 
     times_result_desc.name = MODNAME ".times_result";
-    TimesResultType = PyStructSequence_NewType(&times_result_desc);
+    PyObject *TimesResultType = (PyObject *)PyStructSequence_NewType(&times_result_desc);
     if (TimesResultType == NULL) {
         return NULL;
     }
-    PyModule_AddObject(m, "times_result", (PyObject *)TimesResultType);
+    Py_INCREF(TimesResultType);
+    PyModule_AddObject(m, "times_result", TimesResultType);
+    _posixstate(m)->TimesResultType = TimesResultType;
 
-    uname_result_desc.name = MODNAME ".uname_result";
-    UnameResultType = PyStructSequence_NewType(&uname_result_desc);
+    PyTypeObject *UnameResultType = PyStructSequence_NewType(&uname_result_desc);
     if (UnameResultType == NULL) {
         return NULL;
     }
+    Py_INCREF(UnameResultType);
     PyModule_AddObject(m, "uname_result", (PyObject *)UnameResultType);
+    _posixstate(m)->UnameResultType = (PyObject *)UnameResultType;
 
 #ifdef __APPLE__
     /*
@@ -14620,11 +14663,15 @@ INITFUNC(void)
 
 #endif /* __APPLE__ */
 
-    Py_INCREF(TerminalSizeType);
-    PyModule_AddObject(m, "terminal_size", (PyObject*)TerminalSizeType);
-
-    billion = PyLong_FromLong(1000000000);
-    if (!billion)
+    if ((_posixstate(m)->billion = PyLong_FromLong(1000000000)) == NULL)
+        return NULL;
+#if defined(HAVE_WAIT3) || defined(HAVE_WAIT4)
+    _posixstate(m)->struct_rusage = PyUnicode_InternFromString("struct_rusage");
+    if (_posixstate(m)->struct_rusage == NULL)
+        return NULL;
+#endif
+    _posixstate(m)->st_mode = PyUnicode_InternFromString("st_mode");
+    if (_posixstate(m)->st_mode == NULL)
         return NULL;
 
     /* suppress "function not used" warnings */
@@ -14653,11 +14700,6 @@ INITFUNC(void)
         Py_DECREF(unicode);
     }
     PyModule_AddObject(m, "_have_functions", list);
-
-    Py_INCREF((PyObject *) &DirEntryType);
-    PyModule_AddObject(m, "DirEntry", (PyObject *)&DirEntryType);
-
-    initialized = 1;
 
     return m;
 }
