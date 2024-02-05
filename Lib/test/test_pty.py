@@ -1,17 +1,22 @@
-from test.support import verbose, import_module, reap_children
+import sys
+import unittest
+from test.support import is_apple_mobile, import_module, reap_children, verbose
 
 # Skip these tests if termios is not available
 import_module('termios')
 
+# Skip tests on WASM platforms, plus iOS/tvOS/watchOS
+if is_apple_mobile:
+    raise unittest.SkipTest(f"pty tests not required on {sys.platform}")
+
 import errno
 import pty
 import os
-import sys
 import select
 import signal
 import socket
 import io # readline
-import unittest
+
 
 TEST_STRING_1 = b"I wish to buy a fish license.\n"
 TEST_STRING_2 = b"For my pet fish, Eric.\n"

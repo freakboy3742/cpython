@@ -16,8 +16,8 @@ import sys
 import tempfile
 from test.support import (captured_stdout, captured_stderr, requires_zlib,
                           can_symlink, EnvironmentVarGuard, rmtree,
-                          import_module,
-                          skip_if_broken_multiprocessing_synchronize)
+                          skip_if_broken_multiprocessing_synchronize,
+                          requires_subprocess, is_apple_mobile)
 import unittest
 import venv
 from unittest.mock import patch
@@ -34,6 +34,12 @@ requireVenvCreate = unittest.skipUnless(
     or sys._base_executable != sys.executable,
     'cannot run venv.create from within a venv on this platform')
 
+# Skip tests on iOS/tvOS/watchOS
+if is_apple_mobile:
+    raise unittest.SkipTest(f"venv tests not required on {sys.platform}")
+
+
+@requires_subprocess()
 def check_output(cmd, encoding=None):
     p = subprocess.Popen(cmd,
         stdout=subprocess.PIPE,

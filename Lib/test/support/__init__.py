@@ -52,11 +52,14 @@ __all__ = [
     "skip_unless_symlink", "requires_gzip", "requires_bz2", "requires_lzma",
     "bigmemtest", "bigaddrspacetest", "cpython_only", "get_attribute",
     "requires_IEEE_754", "skip_unless_xattr", "requires_zlib",
+    "has_fork_support", "requires_fork",
+    "has_subprocess_support", "requires_subprocess",
     "anticipate_failure", "load_package_tests", "detect_api_mismatch",
     "check__all__", "skip_if_buggy_ucrt_strfptime",
     "ignore_warnings", "check_sanitizer", "skip_if_sanitizer",
     # sys
-    "is_jython", "is_android", "check_impl_detail", "unix_shell",
+    "is_jython", "is_android", "is_apple", "is_apple_mobile",
+    "check_impl_detail", "unix_shell",
     "setswitchinterval",
     # network
     "open_urlresource",
@@ -743,21 +746,26 @@ is_jython = sys.platform.startswith('java')
 
 is_android = hasattr(sys, 'getandroidapilevel')
 
-if sys.platform != 'win32':
+if sys.platform not in {"win32", "vxworks", "ios", "tvos", "watchos"}:
     unix_shell = '/system/bin/sh' if is_android else '/bin/sh'
 else:
     unix_shell = None
 
-# Filename used for testing
-if os.name == 'java':
-    # Jython disallows @ in module names
-    TESTFN_ASCII = '$test'
-else:
-    TESTFN_ASCII = '@test'
+# Apple mobile platforms (iOS/tvOS/watchOS) are POSIX-like but do not
+# have subprocess or fork support.
+is_apple_mobile = sys.platform in {"ios", "tvos", "watchos"}
+is_apple = is_apple_mobile or sys.platform == "darwin"
 
-# Disambiguate TESTFN for parallel testing, while letting it remain a valid
-# module name.
-TESTFN_ASCII = "{}_{}_tmp".format(TESTFN_ASCII, os.getpid())
+has_fork_support = hasattr(os, "fork") and not is_apple_mobile
+
+def requires_fork():
+    return unittest.skipUnless(has_fork_support, "requires working os.fork()")
+
+has_subprocess_support = not is_apple_mobile
+
+def requires_subprocess():
+    """Used for subprocess, os.spawn calls, fd inheritance"""
+    return unittest.skipUnless(has_subprocess_support, "requires subprocess support")
 
 # Define the URL of a dedicated HTTP server for the network tests.
 # The URL must use clear-text HTTP: no redirection to encrypted HTTPS.

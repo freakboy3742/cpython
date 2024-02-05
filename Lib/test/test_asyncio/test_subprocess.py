@@ -38,6 +38,7 @@ class TestSubprocessTransport(base_subprocess.BaseSubprocessTransport):
         self._proc.pid = -1
 
 
+@support.requires_subprocess()
 class SubprocessTransportTests(test_utils.TestCase):
     def setUp(self):
         super().setUp()
@@ -103,6 +104,7 @@ class SubprocessTransportTests(test_utils.TestCase):
         transport.close()
 
 
+@support.requires_subprocess()
 class SubprocessMixin:
 
     def test_stdin_stdout(self):
