@@ -1799,6 +1799,7 @@ class SubprocessTestsMixin:
         else:
             self.assertEqual(-signal.SIGKILL, returncode)
 
+    @support.requires_subprocess()
     def test_subprocess_exec(self):
         prog = os.path.join(os.path.dirname(__file__), 'echo.py')
 
@@ -1820,6 +1821,7 @@ class SubprocessTestsMixin:
         self.check_killed(proto.returncode)
         self.assertEqual(b'Python The Winner', proto.data[1])
 
+    @support.requires_subprocess()
     def test_subprocess_interactive(self):
         prog = os.path.join(os.path.dirname(__file__), 'echo.py')
 
@@ -1847,6 +1849,7 @@ class SubprocessTestsMixin:
         self.loop.run_until_complete(proto.completed)
         self.check_killed(proto.returncode)
 
+    @support.requires_subprocess()
     def test_subprocess_shell(self):
         connect = self.loop.subprocess_shell(
                         functools.partial(MySubprocessProtocol, self.loop),
@@ -1863,6 +1866,7 @@ class SubprocessTestsMixin:
         self.assertEqual(proto.data[2], b'')
         transp.close()
 
+    @support.requires_subprocess()
     def test_subprocess_exitcode(self):
         connect = self.loop.subprocess_shell(
                         functools.partial(MySubprocessProtocol, self.loop),
@@ -1874,6 +1878,7 @@ class SubprocessTestsMixin:
         self.assertEqual(7, proto.returncode)
         transp.close()
 
+    @support.requires_subprocess()
     def test_subprocess_close_after_finish(self):
         connect = self.loop.subprocess_shell(
                         functools.partial(MySubprocessProtocol, self.loop),
@@ -1888,6 +1893,7 @@ class SubprocessTestsMixin:
         self.assertEqual(7, proto.returncode)
         self.assertIsNone(transp.close())
 
+    @support.requires_subprocess()
     def test_subprocess_kill(self):
         prog = os.path.join(os.path.dirname(__file__), 'echo.py')
 
@@ -1904,6 +1910,7 @@ class SubprocessTestsMixin:
         self.check_killed(proto.returncode)
         transp.close()
 
+    @support.requires_subprocess()
     def test_subprocess_terminate(self):
         prog = os.path.join(os.path.dirname(__file__), 'echo.py')
 
@@ -1921,6 +1928,7 @@ class SubprocessTestsMixin:
         transp.close()
 
     @unittest.skipIf(sys.platform == 'win32', "Don't have SIGHUP")
+    @support.requires_subprocess()
     def test_subprocess_send_signal(self):
         # bpo-31034: Make sure that we get the default signal handler (killing
         # the process). The parent process may have decided to ignore SIGHUP,
@@ -1945,6 +1953,7 @@ class SubprocessTestsMixin:
         finally:
             signal.signal(signal.SIGHUP, old_handler)
 
+    @support.requires_subprocess()
     def test_subprocess_stderr(self):
         prog = os.path.join(os.path.dirname(__file__), 'echo2.py')
 
@@ -1966,6 +1975,7 @@ class SubprocessTestsMixin:
         self.assertTrue(proto.data[2].startswith(b'ERR:test'), proto.data[2])
         self.assertEqual(0, proto.returncode)
 
+    @support.requires_subprocess()
     def test_subprocess_stderr_redirect_to_stdout(self):
         prog = os.path.join(os.path.dirname(__file__), 'echo2.py')
 
@@ -1991,6 +2001,7 @@ class SubprocessTestsMixin:
         transp.close()
         self.assertEqual(0, proto.returncode)
 
+    @support.requires_subprocess()
     def test_subprocess_close_client_stream(self):
         prog = os.path.join(os.path.dirname(__file__), 'echo3.py')
 
@@ -2025,6 +2036,7 @@ class SubprocessTestsMixin:
         self.loop.run_until_complete(proto.completed)
         self.check_killed(proto.returncode)
 
+    @support.requires_subprocess()
     def test_subprocess_wait_no_same_group(self):
         # start the new process in a new session
         connect = self.loop.subprocess_shell(
@@ -2037,6 +2049,7 @@ class SubprocessTestsMixin:
         self.assertEqual(7, proto.returncode)
         transp.close()
 
+    @support.requires_subprocess()
     def test_subprocess_exec_invalid_args(self):
         async def connect(**kwds):
             await self.loop.subprocess_exec(
@@ -2050,6 +2063,7 @@ class SubprocessTestsMixin:
         with self.assertRaises(ValueError):
             self.loop.run_until_complete(connect(shell=True))
 
+    @support.requires_subprocess()
     def test_subprocess_shell_invalid_args(self):
 
         async def connect(cmd=None, **kwds):
