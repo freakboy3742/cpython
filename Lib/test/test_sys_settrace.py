@@ -7,7 +7,7 @@ import difflib
 import gc
 from functools import wraps
 import asyncio
-from test.support import import_helper
+from test.support import import_helper, requires_subprocess
 import contextlib
 import warnings
 
