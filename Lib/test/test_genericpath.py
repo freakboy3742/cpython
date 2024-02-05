@@ -7,8 +7,9 @@ import os
 import sys
 import unittest
 import warnings
-from test.support import os_helper
-from test.support import warnings_helper
+from test.support import (
+    is_apple, os_helper, warnings_helper
+)
 from test.support.script_helper import assert_python_ok
 from test.support.os_helper import FakePath
 
@@ -475,12 +476,14 @@ class CommonTest(GenericTest):
                     self.assertIsInstance(abspath(path), str)
 
     def test_nonascii_abspath(self):
-        if (os_helper.TESTFN_UNDECODABLE
-        # Mac OS X denies the creation of a directory with an invalid
-        # UTF-8 name. Windows allows creating a directory with an
-        # arbitrary bytes name, but fails to enter this directory
-        # (when the bytes name is used).
-        and sys.platform not in ('win32', 'darwin')):
+        if (
+            os_helper.TESTFN_UNDECODABLE
+            # Apple platforms deny the creation of a
+            # directory with an invalid UTF-8 name. Windows allows creating a
+            # directory with an arbitrary bytes name, but fails to enter this
+            # directory (when the bytes name is used).
+            and sys.platform not in {"win32"} and not is_apple
+        ):
             name = os_helper.TESTFN_UNDECODABLE
         elif os_helper.TESTFN_NONASCII:
             name = os_helper.TESTFN_NONASCII

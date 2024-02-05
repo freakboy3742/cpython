@@ -1,20 +1,24 @@
-from test.support import verbose, reap_children
+import sys
+import unittest
+from test.support import is_apple_mobile, reap_children, verbose
 from test.support.import_helper import import_module
+from test.support.os_helper import TESTFN, unlink
 
 # Skip these tests if termios is not available
 import_module('termios')
+
+# Skip tests on WASM platforms, plus iOS/tvOS/watchOS
+if is_apple_mobile:
+    raise unittest.SkipTest(f"pty tests not required on {sys.platform}")
 
 import errno
 import os
 import pty
 import tty
-import sys
 import select
 import signal
 import socket
 import io # readline
-import unittest
-
 import struct
 import fcntl
 import warnings
