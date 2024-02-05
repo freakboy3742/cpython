@@ -1,7 +1,7 @@
 import unittest
 from test import support
 from test.support import os_helper
-from test.support import socket_helper
+from test.support import requires_subprocess
 from test.support import warnings_helper
 from test import test_urllib
 
@@ -987,6 +987,7 @@ class HandlerTests(unittest.TestCase):
 
         file_obj.close()
 
+    @requires_subprocess()
     def test_http_body_pipe(self):
         # A file reading from a pipe.
         # A pipe cannot be seek'ed.  There is no way to determine the
