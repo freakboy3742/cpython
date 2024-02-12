@@ -154,6 +154,74 @@ define_xopen_source=yes
 AC_SUBST(CONFIG_ARGS)
 CONFIG_ARGS="$ac_configure_args"
 
+# Set name for machine-dependent library files
+AC_ARG_VAR([MACHDEP], [name for machine-dependent library files])
+AC_MSG_CHECKING([MACHDEP])
+if test -z "$MACHDEP"
+then
+    # avoid using uname for cross builds
+    if test "$cross_compiling" = yes; then
+       # ac_sys_system and ac_sys_release are used for setting
+       # a lot of different things including 'define_xopen_source'
+       # in the case statement below.
+	case "$host" in
+	*-*-linux-android*)
+		ac_sys_system=Linux-android
+		;;
+	*-*-linux*)
+		ac_sys_system=Linux
+		;;
+	*-*-cygwin*)
+		ac_sys_system=Cygwin
+		;;
+	*-*-vxworks*)
+	    ac_sys_system=VxWorks
+	    ;;
+	*-*-emscripten)
+	    ac_sys_system=Emscripten
+	    ;;
+	*-*-wasi)
+	    ac_sys_system=WASI
+	    ;;
+	*)
+		# for now, limit cross builds to known configurations
+		MACHDEP="unknown"
+		AC_MSG_ERROR([cross build not supported for $host])
+	esac
+	ac_sys_release=
+    else
+	ac_sys_system=`uname -s`
+	if test "$ac_sys_system" = "AIX" \
+	-o "$ac_sys_system" = "UnixWare" -o "$ac_sys_system" = "OpenUNIX"; then
+		ac_sys_release=`uname -v`
+	else
+		ac_sys_release=`uname -r`
+	fi
+    fi
+    ac_md_system=`echo $ac_sys_system |
+			tr -d '[/ ]' | tr '[[A-Z]]' '[[a-z]]'`
+    ac_md_release=`echo $ac_sys_release |
+			tr -d '[/ ]' | sed 's/^[[A-Z]]\.//' | sed 's/\..*//'`
+    MACHDEP="$ac_md_system$ac_md_release"
+
+    case $MACHDEP in
+	aix*) MACHDEP="aix";;
+	linux*) MACHDEP="linux";;
+	cygwin*) MACHDEP="cygwin";;
+	darwin*) MACHDEP="darwin";;
+	'')	MACHDEP="unknown";;
+    esac
+
+    if test "$ac_sys_system" = "SunOS"; then
+	# For Solaris, there isn't an OS version specific macro defined
+	# in most compilers, so we define one here.
+	SUNOS_VERSION=`echo $ac_sys_release | sed -e 's!\.\([0-9]\)$!.0\1!g' | tr -d '.'`
+	AC_DEFINE_UNQUOTED([Py_SUNOS_VERSION], [$SUNOS_VERSION],
+	                   [The version of SunOS/Solaris as reported by `uname -r' without the dot.])
+    fi
+fi
+AC_MSG_RESULT(["$MACHDEP"])
+
 AC_MSG_CHECKING([for --enable-universalsdk])
 AC_ARG_ENABLE(universalsdk,
 	AS_HELP_STRING([--enable-universalsdk@<:@=SDKDIR@:>@],
@@ -271,11 +339,15 @@ AC_ARG_ENABLE(framework,
 		PYTHONFRAMEWORKDIR=no-framework
 		PYTHONFRAMEWORKPREFIX=
 		PYTHONFRAMEWORKINSTALLDIR=
+		PYTHONFRAMEWORKINSTALLNAMEPREFIX=
+		RESSRCDIR=
 		FRAMEWORKINSTALLFIRST=
 		FRAMEWORKINSTALLLAST=
 		FRAMEWORKALTINSTALLFIRST=
 		FRAMEWORKALTINSTALLLAST=
 		FRAMEWORKPYTHONW=
+		INSTALLTARGETS="commoninstall bininstall maninstall"
+
 		if test "x${prefix}" = "xNONE"; then
 			FRAMEWORKUNIXTOOLSPREFIX="${ac_default_prefix}"
 		else
@@ -288,71 +360,85 @@ AC_ARG_ENABLE(framework,
 		PYTHONFRAMEWORKINSTALLDIR=$PYTHONFRAMEWORKPREFIX/$PYTHONFRAMEWORKDIR
 		FRAMEWORKINSTALLFIRST="frameworkinstallstructure"
 		FRAMEWORKALTINSTALLFIRST="frameworkinstallstructure "
-		FRAMEWORKINSTALLLAST="frameworkinstallmaclib frameworkinstallapps frameworkinstallunixtools"
-		FRAMEWORKALTINSTALLLAST="frameworkinstallmaclib frameworkinstallapps frameworkaltinstallunixtools"
-		FRAMEWORKPYTHONW="frameworkpythonw"
-		FRAMEWORKINSTALLAPPSPREFIX="/Applications"
 
-		if test "x${prefix}" = "xNONE" ; then
-			FRAMEWORKUNIXTOOLSPREFIX="${ac_default_prefix}"
+		case $ac_sys_system in #(
+			Darwin) :
+				FRAMEWORKINSTALLLAST="frameworkinstallmaclib frameworkinstallapps frameworkinstallunixtools"
+				FRAMEWORKALTINSTALLLAST="frameworkinstallmaclib frameworkinstallapps frameworkaltinstallunixtools"
+				FRAMEWORKPYTHONW="frameworkpythonw"
+				FRAMEWORKINSTALLAPPSPREFIX="/Applications"
+				INSTALLTARGETS="commoninstall bininstall maninstall"
 
-		else
-			FRAMEWORKUNIXTOOLSPREFIX="${prefix}"
-		fi
+				if test "x${prefix}" = "xNONE" ; then
+					FRAMEWORKUNIXTOOLSPREFIX="${ac_default_prefix}"
 
-		case "${enableval}" in
-		/System*)
-			FRAMEWORKINSTALLAPPSPREFIX="/Applications"
-			if test "${prefix}" = "NONE" ; then
-				# See below
-				FRAMEWORKUNIXTOOLSPREFIX="/usr"
-			fi
-			;;
+				else
+					FRAMEWORKUNIXTOOLSPREFIX="${prefix}"
+				fi
 
-		/Library*)
-			FRAMEWORKINSTALLAPPSPREFIX="/Applications"
-			;;
+				case "${enableval}" in
+				/System*)
+					FRAMEWORKINSTALLAPPSPREFIX="/Applications"
+					if test "${prefix}" = "NONE" ; then
+						# See below
+						FRAMEWORKUNIXTOOLSPREFIX="/usr"
+					fi
+					;;
 
-		*/Library/Frameworks)
-			MDIR="`dirname "${enableval}"`"
-			MDIR="`dirname "${MDIR}"`"
-			FRAMEWORKINSTALLAPPSPREFIX="${MDIR}/Applications"
+				/Library*)
+					FRAMEWORKINSTALLAPPSPREFIX="/Applications"
+					;;
 
-			if test "${prefix}" = "NONE"; then
-				# User hasn't specified the
-				# --prefix option, but wants to install
-				# the framework in a non-default location,
-				# ensure that the compatibility links get
-				# installed relative to that prefix as well
-				# instead of in /usr/local.
-				FRAMEWORKUNIXTOOLSPREFIX="${MDIR}"
-			fi
-			;;
+				*/Library/Frameworks)
+					MDIR="`dirname "${enableval}"`"
+					MDIR="`dirname "${MDIR}"`"
+					FRAMEWORKINSTALLAPPSPREFIX="${MDIR}/Applications"
 
-		*)
-			FRAMEWORKINSTALLAPPSPREFIX="/Applications"
-			;;
+					if test "${prefix}" = "NONE"; then
+						# User hasn't specified the
+						# --prefix option, but wants to install
+						# the framework in a non-default location,
+						# ensure that the compatibility links get
+						# installed relative to that prefix as well
+						# instead of in /usr/local.
+						FRAMEWORKUNIXTOOLSPREFIX="${MDIR}"
+					fi
+					;;
+
+				*)
+					FRAMEWORKINSTALLAPPSPREFIX="/Applications"
+					;;
+				esac
+
+				prefix=$PYTHONFRAMEWORKINSTALLDIR/Versions/$VERSION
+				PYTHONFRAMEWORKINSTALLNAMEPREFIX=${prefix}
+				RESSRCDIR=Mac/Resources/framework
+
+				# Add files for Mac specific code to the list of output
+				# files:
+				AC_CONFIG_FILES([Mac/Makefile])
+				AC_CONFIG_FILES([Mac/PythonLauncher/Makefile])
+				AC_CONFIG_FILES([Mac/Resources/framework/Info.plist])
+				AC_CONFIG_FILES([Mac/Resources/app/Info.plist])
+				;;
+			*)
+				AC_MSG_ERROR([Unknown platform for framework build])
+				;;
+			esac
 		esac
-
-		prefix=$PYTHONFRAMEWORKINSTALLDIR/Versions/$VERSION
-
-		# Add files for Mac specific code to the list of output
-		# files:
-		AC_CONFIG_FILES(Mac/Makefile)
-		AC_CONFIG_FILES(Mac/PythonLauncher/Makefile)
-		AC_CONFIG_FILES(Mac/Resources/framework/Info.plist)
-		AC_CONFIG_FILES(Mac/Resources/app/Info.plist)
-	esac
 	],[
 	PYTHONFRAMEWORK=
 	PYTHONFRAMEWORKDIR=no-framework
 	PYTHONFRAMEWORKPREFIX=
 	PYTHONFRAMEWORKINSTALLDIR=
+	PYTHONFRAMEWORKINSTALLNAMEPREFIX=
+	RESSRCDIR=
 	FRAMEWORKINSTALLFIRST=
 	FRAMEWORKINSTALLLAST=
 	FRAMEWORKALTINSTALLFIRST=
 	FRAMEWORKALTINSTALLLAST=
 	FRAMEWORKPYTHONW=
+	INSTALLTARGETS="commoninstall bininstall maninstall"
 	if test "x${prefix}" = "xNONE" ; then
 		FRAMEWORKUNIXTOOLSPREFIX="${ac_default_prefix}"
 	else
@@ -361,25 +447,26 @@ AC_ARG_ENABLE(framework,
 	enable_framework=
 
 ])
-AC_SUBST(PYTHONFRAMEWORK)
-AC_SUBST(PYTHONFRAMEWORKIDENTIFIER)
-AC_SUBST(PYTHONFRAMEWORKDIR)
-AC_SUBST(PYTHONFRAMEWORKPREFIX)
-AC_SUBST(PYTHONFRAMEWORKINSTALLDIR)
-AC_SUBST(FRAMEWORKINSTALLFIRST)
-AC_SUBST(FRAMEWORKINSTALLLAST)
-AC_SUBST(FRAMEWORKALTINSTALLFIRST)
-AC_SUBST(FRAMEWORKALTINSTALLLAST)
-AC_SUBST(FRAMEWORKPYTHONW)
-AC_SUBST(FRAMEWORKUNIXTOOLSPREFIX)
-AC_SUBST(FRAMEWORKINSTALLAPPSPREFIX)
+AC_SUBST([PYTHONFRAMEWORK])
+AC_SUBST([PYTHONFRAMEWORKIDENTIFIER])
+AC_SUBST([PYTHONFRAMEWORKDIR])
+AC_SUBST([PYTHONFRAMEWORKPREFIX])
+AC_SUBST([PYTHONFRAMEWORKINSTALLDIR])
+AC_SUBST([PYTHONFRAMEWORKINSTALLNAMEPREFIX])
+AC_SUBST([RESSRCDIR])
+AC_SUBST([FRAMEWORKINSTALLFIRST])
+AC_SUBST([FRAMEWORKINSTALLLAST])
+AC_SUBST([FRAMEWORKALTINSTALLFIRST])
+AC_SUBST([FRAMEWORKALTINSTALLLAST])
+AC_SUBST([FRAMEWORKPYTHONW])
+AC_SUBST([FRAMEWORKUNIXTOOLSPREFIX])
+AC_SUBST([FRAMEWORKINSTALLAPPSPREFIX])
+AC_SUBST([INSTALLTARGETS])
 
 AC_DEFINE_UNQUOTED(_PYTHONFRAMEWORK, "${PYTHONFRAMEWORK}", [framework name])
 
-##AC_ARG_WITH(dyld,
-##            AS_HELP_STRING([--with-dyld],
-##                           [use (OpenStep|Rhapsody) dynamic linker]))
-##
+AC_SUBST([_PYTHON_HOST_PLATFORM])
+
 # Set name for machine-dependent library files
 AC_ARG_VAR([MACHDEP], [name for machine-dependent library files])
 AC_MSG_CHECKING(MACHDEP)
@@ -402,6 +489,12 @@ then
 		;;
 	*-*-vxworks*)
 	    ac_sys_system=VxWorks
+	    ;;
+	*-*-emscripten)
+	    ac_sys_system=Emscripten
+	    ;;
+	*-*-wasi)
+	    ac_sys_system=WASI
 	    ;;
 	*)
 		# for now, limit cross builds to known configurations
@@ -431,33 +524,40 @@ then
 	darwin*) MACHDEP="darwin";;
 	'')	MACHDEP="unknown";;
     esac
+
+    if test "$ac_sys_system" = "SunOS"; then
+	# For Solaris, there isn't an OS version specific macro defined
+	# in most compilers, so we define one here.
+	SUNOS_VERSION=`echo $ac_sys_release | sed -e 's!\.\([0-9]\)$!.0\1!g' | tr -d '.'`
+	AC_DEFINE_UNQUOTED([Py_SUNOS_VERSION], [$SUNOS_VERSION],
+	                   [The version of SunOS/Solaris as reported by `uname -r' without the dot.])
+    fi
 fi
 AC_MSG_RESULT("$MACHDEP")
 
-AC_SUBST(_PYTHON_HOST_PLATFORM)
 if test "$cross_compiling" = yes; then
 	case "$host" in
 	*-*-linux*)
 		case "$host_cpu" in
 		arm*)
-			_host_cpu=arm
+			_host_ident=arm
 			;;
 		*)
-			_host_cpu=$host_cpu
+			_host_ident=$host_cpu
 		esac
 		;;
 	*-*-cygwin*)
-		_host_cpu=
+		_host_ident=
 		;;
 	*-*-vxworks*)
-		_host_cpu=$host_cpu
+		_host_ident=$host_cpu
 		;;
 	*)
 		# for now, limit cross builds to known configurations
 		MACHDEP="unknown"
 		AC_MSG_ERROR([cross build not supported for $host])
 	esac
-	_PYTHON_HOST_PLATFORM="$MACHDEP${_host_cpu:+-$_host_cpu}"
+	_PYTHON_HOST_PLATFORM="$MACHDEP${_host_ident:+-$_host_ident}"
 fi
 
 # Some systems cannot stand _XOPEN_SOURCE being defined at all; they
@@ -882,6 +982,14 @@ else
 fi
 rm -f conftest.c conftest.out
 
+dnl On some platforms, using a true "triplet" for MULTIARCH would be redundant.
+dnl For example, `arm64-apple-darwin` is redundant, because there isn't a
+dnl non-Apple Darwin. Including the CPU architecture can also be potentially
+dnl redundant - on macOS, for example, it's possible to do a single compile
+dnl pass that includes multiple architectures, so it would be misleading for
+dnl MULTIARCH (and thus the sysconfigdata module name) to include a single CPU
+dnl architecture. PLATFORM_TRIPLET will be a pair or single value for these
+dnl platforms.
 AC_MSG_CHECKING([for multiarch])
 AS_CASE([$ac_sys_system],
   [Darwin*], [MULTIARCH=""],
@@ -889,7 +997,6 @@ AS_CASE([$ac_sys_system],
   [MULTIARCH=$($CC --print-multiarch 2>/dev/null)]
 )
 AC_SUBST([MULTIARCH])
-AC_MSG_RESULT([$MULTIARCH])
 
 if test x$PLATFORM_TRIPLET != x && test x$MULTIARCH != x; then
   if test x$PLATFORM_TRIPLET != x$MULTIARCH; then
@@ -898,7 +1005,17 @@ if test x$PLATFORM_TRIPLET != x && test x$MULTIARCH != x; then
 elif test x$PLATFORM_TRIPLET != x && test x$MULTIARCH = x; then
   MULTIARCH=$PLATFORM_TRIPLET
 fi
-AC_SUBST(PLATFORM_TRIPLET)
+AC_SUBST([PLATFORM_TRIPLET])
+AC_MSG_RESULT([$MULTIARCH])
+
+dnl Even if we *do* include the CPU architecture in the MULTIARCH value, some
+dnl platforms don't need the CPU architecture in the SOABI tag. These platforms
+dnl will have multiple sysconfig modules (one for each CPU architecture), but
+dnl use a single "fat" binary at runtime. SOABI_PLATFORM is the component of
+dnl the PLATFORM_TRIPLET that will be used in binary module extensions.
+AS_CASE([$ac_sys_system],
+  [SOABI_PLATFORM=$PLATFORM_TRIPLET]
+)
 
 if test x$MULTIARCH != x; then
   MULTIARCH_CPPFLAGS="-DMULTIARCH=\\\"$MULTIARCH\\\""
@@ -1128,7 +1245,7 @@ fi
 
 AC_MSG_CHECKING(LDLIBRARY)
 
-# MacOSX framework builds need more magic. LDLIBRARY is the dynamic
+# Apple framework builds need more magic. LDLIBRARY is the dynamic
 # library that we build, but we do not want to link against it (we
 # will find it with a -framework option). For this reason there is an
 # extra variable BLDLIBRARY against which Python and the extension
@@ -1136,9 +1253,14 @@ AC_MSG_CHECKING(LDLIBRARY)
 # LDLIBRARY, but empty for MacOSX framework builds.
 if test "$enable_framework"
 then
-  LDLIBRARY='$(PYTHONFRAMEWORKDIR)/Versions/$(VERSION)/$(PYTHONFRAMEWORK)'
-  RUNSHARED=DYLD_FRAMEWORK_PATH=`pwd`${DYLD_FRAMEWORK_PATH:+:${DYLD_FRAMEWORK_PATH}}
+  case $ac_sys_system in
+    Darwin)
+      LDLIBRARY='$(PYTHONFRAMEWORKDIR)/Versions/$(VERSION)/$(PYTHONFRAMEWORK)';;
+    *)
+      AC_MSG_ERROR([Unknown platform for framework build]);;
+  esac
   BLDLIBRARY=''
+  RUNSHARED=DYLD_FRAMEWORK_PATH=`pwd`${DYLD_FRAMEWORK_PATH:+:${DYLD_FRAMEWORK_PATH}}
 else
   BLDLIBRARY='$(LDLIBRARY)'
 fi
@@ -1149,9 +1271,9 @@ if test $enable_shared = "yes"; then
   AC_DEFINE(Py_ENABLE_SHARED, 1, [Defined if Python is built as a shared library.])
   case $ac_sys_system in
     CYGWIN*)
-          LDLIBRARY='libpython$(LDVERSION).dll.a'
-          DLLLIBRARY='libpython$(LDVERSION).dll'
-          ;;
+      LDLIBRARY='libpython$(LDVERSION).dll.a'
+      DLLLIBRARY='libpython$(LDVERSION).dll'
+      ;;
     SunOS*)
 	  LDLIBRARY='libpython$(LDVERSION).so'
 	  BLDLIBRARY='-Wl,-R,$(LIBDIR) -L. -lpython$(LDVERSION)'
@@ -1173,40 +1295,40 @@ if test $enable_shared = "yes"; then
 	  fi
 	  ;;
     hp*|HP*)
-	  case `uname -m` in
-		ia64)
-			LDLIBRARY='libpython$(LDVERSION).so'
-			;;
-		*)
-			LDLIBRARY='libpython$(LDVERSION).sl'
-			;;
-	  esac
-	  BLDLIBRARY='-Wl,+b,$(LIBDIR) -L. -lpython$(LDVERSION)'
-	  RUNSHARED=SHLIB_PATH=`pwd`${SHLIB_PATH:+:${SHLIB_PATH}}
-	  ;;
+      case `uname -m` in
+        ia64)
+          LDLIBRARY='libpython$(LDVERSION).so'
+          ;;
+        *)
+          LDLIBRARY='libpython$(LDVERSION).sl'
+          ;;
+      esac
+      BLDLIBRARY='-Wl,+b,$(LIBDIR) -L. -lpython$(LDVERSION)'
+      RUNSHARED=SHLIB_PATH=`pwd`${SHLIB_PATH:+:${SHLIB_PATH}}
+      ;;
     Darwin*)
-    	LDLIBRARY='libpython$(LDVERSION).dylib'
-	BLDLIBRARY='-L. -lpython$(LDVERSION)'
-	RUNSHARED=DYLD_LIBRARY_PATH=`pwd`${DYLD_LIBRARY_PATH:+:${DYLD_LIBRARY_PATH}}
-	;;
+      LDLIBRARY='libpython$(LDVERSION).dylib'
+      BLDLIBRARY='-L. -lpython$(LDVERSION)'
+      RUNSHARED=DYLD_LIBRARY_PATH=`pwd`${DYLD_LIBRARY_PATH:+:${DYLD_LIBRARY_PATH}}
+      ;;
     AIX*)
-	LDLIBRARY='libpython$(LDVERSION).so'
-	RUNSHARED=LIBPATH=`pwd`${LIBPATH:+:${LIBPATH}}
-	;;
+      LDLIBRARY='libpython$(LDVERSION).so'
+      RUNSHARED=LIBPATH=`pwd`${LIBPATH:+:${LIBPATH}}
+      ;;
 
   esac
 else # shared is disabled
   PY_ENABLE_SHARED=0
   case $ac_sys_system in
     CYGWIN*)
-          BLDLIBRARY='$(LIBRARY)'
-          LDLIBRARY='libpython$(LDVERSION).dll.a'
-          ;;
+      BLDLIBRARY='$(LIBRARY)'
+      LDLIBRARY='libpython$(LDVERSION).dll.a'
+      ;;
   esac
 fi
 
 if test "$cross_compiling" = yes; then
-	RUNSHARED=
+  RUNSHARED=
 fi
 
 AC_MSG_RESULT($LDLIBRARY)
@@ -3126,9 +3248,11 @@ fi
 if test "$with_system_ffi" = "yes" && test -n "$PKG_CONFIG"; then
     LIBFFI_INCLUDEDIR="`"$PKG_CONFIG" libffi --cflags-only-I 2>/dev/null | sed -e 's/^-I//;s/ *$//'`"
 else
-    LIBFFI_INCLUDEDIR=""
+    LIBFFI_INCLUDEDIR="${LIBFFI_INCLUDEDIR}"
 fi
 AC_SUBST(LIBFFI_INCLUDEDIR)
+AC_SUBST(LIBFFI_LIBDIR)
+AC_SUBST(LIBFFI_LIB)
 
 # Check for use of the system libmpdec library
 AC_MSG_CHECKING(for --with-system-libmpdec)
@@ -4807,19 +4931,19 @@ AC_C_BIGENDIAN
 #
 # In Python 3.2 and older, --with-wide-unicode added a 'u' flag.
 # In Python 3.7 and older, --with-pymalloc added a 'm' flag.
-AC_SUBST(SOABI)
-AC_MSG_CHECKING(ABIFLAGS)
-AC_MSG_RESULT($ABIFLAGS)
-AC_MSG_CHECKING(SOABI)
-SOABI='cpython-'`echo $VERSION | tr -d .`${ABIFLAGS}${PLATFORM_TRIPLET:+-$PLATFORM_TRIPLET}
-AC_MSG_RESULT($SOABI)
+AC_SUBST([SOABI])
+AC_MSG_CHECKING([ABIFLAGS])
+AC_MSG_RESULT([$ABIFLAGS])
+AC_MSG_CHECKING([SOABI])
+SOABI='cpython-'`echo $VERSION | tr -d .`${ABIFLAGS}${SOABI_PLATFORM:+-$SOABI_PLATFORM}
+AC_MSG_RESULT([$SOABI])
 
 # Release and debug (Py_DEBUG) ABI are compatible, but not Py_TRACE_REFS ABI
 if test "$Py_DEBUG" = 'true' -a "$with_trace_refs" != "yes"; then
   # Similar to SOABI but remove "d" flag from ABIFLAGS
-  AC_SUBST(ALT_SOABI)
-  ALT_SOABI='cpython-'`echo $VERSION | tr -d .``echo $ABIFLAGS | tr -d d`${PLATFORM_TRIPLET:+-$PLATFORM_TRIPLET}
-  AC_DEFINE_UNQUOTED(ALT_SOABI, "${ALT_SOABI}",
+  AC_SUBST([ALT_SOABI])
+  ALT_SOABI='cpython-'`echo $VERSION | tr -d .``echo $ABIFLAGS | tr -d d`${SOABI_PLATFORM:+-$SOABI_PLATFORM}
+  AC_DEFINE_UNQUOTED([ALT_SOABI], ["${ALT_SOABI}"],
             [Alternative SOABI used in debug build to load C extensions built in release mode])
 fi
 
@@ -5879,4 +6003,3 @@ if test "$Py_OPT" = 'false' -a "$Py_DEBUG" != 'true'; then
     echo "" >&AS_MESSAGE_FD
     echo "" >&AS_MESSAGE_FD
 fi
-
