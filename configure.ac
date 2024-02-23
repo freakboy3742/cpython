@@ -330,6 +330,12 @@ then
 	*-apple-ios*)
 		ac_sys_system=iOS
 		;;
+	*-apple-tvos*)
+		ac_sys_system=tvOS
+		;;
+	*-apple-watchos*)
+		ac_sys_system=watchOS
+		;;
 	*-*-vxworks*)
 	    ac_sys_system=VxWorks
 	    ;;
@@ -381,7 +387,7 @@ AC_MSG_RESULT(["$MACHDEP"])
 # On cross-compile builds, configure will look for a host-specific compiler by
 # prepending the user-provided host triple to the required binary name.
 #
-# On iOS, this results in binaries like "arm64-apple-ios13.0-simulator-gcc",
+# On iOS/tvOS/watchOS, this results in binaries like "arm64-apple-ios13.0-simulator-gcc",
 # which isn't a binary that exists, and isn't very convenient, as it contains the
 # iOS version. As the default cross-compiler name won't exist, configure falls
 # back to gcc, which *definitely* won't work. We're providing wrapper scripts for
@@ -396,6 +402,14 @@ if test -z "$AR"; then
 		aarch64-apple-ios*-simulator) AR=arm64-apple-ios-simulator-ar ;;
 		aarch64-apple-ios*)           AR=arm64-apple-ios-ar ;;
 		x86_64-apple-ios*-simulator)  AR=x86_64-apple-ios-simulator-ar ;;
+
+		aarch64-apple-tvos*-simulator) AR=arm64-apple-tvos-simulator-ar ;;
+		aarch64-apple-tvos*)           AR=arm64-apple-tvos-ar ;;
+		x86_64-apple-tvos*-simulator)  AR=x86_64-apple-tvos-simulator-ar ;;
+
+		aarch64-apple-watchos*-simulator) AR=arm64-apple-watchos-simulator-ar ;;
+		aarch64-apple-watchos*)           AR=arm64_32-apple-watchos-ar ;;
+		x86_64-apple-watchos*-simulator)  AR=x86_64-apple-watchos-simulator-ar ;;
 		*)
 	esac
 fi
@@ -404,6 +418,14 @@ if test -z "$CC"; then
 		aarch64-apple-ios*-simulator) CC=arm64-apple-ios-simulator-clang ;;
 		aarch64-apple-ios*)           CC=arm64-apple-ios-clang ;;
 		x86_64-apple-ios*-simulator)  CC=x86_64-apple-ios-simulator-clang ;;
+
+		aarch64-apple-tvos*-simulator) CC=arm64-apple-tvos-simulator-clang ;;
+		aarch64-apple-tvos*)           CC=arm64-apple-tvos-clang ;;
+		x86_64-apple-tvos*-simulator)  CC=x86_64-apple-tvos-simulator-clang ;;
+
+		aarch64-apple-watchos*-simulator) CC=arm64-apple-watchos-simulator-clang ;;
+		aarch64-apple-watchos*)           CC=arm64_32-apple-watchos-clang ;;
+		x86_64-apple-watchos*-simulator)  CC=x86_64-apple-watchos-simulator-clang ;;
 		*)
 	esac
 fi
@@ -412,6 +434,14 @@ if test -z "$CPP"; then
 		aarch64-apple-ios*-simulator) CPP=arm64-apple-ios-simulator-cpp ;;
 		aarch64-apple-ios*)           CPP=arm64-apple-ios-cpp ;;
 		x86_64-apple-ios*-simulator)  CPP=x86_64-apple-ios-simulator-cpp ;;
+
+		aarch64-apple-tvos*-simulator) CPP=arm64-apple-tvos-simulator-cpp ;;
+		aarch64-apple-tvos*)           CPP=arm64-apple-tvos-cpp ;;
+		x86_64-apple-tvos*-simulator)  CPP=x86_64-apple-tvos-simulator-cpp ;;
+
+		aarch64-apple-watchos*-simulator) CPP=arm64-apple-watchos-simulator-cpp ;;
+		aarch64-apple-watchos*)           CPP=arm64_32-apple-watchos-cpp ;;
+		x86_64-apple-watchos*-simulator)  CPP=x86_64-apple-watchos-simulator-cpp ;;
 		*)
 	esac
 fi
@@ -420,6 +450,14 @@ if test -z "$CXX"; then
 		aarch64-apple-ios*-simulator) CXX=arm64-apple-ios-simulator-clang ;;
 		aarch64-apple-ios*)           CXX=arm64-apple-ios-clang ;;
 		x86_64-apple-ios*-simulator)  CXX=x86_64-apple-ios-simulator-clang ;;
+
+		aarch64-apple-tvos*-simulator) CXX=arm64-apple-tvos-simulator-clang ;;
+		aarch64-apple-tvos*)           CXX=arm64-apple-tvos-clang ;;
+		x86_64-apple-tvos*-simulator)  CXX=x86_64-apple-tvos-simulator-clang ;;
+
+		aarch64-apple-watchos*-simulator) CXX=arm64-apple-watchos-simulator-clang ;;
+		aarch64-apple-watchos*)           CXX=arm64_32-apple-watchos-clang ;;
+		x86_64-apple-watchos*-simulator)  CXX=x86_64-apple-watchos-simulator-clang ;;
 		*)
 	esac
 fi
@@ -534,8 +572,10 @@ AC_ARG_ENABLE([framework],
 	case $enableval in
 	yes)
 		case $ac_sys_system in
-			Darwin) enableval=/Library/Frameworks ;;
-			iOS)    enableval=iOS/Frameworks/\$\(MULTIARCH\) ;;
+			Darwin)  enableval=/Library/Frameworks ;;
+			iOS)     enableval=iOS/Frameworks/\$\(MULTIARCH\) ;;
+			tvOS)    enableval=tvOS/Frameworks/\$\(MULTIARCH\) ;;
+			watchOS) enableval=watchOS/Frameworks/\$\(MULTIARCH\) ;;
 			*) AC_MSG_ERROR([Unknown platform for framework build])
 		esac
 	esac
@@ -544,6 +584,8 @@ AC_ARG_ENABLE([framework],
 	no)
 		case $ac_sys_system in
 			iOS) AC_MSG_ERROR([iOS builds must use --enable-framework]) ;;
+			tvOS) AC_MSG_ERROR([tvOS builds must use --enable-framework]) ;;
+			watchOS) AC_MSG_ERROR([watchOS builds must use --enable-framework]) ;;
 			*)
 				PYTHONFRAMEWORK=
 				PYTHONFRAMEWORKDIR=no-framework
@@ -646,6 +688,34 @@ AC_ARG_ENABLE([framework],
 
 				AC_CONFIG_FILES([iOS/Resources/Info.plist])
 				;;
+			tvOS) :
+				FRAMEWORKINSTALLFIRST="frameworkinstallunversionedstructure"
+				FRAMEWORKALTINSTALLFIRST="frameworkinstallunversionedstructure "
+				FRAMEWORKINSTALLLAST="frameworkinstallmobileheaders"
+				FRAMEWORKALTINSTALLLAST="frameworkinstallmobileheaders"
+				FRAMEWORKPYTHONW=
+				INSTALLTARGETS="libinstall inclinstall sharedinstall"
+
+				prefix=$PYTHONFRAMEWORKPREFIX
+				PYTHONFRAMEWORKINSTALLNAMEPREFIX="@rpath/$PYTHONFRAMEWORKDIR"
+				RESSRCDIR=tvOS/Resources
+
+				AC_CONFIG_FILES([tvOS/Resources/Info.plist])
+				;;
+			watchOS) :
+				FRAMEWORKINSTALLFIRST="frameworkinstallunversionedstructure"
+				FRAMEWORKALTINSTALLFIRST="frameworkinstallunversionedstructure "
+				FRAMEWORKINSTALLLAST="frameworkinstallmobileheaders"
+				FRAMEWORKALTINSTALLLAST="frameworkinstallmobileheaders"
+				FRAMEWORKPYTHONW=
+				INSTALLTARGETS="libinstall inclinstall sharedinstall"
+
+				prefix=$PYTHONFRAMEWORKPREFIX
+				PYTHONFRAMEWORKINSTALLNAMEPREFIX="@rpath/$PYTHONFRAMEWORKDIR"
+				RESSRCDIR=watchOS/Resources
+
+				AC_CONFIG_FILES([watchOS/Resources/Info.plist])
+				;;
 			*)
 				AC_MSG_ERROR([Unknown platform for framework build])
 				;;
@@ -654,6 +724,8 @@ AC_ARG_ENABLE([framework],
 	],[
 	case $ac_sys_system in
 		iOS) AC_MSG_ERROR([iOS builds must use --enable-framework]) ;;
+		tvOS) AC_MSG_ERROR([tvOS builds must use --enable-framework]) ;;
+		watchOS) AC_MSG_ERROR([watchOS builds must use --enable-framework]) ;;
 		*)
 			PYTHONFRAMEWORK=
 			PYTHONFRAMEWORKDIR=no-framework
@@ -706,8 +778,8 @@ AC_ARG_WITH(
     case "$withval" in
     yes)
       case $ac_sys_system in
-        Darwin|iOS)
-          # iOS is able to share the macOS patch
+        Darwin|iOS|tvOS|watchOS)
+          # iOS/tvOS/watchOS is able to share the macOS patch
           APP_STORE_COMPLIANCE_PATCH="Mac/Resources/app-store-compliance.patch"
           ;;
         *) AC_MSG_ERROR([no default app store compliance patch available for $ac_sys_system]) ;;
@@ -721,8 +793,8 @@ AC_ARG_WITH(
     esac
   ],[
     case $ac_sys_system in
-      iOS)
-        # Always apply the compliance patch on iOS; we can use the macOS patch
+      iOS|tvOS|watchOS)
+        # Always apply the compliance patch on iOS/tvOS/watchOS; we can use the macOS patch
         APP_STORE_COMPLIANCE_PATCH="Mac/Resources/app-store-compliance.patch"
         AC_MSG_RESULT([applying default app store compliance patch])
         ;;
@@ -767,6 +839,46 @@ if test "$cross_compiling" = yes; then
 				;;
 			*)
 				_host_ident=${IPHONEOS_DEPLOYMENT_TARGET}-$host_cpu-iphone${_host_device}
+				;;
+		esac
+		;;
+	*-apple-tvos*)
+		_host_os=`echo $host | cut -d '-' -f3`
+		_host_device=`echo $host | cut -d '-' -f4`
+		_host_device=${_host_device:=os}
+
+		# TVOS_DEPLOYMENT_TARGET is the minimum supported tvOS version
+		AC_MSG_CHECKING([tvOS deployment target])
+		TVOS_DEPLOYMENT_TARGET=${_host_os:4}
+		TVOS_DEPLOYMENT_TARGET=${TVOS_DEPLOYMENT_TARGET:=12.0}
+		AC_MSG_RESULT([$TVOS_DEPLOYMENT_TARGET])
+
+		case "$host_cpu" in
+			aarch64)
+				_host_ident=${TVOS_DEPLOYMENT_TARGET}-arm64-appletv${_host_device}
+				;;
+			*)
+				_host_ident=${TVOS_DEPLOYMENT_TARGET}-$host_cpu-appletv${_host_device}
+				;;
+		esac
+		;;
+	*-apple-watchos*)
+		_host_os=`echo $host | cut -d '-' -f3`
+		_host_device=`echo $host | cut -d '-' -f4`
+		_host_device=${_host_device:=os}
+
+		# WATCHOS_DEPLOYMENT_TARGET is the minimum supported watchOS version
+		AC_MSG_CHECKING([watchOS deployment target])
+		WATCHOS_DEPLOYMENT_TARGET=${_host_os:7}
+		WATCHOS_DEPLOYMENT_TARGET=${WATCHOS_DEPLOYMENT_TARGET:=4.0}
+		AC_MSG_RESULT([$WATCHOS_DEPLOYMENT_TARGET])
+
+		case "$host_cpu" in
+			aarch64)
+				_host_ident=${WATCHOS_DEPLOYMENT_TARGET}-arm64-watch${_host_device}
+				;;
+			*)
+				_host_ident=${WATCHOS_DEPLOYMENT_TARGET}-$host_cpu-watch${_host_device}
 				;;
 		esac
 		;;
@@ -847,8 +959,12 @@ case $ac_sys_system/$ac_sys_release in
     define_xopen_source=no;;
   Darwin/@<:@[12]@:>@@<:@0-9@:>@.*)
     define_xopen_source=no;;
-  # On iOS, defining _POSIX_C_SOURCE also disables platform specific features.
+  # On iOS/tvOS/watchOS, defining _POSIX_C_SOURCE also disables platform specific features.
   iOS/*)
+    define_xopen_source=no;;
+  tvOS/*)
+    define_xopen_source=no;;
+  watchOS/*)
     define_xopen_source=no;;
   # On QNX 6.3.2, defining _XOPEN_SOURCE prevents netdb.h from
   # defining NI_NUMERICHOST.
@@ -908,8 +1024,11 @@ AC_SUBST([EXPORT_MACOSX_DEPLOYMENT_TARGET])
 CONFIGURE_MACOSX_DEPLOYMENT_TARGET=
 EXPORT_MACOSX_DEPLOYMENT_TARGET='#'
 
-# Record the value of IPHONEOS_DEPLOYMENT_TARGET enforced by the selected host triple.
+# Record the value of IPHONEOS_DEPLOYMENT_TARGET / TVOS_DEPLOYMENT_TARGET /
+# WATCHOS_DEPLOYMENT_TARGET enforced by the selected host triple.
 AC_SUBST([IPHONEOS_DEPLOYMENT_TARGET])
+AC_SUBST([TVOS_DEPLOYMENT_TARGET])
+AC_SUBST([WATCHOS_DEPLOYMENT_TARGET])
 
 # checks for alternative programs
 
@@ -943,11 +1062,17 @@ AS_CASE([$host],
   ],
 )
 
-dnl Add the compiler flag for the iOS minimum supported OS version.
+dnl Add the compiler flag for the iOS/tvOS/watchOS minimum supported OS version.
 AS_CASE([$ac_sys_system],
   [iOS], [
     AS_VAR_APPEND([CFLAGS], [" -mios-version-min=${IPHONEOS_DEPLOYMENT_TARGET}"])
     AS_VAR_APPEND([LDFLAGS], [" -mios-version-min=${IPHONEOS_DEPLOYMENT_TARGET}"])
+  ],[tvOS], [
+    AS_VAR_APPEND([CFLAGS], [" -mtvos-version-min=${TVOS_DEPLOYMENT_TARGET}"])
+    AS_VAR_APPEND([LDFLAGS], [" -mtvos-version-min=${TVOS_DEPLOYMENT_TARGET}"])
+  ],[watchOS], [
+    AS_VAR_APPEND([CFLAGS], [" -mwatchos-version-min=${WATCHOS_DEPLOYMENT_TARGET}"])
+    AS_VAR_APPEND([LDFLAGS], [" -mwatchos-version-min=${WATCHOS_DEPLOYMENT_TARGET}"])
   ],
 )
 
@@ -1259,6 +1384,26 @@ cat > conftest.c <<EOF
 #    else
         arm64-iphoneos
 #    endif
+#  elif TARGET_OS_TV
+#    if TARGET_OS_SIMULATOR
+#      if __x86_64__
+        x86_64-appletvsimulator
+#      else
+        arm64-appletvsimulator
+#      endif
+#    else
+        arm64-appletvos
+#    endif
+#  elif TARGET_OS_WATCH
+#    if TARGET_OS_SIMULATOR
+#      if __x86_64__
+        x86_64-watchsimulator
+#      else
+        arm64-watchsimulator
+#      endif
+#    else
+        arm64_32-watchos
+#    endif
 #  elif TARGET_OS_OSX
         darwin
 #  else
@@ -1317,6 +1462,8 @@ AC_MSG_CHECKING([for multiarch])
 AS_CASE([$ac_sys_system],
   [Darwin*], [MULTIARCH=""],
   [iOS], [MULTIARCH=""],
+  [tvOS], [MULTIARCH=""],
+  [watchOS], [MULTIARCH=""],
   [FreeBSD*], [MULTIARCH=""],
   [MULTIARCH=$($CC --print-multiarch 2>/dev/null)]
 )
@@ -1338,7 +1485,7 @@ dnl will have multiple sysconfig modules (one for each CPU architecture), but
 dnl use a single "fat" binary at runtime. SOABI_PLATFORM is the component of
 dnl the PLATFORM_TRIPLET that will be used in binary module extensions.
 AS_CASE([$ac_sys_system],
-  [iOS], [SOABI_PLATFORM=`echo "$PLATFORM_TRIPLET" | cut -d '-' -f2`],
+  [iOS|tvOS|watchOS], [SOABI_PLATFORM=`echo "$PLATFORM_TRIPLET" | cut -d '-' -f2`],
   [SOABI_PLATFORM=$PLATFORM_TRIPLET]
 )
 
@@ -1373,6 +1520,10 @@ AS_CASE([$host/$ac_cv_cc_name],
   [x86_64-*-freebsd*/clang],         [PY_SUPPORT_TIER=3], dnl FreeBSD on AMD64
   [aarch64-apple-ios*-simulator/clang],   [PY_SUPPORT_TIER=3], dnl iOS Simulator on arm64
   [aarch64-apple-ios*/clang],             [PY_SUPPORT_TIER=3], dnl iOS on ARM64
+  [aarch64-apple-tvos*-simulator/clang],  [PY_SUPPORT_TIER=3], dnl tvOS Simulator on arm64
+  [aarch64-apple-tvos*/clang],            [PY_SUPPORT_TIER=3], dnl tvOS on ARM64
+  [aarch64-apple-watchos*-simulator/clang],   [PY_SUPPORT_TIER=3], dnl watchOS Simulator on arm64
+  [arm64_32-apple-watchos*/clang],            [PY_SUPPORT_TIER=3], dnl watchOS on ARM64
   [PY_SUPPORT_TIER=0]
 )
 
@@ -1698,7 +1849,7 @@ then
   case $ac_sys_system in
     Darwin)
       LDLIBRARY='$(PYTHONFRAMEWORKDIR)/Versions/$(VERSION)/$(PYTHONFRAMEWORK)';;
-    iOS)
+    iOS|tvOS|watchOS)
       LDLIBRARY='$(PYTHONFRAMEWORKDIR)/$(PYTHONFRAMEWORK)';;
     *)
       AC_MSG_ERROR([Unknown platform for framework build]);;
@@ -1756,7 +1907,7 @@ if test $enable_shared = "yes"; then
       BLDLIBRARY='-L. -lpython$(LDVERSION)'
       RUNSHARED=DYLD_LIBRARY_PATH=`pwd`${DYLD_LIBRARY_PATH:+:${DYLD_LIBRARY_PATH}}
       ;;
-    iOS)
+    iOS|tvOS|watchOS)
       LDLIBRARY='libpython$(LDVERSION).dylib'
       ;;
     AIX*)
@@ -3574,7 +3725,7 @@ then
 			BLDSHARED="$LDSHARED"
 		fi
 		;;
-	iOS/*)
+	iOS/*|tvOS/*|watchOS/*)
 		LDSHARED='$(CC) -dynamiclib -F . -framework $(PYTHONFRAMEWORK)'
 		LDCXXSHARED='$(CXX) -dynamiclib -F . -framework $(PYTHONFRAMEWORK)'
 		BLDSHARED="$LDSHARED"
@@ -3699,7 +3850,7 @@ then
 	Linux-android*) LINKFORSHARED="-pie -Xlinker -export-dynamic";;
 	Linux*|GNU*) LINKFORSHARED="-Xlinker -export-dynamic";;
 	# -u libsys_s pulls in all symbols in libsys
-	Darwin/*|iOS/*)
+	Darwin/*|iOS/*|tvOS/*|watchOS/*)
 		LINKFORSHARED="$extra_undefs -framework CoreFoundation"
 
 		# Issue #18075: the default maximum stack size (8MBytes) is too
@@ -3723,7 +3874,7 @@ then
 				LINKFORSHARED="$LINKFORSHARED "'$(PYTHONFRAMEWORKDIR)/Versions/$(VERSION)/$(PYTHONFRAMEWORK)'
 			fi
 			LINKFORSHARED="$LINKFORSHARED"
-		elif test $ac_sys_system = "iOS"; then
+		elif test "$ac_sys_system" = "iOS" -o "$ac_sys_system" = "tvOS" -o "$ac_sys_system" = "watchOS"; then
 			LINKFORSHARED="-Wl,-stack_size,$stack_size $LINKFORSHARED "'$(PYTHONFRAMEWORKDIR)/$(PYTHONFRAMEWORK)'
 		fi
 		;;
@@ -4100,7 +4251,7 @@ AS_VAR_IF([have_libffi], [yes], [
       dnl when do we need USING_APPLE_OS_LIBFFI?
       ctypes_malloc_closure=yes
     ],
-    [iOS], [
+    [iOS|tvOS|watchOS], [
       ctypes_malloc_closure=yes
     ],
     [sunos5], [AS_VAR_APPEND([LIBFFI_LIBS], [" -mimpure-text"])]
@@ -5126,9 +5277,9 @@ fi
 # checks for library functions
 AC_CHECK_FUNCS([ \
   accept4 alarm bind_textdomain_codeset chmod chown clock close_range confstr \
-  copy_file_range ctermid dup dup3 execv explicit_bzero explicit_memset \
+  copy_file_range ctermid dup dup3 explicit_bzero explicit_memset \
   faccessat fchmod fchmodat fchown fchownat fdopendir fdwalk fexecve \
-  fork fork1 fpathconf fstatat ftime ftruncate futimens futimes futimesat \
+  fpathconf fstatat ftime ftruncate futimens futimes futimesat \
   gai_strerror getegid geteuid getgid getgrgid getgrgid_r \
   getgrnam_r getgrouplist gethostname getitimer getloadavg getlogin \
   getpeername getpgid getpid getppid getpriority _getpty \
@@ -5136,14 +5287,14 @@ AC_CHECK_FUNCS([ \
   getspnam getuid getwd if_nameindex initgroups kill killpg lchown linkat \
   lockf lstat lutimes madvise mbrtowc memrchr mkdirat mkfifo mkfifoat \
   mknod mknodat mktime mmap mremap nice openat opendir pathconf pause pipe \
-  pipe2 plock poll posix_fadvise posix_fallocate posix_spawn posix_spawnp \
+  pipe2 plock poll posix_fadvise posix_fallocate \
   pread preadv preadv2 pthread_condattr_setclock pthread_init pthread_kill \
   pwrite pwritev pwritev2 readlink readlinkat readv realpath renameat \
   rtpSpawn sched_get_priority_max sched_rr_get_interval sched_setaffinity \
   sched_setparam sched_setscheduler sem_clockwait sem_getvalue sem_open \
   sem_timedwait sem_unlink sendfile setegid seteuid setgid sethostname \
   setitimer setlocale setpgid setpgrp setpriority setregid setresgid \
-  setresuid setreuid setsid setuid setvbuf shutdown sigaction sigaltstack \
+  setresuid setreuid setsid setuid setvbuf shutdown sigaction \
   sigfillset siginterrupt sigpending sigrelse sigtimedwait sigwait \
   sigwaitinfo snprintf splice strftime strlcpy strsignal symlinkat sync \
   sysconf tcgetpgrp tcsetpgrp tempnam timegm times tmpfile \
@@ -5158,12 +5309,20 @@ if test "$MACHDEP" != linux; then
   AC_CHECK_FUNCS([lchmod])
 fi
 
-# iOS defines some system methods that can be linked (so they are
+# iOS/tvOS/watchOS define some system methods that can be linked (so they are
 # found by configure), but either raise a compilation error (because the
 # header definition prevents usage - autoconf doesn't use the headers), or
 # raise an error if used at runtime. Force these symbols off.
-if test "$ac_sys_system" != "iOS" ; then
-  AC_CHECK_FUNCS([getentropy getgroups system])
+if test "$ac_sys_system" != "iOS" -a "$ac_sys_system" != "tvOS" -a "$ac_sys_system" != "watchOS" ; then
+  AC_CHECK_FUNCS([ getentropy getgroups system ])
+fi
+
+# tvOS/watchOS have some additional methods that can be found, but not used.
+if test "$ac_sys_system" != "tvOS" -a "$ac_sys_system" != "watchOS" ; then
+  AC_CHECK_FUNCS([ \
+    execv fork fork1 posix_spawn posix_spawnp \
+    sigaltstack \
+  ])
 fi
 
 AC_CHECK_DECL([dirfd],
@@ -5407,20 +5566,22 @@ PY_CHECK_FUNC([setgroups], [
 ])
 
 # check for openpty, login_tty, and forkpty
-
-AC_CHECK_FUNCS([openpty], [],
-  [AC_CHECK_LIB([util], [openpty],
-    [AC_DEFINE([HAVE_OPENPTY]) LIBS="$LIBS -lutil"],
-    [AC_CHECK_LIB([bsd], [openpty],
-      [AC_DEFINE([HAVE_OPENPTY]) LIBS="$LIBS -lbsd"])])])
-AC_SEARCH_LIBS([login_tty], [util],
- [AC_DEFINE([HAVE_LOGIN_TTY], [1], [Define to 1 if you have the `login_tty' function.])]
-)
-AC_CHECK_FUNCS([forkpty], [],
-  [AC_CHECK_LIB([util], [forkpty],
-    [AC_DEFINE([HAVE_FORKPTY]) LIBS="$LIBS -lutil"],
-    [AC_CHECK_LIB([bsd], [forkpty],
-      [AC_DEFINE([HAVE_FORKPTY]) LIBS="$LIBS -lbsd"])])])
+# tvOS/watchOS have functions for tty, but can't use them
+if test "$ac_sys_system" != "tvOS" -a "$ac_sys_system" != "watchOS" ; then
+  AC_CHECK_FUNCS([openpty], [],
+    [AC_CHECK_LIB([util], [openpty],
+      [AC_DEFINE([HAVE_OPENPTY]) LIBS="$LIBS -lutil"],
+      [AC_CHECK_LIB([bsd], [openpty],
+        [AC_DEFINE([HAVE_OPENPTY]) LIBS="$LIBS -lbsd"])])])
+  AC_SEARCH_LIBS([login_tty], [util],
+   [AC_DEFINE([HAVE_LOGIN_TTY], [1], [Define to 1 if you have the `login_tty' function.])]
+  )
+  AC_CHECK_FUNCS([forkpty], [],
+    [AC_CHECK_LIB([util], [forkpty],
+      [AC_DEFINE([HAVE_FORKPTY]) LIBS="$LIBS -lutil"],
+      [AC_CHECK_LIB([bsd], [forkpty],
+        [AC_DEFINE([HAVE_FORKPTY]) LIBS="$LIBS -lbsd"])])])
+fi
 
 # check for long file support functions
 AC_CHECK_FUNCS([fseek64 fseeko fstatvfs ftell64 ftello statvfs])
@@ -5501,10 +5662,11 @@ AC_CHECK_FUNCS([clock_getres], [], [
     ])
 ])
 
-# On iOS, clock_settime can be linked (so it is found by
-# configure), but it raises a runtime error if used because apps can't change
-# the clock. Force the symbol off.
-if test "$ac_sys_system" != "iOS" ; then
+# On iOS, tvOS and watchOS, clock_settime can be linked (so it is found by
+# configure), but when used in an unprivileged process, it crashes rather than
+# returning an error. Force the symbol off.
+if test "$ac_sys_system" != "iOS" -a "$ac_sys_system" != "tvOS" -a "$ac_sys_system" != "watchOS"
+then
   AC_CHECK_FUNCS([clock_settime], [], [
       AC_CHECK_LIB([rt], [clock_settime], [
           AC_DEFINE([HAVE_CLOCK_SETTIME], [1])
@@ -5656,7 +5818,7 @@ int main(void)
 [ac_cv_buggy_getaddrinfo=no],
 [ac_cv_buggy_getaddrinfo=yes],
 [
-if test "$ac_sys_system" = "Linux-android" || test "$ac_sys_system" = "iOS"; then
+if test "$ac_sys_system" = "Linux-android" -o "$ac_sys_system" = "iOS" -o "$ac_sys_system" = "tvOS" -o "$ac_sys_system" = "watchOS"; then
   ac_cv_buggy_getaddrinfo="no"
 elif test "${enable_ipv6+set}" = set; then
   ac_cv_buggy_getaddrinfo="no -- configured with --(en|dis)able-ipv6"
@@ -6871,7 +7033,7 @@ AC_MSG_NOTICE([checking for device files])
 dnl NOTE: Inform user how to proceed with files when cross compiling.
 dnl iOS cross-compile builds are predictable; they won't ever
 dnl have /dev/ptmx or /dev/ptc, so we can set them explicitly.
-if test "$ac_sys_system" = "iOS" ; then
+if test "$ac_sys_system" = "iOS" -o "$ac_sys_system" = "tvOS" -o "$ac_sys_system" = "watchOS" ; then
   ac_cv_file__dev_ptmx=no
   ac_cv_file__dev_ptc=no
 else
@@ -7169,7 +7331,7 @@ AC_ARG_WITH([ensurepip],
       AS_CASE([$ac_sys_system],
         [Emscripten], [with_ensurepip=no],
         [WASI], [with_ensurepip=no],
-        [iOS], [with_ensurepip=no],
+        [iOS|tvOS|watchOS], [with_ensurepip=no],
         [with_ensurepip=upgrade]
       )
     ])
@@ -7512,7 +7674,7 @@ AS_CASE([$ac_sys_system],
   [AIX], [PY_STDLIB_MOD_SET_NA([_scproxy], [spwd])],
   [VxWorks*], [PY_STDLIB_MOD_SET_NA([_scproxy], [_crypt], [termios], [grp])],
   [Darwin], [PY_STDLIB_MOD_SET_NA([ossaudiodev], [spwd])],
-  [iOS], [
+  [iOS|tvOS|watchOS], [
     dnl subprocess and multiprocessing are not supported (no fork syscall).
     dnl curses and tkinter user interface are not available.
     dnl gdbm and nis aren't available
