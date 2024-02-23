@@ -76,6 +76,10 @@ iOS/testbed/Python.xcframework/ios-*/Python.framework
 iOS/testbed/iOSTestbed.xcodeproj/project.xcworkspace
 iOS/testbed/iOSTestbed.xcodeproj/xcuserdata
 iOS/testbed/iOSTestbed.xcodeproj/xcshareddata
+tvOS/Frameworks
+tvOS/Resources/Info.plist
+watchOS/Frameworks
+watchOS/Resources/Info.plist
 Mac/Makefile
 Mac/PythonLauncher/Info.plist
 Mac/PythonLauncher/Makefile
