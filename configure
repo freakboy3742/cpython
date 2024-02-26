@@ -733,6 +733,7 @@ CPPFLAGS
 LDFLAGS
 CFLAGS
 CC
+IOS_DEPLOYMENT_TARGET
 EXPORT_MACOSX_DEPLOYMENT_TARGET
 CONFIGURE_MACOSX_DEPLOYMENT_TARGET
 _PYTHON_HOST_PLATFORM
@@ -3069,6 +3070,9 @@ then
 	*-*-cygwin*)
 		ac_sys_system=Cygwin
 		;;
+	*-apple-ios*)
+		ac_sys_system=iOS
+		;;
 	*-*-vxworks*)
 	    ac_sys_system=VxWorks
 	    ;;
@@ -3232,10 +3236,18 @@ if test "${enable_framework+set}" = set; then :
   enableval=$enable_framework;
 	case $enableval in
 	yes)
+		if test "$ac_sys_system" = "iOS"; then
+			as_fn_error $? "iOS builds must provide an explicit path for --enable-framework" "$LINENO" 5
+		fi
+
 		enableval=/Library/Frameworks
 	esac
 	case $enableval in
 	no)
+		if test "$ac_sys_system" = "iOS"; then
+			as_fn_error $? "iOS builds must use --enable-framework=<install path>" "$LINENO" 5
+		fi
+
 		PYTHONFRAMEWORK=
 		PYTHONFRAMEWORKDIR=no-framework
 		PYTHONFRAMEWORKPREFIX=
@@ -3259,11 +3271,11 @@ if test "${enable_framework+set}" = set; then :
 	*)
 		PYTHONFRAMEWORKPREFIX="${enableval}"
 		PYTHONFRAMEWORKINSTALLDIR=$PYTHONFRAMEWORKPREFIX/$PYTHONFRAMEWORKDIR
-		FRAMEWORKINSTALLFIRST="frameworkinstallstructure"
-		FRAMEWORKALTINSTALLFIRST="frameworkinstallstructure "
 
 		case $ac_sys_system in #(
 			Darwin) :
+				FRAMEWORKINSTALLFIRST="frameworkinstallversionedstructure"
+				FRAMEWORKALTINSTALLFIRST="frameworkinstallversionedstructure "
 				FRAMEWORKINSTALLLAST="frameworkinstallmaclib frameworkinstallapps frameworkinstallunixtools"
 				FRAMEWORKALTINSTALLLAST="frameworkinstallmaclib frameworkinstallapps frameworkaltinstallunixtools"
 				FRAMEWORKPYTHONW="frameworkpythonw"
@@ -3326,6 +3338,21 @@ if test "${enable_framework+set}" = set; then :
 				ac_config_files="$ac_config_files Mac/Resources/app/Info.plist"
 
 				;;
+			iOS) :
+				FRAMEWORKINSTALLFIRST="frameworkinstallunversionedstructure"
+				FRAMEWORKALTINSTALLFIRST="frameworkinstallunversionedstructure "
+				FRAMEWORKINSTALLLAST="frameworkinstallmobileheaders"
+				FRAMEWORKALTINSTALLLAST="frameworkinstallmobileheaders"
+				FRAMEWORKPYTHONW=
+				INSTALLTARGETS="libinstall inclinstall sharedinstall"
+
+				prefix=$PYTHONFRAMEWORKPREFIX
+				PYTHONFRAMEWORKINSTALLNAMEPREFIX="@rpath/$PYTHONFRAMEWORKDIR"
+				RESSRCDIR=iOS/Resources
+
+				ac_config_files="$ac_config_files iOS/Resources/Info.plist"
+
+				;;
 			*)
 				as_fn_error $? "Unknown platform for framework build" "$LINENO" 5
 				;;
@@ -3333,6 +3360,10 @@ if test "${enable_framework+set}" = set; then :
 		esac
 
 else
+
+	if test "$ac_sys_system" = "iOS"; then
+		as_fn_error $? "iOS builds must use --enable-framework=<install path>" "$LINENO" 5
+	fi
 
 	PYTHONFRAMEWORK=
 	PYTHONFRAMEWORKDIR=no-framework
@@ -3467,6 +3498,23 @@ if test "$cross_compiling" = yes; then
 	*-*-cygwin*)
 		_host_ident=
 		;;
+	*-apple-ios*)
+		_host_os=`echo $host | cut -d '-' -f3`
+		_host_device=`echo $host | cut -d '-' -f4`
+		_host_device=${_host_device:=os}
+
+				IOS_DEPLOYMENT_TARGET=${_host_os:3}
+		IOS_DEPLOYMENT_TARGET=${IOS_DEPLOYMENT_TARGET:=12.0}
+
+		case "$host_cpu" in
+			aarch64)
+				_host_ident=${IOS_DEPLOYMENT_TARGET}-arm64-iphone${_host_device}
+				;;
+			*)
+				_host_ident=${IOS_DEPLOYMENT_TARGET}-$host_cpu-iphone${_host_device}
+				;;
+		esac
+		;;
 	*-*-vxworks*)
 		_host_ident=$host_cpu
 		;;
@@ -3541,6 +3589,9 @@ $as_echo "#define _BSD_SOURCE 1" >>confdefs.h
   Darwin/[6789].*)
     define_xopen_source=no;;
   Darwin/[12][0-9].*)
+    define_xopen_source=no;;
+  # On iOS, defining _POSIX_C_SOURCE also disables platform specific features.
+  iOS/*)
     define_xopen_source=no;;
   # On AIX 4 and 5.1, mbstate_t is defined only when _XOPEN_SOURCE == 500 but
   # used in wcsnrtombs() and mbsnrtowcs() even if _XOPEN_SOURCE is not defined
@@ -3635,6 +3686,17 @@ fi
 if test -z "$CFLAGS"; then
         CFLAGS=
 fi
+
+case $ac_sys_system in #(
+  iOS) :
+
+    as_fn_append CFLAGS " -mios-version-min=${IOS_DEPLOYMENT_TARGET}"
+    as_fn_append LDFLAGS " -mios-version-min=${IOS_DEPLOYMENT_TARGET}"
+
+   ;; #(
+  *) :
+     ;;
+esac
 
 if test "$ac_sys_system" = "Darwin"
 then
@@ -5448,7 +5510,22 @@ cat >> conftest.c <<EOF
 #elif defined(__gnu_hurd__)
         i386-gnu
 #elif defined(__APPLE__)
+#  include "TargetConditionals.h"
+#  if TARGET_OS_IOS
+#    if TARGET_OS_SIMULATOR
+#      if __x86_64__
+        x86_64-iphonesimulator
+#      else
+        arm64-iphonesimulator
+#      endif
+#    else
+        arm64-iphoneos
+#    endif
+#  elif TARGET_OS_OSX
         darwin
+#  else
+#    error unknown Apple platform
+#  endif
 #elif defined(__VXWORKS__)
         vxworks
 #else
@@ -5472,6 +5549,8 @@ $as_echo_n "checking for multiarch... " >&6; }
 case $ac_sys_system in #(
   Darwin*) :
     MULTIARCH="" ;; #(
+  iOS) :
+    MULTIARCH="" ;; #(
   FreeBSD*) :
     MULTIARCH="" ;; #(
   *) :
@@ -5492,6 +5571,8 @@ fi
 $as_echo "$MULTIARCH" >&6; }
 
 case $ac_sys_system in #(
+  iOS) :
+    SOABI_PLATFORM=`echo "$PLATFORM_TRIPLET" | cut -d '-' -f2` ;; #(
   *) :
     SOABI_PLATFORM=$PLATFORM_TRIPLET
  ;;
@@ -6050,12 +6131,15 @@ $as_echo_n "checking LDLIBRARY... " >&6; }
 # will find it with a -framework option). For this reason there is an
 # extra variable BLDLIBRARY against which Python and the extension
 # modules are linked, BLDLIBRARY. This is normally the same as
-# LDLIBRARY, but empty for MacOSX framework builds.
+# LDLIBRARY, but empty for MacOSX framework builds. iOS does the same,
+# but uses a non-versioned framework layout.
 if test "$enable_framework"
 then
   case $ac_sys_system in
     Darwin)
       LDLIBRARY='$(PYTHONFRAMEWORKDIR)/Versions/$(VERSION)/$(PYTHONFRAMEWORK)';;
+    iOS)
+      LDLIBRARY='$(PYTHONFRAMEWORKDIR)/$(PYTHONFRAMEWORK)';;
     *)
       as_fn_error $? "Unknown platform for framework build" "$LINENO" 5;;
   esac
@@ -6112,6 +6196,9 @@ $as_echo "#define Py_ENABLE_SHARED 1" >>confdefs.h
       LDLIBRARY='libpython$(LDVERSION).dylib'
       BLDLIBRARY='-L. -lpython$(LDVERSION)'
       RUNSHARED=DYLD_LIBRARY_PATH=`pwd`${DYLD_LIBRARY_PATH:+:${DYLD_LIBRARY_PATH}}
+      ;;
+    iOS)
+      LDLIBRARY='libpython$(LDVERSION).dylib'
       ;;
     AIX*)
       LDLIBRARY='libpython$(LDVERSION).so'
@@ -6346,11 +6433,16 @@ esac
 fi
 
 if test "$cross_compiling" = yes; then
-    case "$READELF" in
-	readelf|:)
-	as_fn_error $? "readelf for the host is required for cross builds" "$LINENO" 5
-	;;
-    esac
+  case "$ac_sys_system" in
+    iOS) ;;
+    *)
+      case "$READELF" in
+	      readelf|:)
+	        as_fn_error $? "readelf for the host is required for cross builds" "$LINENO" 5
+    	    ;;
+      esac
+      ;;
+  esac
 fi
 
 
@@ -9592,6 +9684,7 @@ if test -z "$SHLIB_SUFFIX"; then
 		esac
 		;;
 	CYGWIN*)   SHLIB_SUFFIX=.dll;;
+	iOS)   SHLIB_SUFFIX=.dylib;;
 	*)	   SHLIB_SUFFIX=.so;;
 	esac
 fi
@@ -9685,6 +9778,11 @@ then
 			LDCXXSHARED='$(CXX) -bundle -undefined dynamic_lookup'
 			BLDSHARED="$LDSHARED"
 		fi
+		;;
+	iOS/*)
+		LDSHARED='$(CC) -dynamiclib -F . -framework Python'
+		LDCXXSHARED='$(CXX) -dynamiclib -F . -framework Python'
+		BLDSHARED="$LDSHARED"
 		;;
 	Linux*|GNU*|QNX*|VxWorks*)
 		LDSHARED='$(CC) -shared'
@@ -9787,21 +9885,36 @@ then
 	Linux-android*) LINKFORSHARED="-pie -Xlinker -export-dynamic";;
 	Linux*|GNU*) LINKFORSHARED="-Xlinker -export-dynamic";;
 	# -u libsys_s pulls in all symbols in libsys
-	Darwin/*)
+	Darwin/*|iOS/*)
 		LINKFORSHARED="$extra_undefs -framework CoreFoundation"
 
 		# Issue #18075: the default maximum stack size (8MBytes) is too
 		# small for the default recursion limit. Increase the stack size
 		# to ensure that tests don't crash
-		# Note: This matches the value of THREAD_STACK_SIZE in
-		# thread_pthread.h
-		LINKFORSHARED="-Wl,-stack_size,1000000 $LINKFORSHARED"
-
-		if test "$enable_framework"
+		stack_size="1000000"  # 16 MB
+		if test "$with_ubsan" = "yes"
 		then
-			LINKFORSHARED="$LINKFORSHARED "'$(PYTHONFRAMEWORKDIR)/Versions/$(VERSION)/$(PYTHONFRAMEWORK)'
+			# Undefined behavior sanitizer requires an even deeper stack
+			stack_size="4000000"  # 64 MB
 		fi
-		LINKFORSHARED="$LINKFORSHARED";;
+
+
+cat >>confdefs.h <<_ACEOF
+#define THREAD_STACK_SIZE 0x$stack_size
+_ACEOF
+
+
+		if test $ac_sys_system = "Darwin"; then
+			LINKFORSHARED="-Wl,-stack_size,$stack_size $LINKFORSHARED"
+
+			if test "$enable_framework"; then
+				LINKFORSHARED="$LINKFORSHARED "'$(PYTHONFRAMEWORKDIR)/Versions/$(VERSION)/$(PYTHONFRAMEWORK)'
+			fi
+			LINKFORSHARED="$LINKFORSHARED"
+		elif test $ac_sys_system = "iOS"; then
+			LINKFORSHARED="-Wl,-stack_size,$stack_size $LINKFORSHARED "'$(PYTHONFRAMEWORKDIR)/$(PYTHONFRAMEWORK)'
+		fi
+		;;
 	OpenUNIX*|UnixWare*) LINKFORSHARED="-Wl,-Bexport";;
 	SCO_SV*) LINKFORSHARED="-Wl,-Bexport";;
 	ReliantUNIX*) LINKFORSHARED="-W1 -Blargedynsym";;
@@ -10739,7 +10852,7 @@ if test "${with_system_ffi+set}" = set; then :
 fi
 
 
-if test "$ac_sys_system" = "Darwin"
+if test "$ac_sys_system" = "Darwin" -o "$ac_sys_system" = "iOS"
 then
     case "$with_system_ffi" in
         "")
@@ -11900,9 +12013,9 @@ for ac_func in alarm accept4 setitimer getitimer bind_textdomain_codeset chown \
  clock confstr copy_file_range ctermid dup3 execv explicit_bzero explicit_memset \
  faccessat fchmod fchmodat fchown fchownat \
  fdwalk fexecve fdopendir fork fpathconf fstatat ftime ftruncate futimesat \
- futimens futimes gai_strerror getentropy \
+ futimens futimes gai_strerror \
  getgrgid_r getgrnam_r \
- getgrouplist getgroups getlogin getloadavg getpeername getpgid getpid \
+ getgrouplist getlogin getloadavg getpeername getpgid getpid \
  getpriority getresuid getresgid getpwent getpwnam_r getpwuid_r getspnam getspent getsid getwd \
  if_nameindex \
  initgroups kill killpg lchown lockf linkat lstat lutimes mmap \
@@ -11943,6 +12056,25 @@ do :
 if test "x$ac_cv_func_lchmod" = xyes; then :
   cat >>confdefs.h <<_ACEOF
 #define HAVE_LCHMOD 1
+_ACEOF
+
+fi
+done
+
+fi
+
+# iOS defines some system methods that can be linked (so they are
+# found by configure), but either raise a compilation error (because the
+# header definition prevents usage - autoconf doesn't use the headers), or
+# raise an error if used at runtime. Force these symbols off.
+if test "$ac_sys_system" != "iOS" ; then
+  for ac_func in getentropy getgroups
+do :
+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
+if eval test \"x\$"$as_ac_var"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
 _ACEOF
 
 fi
@@ -13430,7 +13562,11 @@ fi
 done
 
 
-for ac_func in clock_settime
+# On iOS, clock_settime can be linked (so it is found by
+# configure), but it raises a runtime error if used because apps can't change
+# the clock. Force the symbol off.
+if test "$ac_sys_system" != "iOS" ; then
+  for ac_func in clock_settime
 do :
   ac_fn_c_check_func "$LINENO" "clock_settime" "ac_cv_func_clock_settime"
 if test "x$ac_cv_func_clock_settime" = xyes; then :
@@ -13440,7 +13576,7 @@ _ACEOF
 
 else
 
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for clock_settime in -lrt" >&5
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for clock_settime in -lrt" >&5
 $as_echo_n "checking for clock_settime in -lrt... " >&6; }
 if ${ac_cv_lib_rt_clock_settime+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -13478,7 +13614,7 @@ fi
 $as_echo "$ac_cv_lib_rt_clock_settime" >&6; }
 if test "x$ac_cv_lib_rt_clock_settime" = xyes; then :
 
-        $as_echo "#define HAVE_CLOCK_SETTIME 1" >>confdefs.h
+          $as_echo "#define HAVE_CLOCK_SETTIME 1" >>confdefs.h
 
 
 fi
@@ -13487,6 +13623,7 @@ fi
 fi
 done
 
+fi
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for major" >&5
 $as_echo_n "checking for major... " >&6; }
@@ -13566,7 +13703,9 @@ $as_echo_n "checking getaddrinfo bug... " >&6; }
 else
   if test "$cross_compiling" = yes; then :
 
-if test "${enable_ipv6+set}" = set; then
+if test "$ac_sys_system" = "Linux-android" || test "$ac_sys_system" = "iOS"; then
+  ac_cv_buggy_getaddrinfo="no"
+elif test "${enable_ipv6+set}" = set; then
   ac_cv_buggy_getaddrinfo="no -- configured with --(en|dis)able-ipv6"
 else
   ac_cv_buggy_getaddrinfo=yes
@@ -16763,24 +16902,28 @@ CPPFLAGS=$ac_save_cppflags
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for device files" >&5
 $as_echo "$as_me: checking for device files" >&6;}
 
-if test "x$cross_compiling" = xyes; then
-  if test "${ac_cv_file__dev_ptmx+set}" != set; then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for /dev/ptmx" >&5
+if test "$ac_sys_system" = "iOS" ; then
+  ac_cv_file__dev_ptmx=no
+  ac_cv_file__dev_ptc=no
+else
+  if test "x$cross_compiling" = xyes; then
+    if test "${ac_cv_file__dev_ptmx+set}" != set; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for /dev/ptmx" >&5
 $as_echo_n "checking for /dev/ptmx... " >&6; }
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: not set" >&5
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: not set" >&5
 $as_echo "not set" >&6; }
-    as_fn_error $? "set ac_cv_file__dev_ptmx to yes/no in your CONFIG_SITE file when cross compiling" "$LINENO" 5
-  fi
-  if test "${ac_cv_file__dev_ptc+set}" != set; then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for /dev/ptc" >&5
+      as_fn_error $? "set ac_cv_file__dev_ptmx to yes/no in your CONFIG_SITE file when cross compiling" "$LINENO" 5
+    fi
+    if test "${ac_cv_file__dev_ptc+set}" != set; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for /dev/ptc" >&5
 $as_echo_n "checking for /dev/ptc... " >&6; }
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: not set" >&5
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: not set" >&5
 $as_echo "not set" >&6; }
-    as_fn_error $? "set ac_cv_file__dev_ptc to yes/no in your CONFIG_SITE file when cross compiling" "$LINENO" 5
+      as_fn_error $? "set ac_cv_file__dev_ptc to yes/no in your CONFIG_SITE file when cross compiling" "$LINENO" 5
+    fi
   fi
-fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for /dev/ptmx" >&5
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for /dev/ptmx" >&5
 $as_echo_n "checking for /dev/ptmx... " >&6; }
 if ${ac_cv_file__dev_ptmx+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -16799,12 +16942,12 @@ if test "x$ac_cv_file__dev_ptmx" = xyes; then :
 
 fi
 
-if test "x$ac_cv_file__dev_ptmx" = xyes; then
+  if test "x$ac_cv_file__dev_ptmx" = xyes; then
 
 $as_echo "#define HAVE_DEV_PTMX 1" >>confdefs.h
 
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for /dev/ptc" >&5
+  fi
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for /dev/ptc" >&5
 $as_echo_n "checking for /dev/ptc... " >&6; }
 if ${ac_cv_file__dev_ptc+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -16823,10 +16966,11 @@ if test "x$ac_cv_file__dev_ptc" = xyes; then :
 
 fi
 
-if test "x$ac_cv_file__dev_ptc" = xyes; then
+  if test "x$ac_cv_file__dev_ptc" = xyes; then
 
 $as_echo "#define HAVE_DEV_PTC 1" >>confdefs.h
 
+  fi
 fi
 
 if test $ac_sys_system = Darwin
@@ -18534,6 +18678,7 @@ do
     "Mac/PythonLauncher/Makefile") CONFIG_FILES="$CONFIG_FILES Mac/PythonLauncher/Makefile" ;;
     "Mac/Resources/framework/Info.plist") CONFIG_FILES="$CONFIG_FILES Mac/Resources/framework/Info.plist" ;;
     "Mac/Resources/app/Info.plist") CONFIG_FILES="$CONFIG_FILES Mac/Resources/app/Info.plist" ;;
+    "iOS/Resources/Info.plist") CONFIG_FILES="$CONFIG_FILES iOS/Resources/Info.plist" ;;
     "Makefile.pre") CONFIG_FILES="$CONFIG_FILES Makefile.pre" ;;
     "Misc/python.pc") CONFIG_FILES="$CONFIG_FILES Misc/python.pc" ;;
     "Misc/python-embed.pc") CONFIG_FILES="$CONFIG_FILES Misc/python-embed.pc" ;;

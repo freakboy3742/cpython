@@ -61,6 +61,7 @@ Lib/test/data/*
 !Lib/test/data/README
 /Makefile
 /Makefile.pre
+iOS/Resources/Info.plist
 Mac/Makefile
 Mac/PythonLauncher/Info.plist
 Mac/PythonLauncher/Makefile
