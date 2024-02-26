@@ -84,6 +84,9 @@ HOST_PLATFORM = get_platform()
 MS_WINDOWS = (HOST_PLATFORM == 'win32')
 CYGWIN = (HOST_PLATFORM == 'cygwin')
 MACOS = (HOST_PLATFORM == 'darwin')
+IOS = HOST_PLATFORM.startswith('ios-')
+TVOS = HOST_PLATFORM.startswith('tvos-')
+WATCHOS = HOST_PLATFORM.startswith('watchos-')
 AIX = (HOST_PLATFORM.startswith('aix'))
 VXWORKS = ('vxworks' in HOST_PLATFORM)
 CC = os.environ.get("CC")
@@ -163,16 +166,20 @@ def sysroot_paths(make_vars, subdirs):
     for var_name in make_vars:
         var = sysconfig.get_config_var(var_name)
         if var is not None:
-            m = re.search(r'--sysroot=([^"]\S*|"[^"]+")', var)
-            if m is not None:
-                sysroot = m.group(1).strip('"')
-                for subdir in subdirs:
-                    if os.path.isabs(subdir):
-                        subdir = subdir[1:]
-                    path = os.path.join(sysroot, subdir)
-                    if os.path.isdir(path):
-                        dirs.append(path)
-                break
+            for pattern in [
+                r'-isysroot\s*([^"]\S*|"[^"]+")',
+                r'--sysroot=([^"]\S*|"[^"]+")',
+            ]:
+                m = re.search(pattern, var)
+                if m is not None:
+                    sysroot = m.group(1).strip('"')
+                    for subdir in subdirs:
+                        if os.path.isabs(subdir):
+                            subdir = subdir[1:]
+                        path = os.path.join(sysroot, subdir)
+                        if os.path.isdir(path):
+                            dirs.append(path)
+                    break
     return dirs
 
 
@@ -2246,6 +2253,11 @@ class PyBuildExt(build_ext):
             extra_compile_args.append('-DMACOSX')
             include_dirs.append('_ctypes/darwin')
 
+        elif IOS or TVOS or WATCHOS:
+            sources.append('_ctypes/malloc_closure.c')
+            extra_compile_args.append('-DUSING_MALLOC_CLOSURE_DOT_C')
+            include_dirs.append('_ctypes/darwin')
+
         elif HOST_PLATFORM == 'sunos5':
             # XXX This shouldn't be necessary; it appears that some
             # of the assembler code is non-PIC (i.e. it has relocations
@@ -2275,7 +2287,8 @@ class PyBuildExt(build_ext):
                                libraries=['m']))
 
         ffi_inc = sysconfig.get_config_var("LIBFFI_INCLUDEDIR")
-        ffi_lib = None
+        ffi_lib_dir = sysconfig.get_config_var("LIBFFI_LIBDIR")
+        ffi_lib = sysconfig.get_config_var("LIBFFI_LIB")
 
         ffi_inc_dirs = self.inc_dirs.copy()
         if MACOS:
@@ -2304,6 +2317,7 @@ class PyBuildExt(build_ext):
             for lib_name in ('ffi', 'ffi_pic'):
                 if (self.compiler.find_library_file(self.lib_dirs, lib_name)):
                     ffi_lib = lib_name
+                    self.use_system_libffi = True
                     break
 
         if ffi_inc and ffi_lib:
@@ -2317,7 +2331,8 @@ class PyBuildExt(build_ext):
 
             ext.include_dirs.append(ffi_inc)
             ext.libraries.append(ffi_lib)
-            self.use_system_libffi = True
+            if ffi_lib_dir:
+                ext.library_dirs.append(ffi_lib_dir)
 
         if sysconfig.get_config_var('HAVE_LIBDL'):
             # for dlopen, see bpo-32647
