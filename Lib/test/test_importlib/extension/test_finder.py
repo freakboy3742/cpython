@@ -1,5 +1,5 @@
-from .. import abc
-from .. import util
+from test.support import is_apple_mobile
+from test.test_importlib import abc, util
 
 machinery = util.import_importlib('importlib.machinery')
 
@@ -12,9 +12,27 @@ class FinderTests(abc.FinderTests):
     """Test the finder for extension modules."""
 
     def find_module(self, fullname):
-        importer = self.machinery.FileFinder(util.EXTENSIONS.path,
-                                            (self.machinery.ExtensionFileLoader,
-                                             self.machinery.EXTENSION_SUFFIXES))
+        if is_apple_mobile:
+            # Apple mobile platforms require a specialist loader that uses
+            # .fwork files as placeholders for the true `.so` files.
+            loaders = [
+                (
+                    self.machinery.AppleFrameworkLoader,
+                    [
+                        ext.replace(".so", ".fwork")
+                        for ext in self.machinery.EXTENSION_SUFFIXES
+                    ]
+                )
+            ]
+        else:
+            loaders = [
+                (
+                    self.machinery.ExtensionFileLoader,
+                    self.machinery.EXTENSION_SUFFIXES
+                )
+            ]
+
+        importer = self.machinery.FileFinder(util.EXTENSIONS.path, *loaders)
         with warnings.catch_warnings():
             warnings.simplefilter('ignore', DeprecationWarning)
             return importer.find_module(fullname)
