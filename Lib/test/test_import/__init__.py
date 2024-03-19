@@ -20,7 +20,7 @@ import _imp
 
 from test.support import os_helper
 from test.support import (
-    STDLIB_DIR, is_jython, swap_attr, swap_item, cpython_only, is_emscripten,
+    STDLIB_DIR, is_jython, swap_attr, swap_item, cpython_only, is_apple_mobile, is_emscripten,
     is_wasi)
 from test.support.import_helper import (
     forget, make_legacy_pyc, unlink, unload, ready_to_import,
@@ -86,7 +86,7 @@ class ImportTests(unittest.TestCase):
             self.assertEqual(cm.exception.path, _testcapi.__file__)
             self.assertRegex(
                 str(cm.exception),
-                r"cannot import name 'i_dont_exist' from '_testcapi' \(.*\.(so|pyd)\)"
+                r"cannot import name 'i_dont_exist' from '_testcapi' \(.*\.(so|fwork|pyd)\)"
             )
         else:
             self.assertEqual(

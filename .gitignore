@@ -65,7 +65,7 @@ Lib/test/data/*
 /_bootstrap_python
 /Makefile
 /Makefile.pre
-iOSTestbed.*
+/iOSTestbed.*
 iOS/Frameworks/
 iOS/Resources/Info.plist
 iOS/testbed/build
