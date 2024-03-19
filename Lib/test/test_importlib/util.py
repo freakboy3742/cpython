@@ -13,6 +13,7 @@ import os.path
 from pathlib import Path, PurePath
 from test import support
 from test.support import import_helper
+from test.support import is_apple_mobile
 from test.support import os_helper
 import unittest
 import sys
@@ -42,6 +43,11 @@ def _extension_details():
     global EXTENSIONS
     for path in sys.path:
         for ext in machinery.EXTENSION_SUFFIXES:
+            # Apple mobile platforms mechanically load .so files,
+            # but the findable files are labelled .fwork
+            if is_apple_mobile:
+                ext = ext.replace(".so", ".fwork")
+
             filename = EXTENSIONS.name + ext
             file_path = os.path.join(path, filename)
             if os.path.exists(file_path):
