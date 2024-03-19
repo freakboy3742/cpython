@@ -1,3 +1,4 @@
+from test.support import is_apple_mobile
 from warnings import catch_warnings
 from .. import abc
 from .. import util
@@ -18,8 +19,15 @@ class LoaderTests(abc.LoaderTests):
     """Test load_module() for extension modules."""
 
     def setUp(self):
-        self.loader = self.machinery.ExtensionFileLoader(util.EXTENSIONS.name,
-                                                         util.EXTENSIONS.file_path)
+
+        # Apple extensions must be distributed as frameworks. This requires
+        # a specialist loader.
+        if is_apple_mobile:
+            self.LoaderClass = self.machinery.AppleFrameworkLoader
+        else:
+            self.LoaderClass = self.machinery.ExtensionFileLoader
+
+        self.loader = self.LoaderClass(util.EXTENSIONS.name, util.EXTENSIONS.file_path)
 
     def load_module(self, fullname):
         with warnings.catch_warnings():
@@ -36,13 +44,11 @@ class LoaderTests(abc.LoaderTests):
                 self.load_module('XXX')
 
     def test_equality(self):
-        other = self.machinery.ExtensionFileLoader(util.EXTENSIONS.name,
-                                                   util.EXTENSIONS.file_path)
+        other = self.LoaderClass(util.EXTENSIONS.name, util.EXTENSIONS.file_path)
         self.assertEqual(self.loader, other)
 
     def test_inequality(self):
-        other = self.machinery.ExtensionFileLoader('_' + util.EXTENSIONS.name,
-                                                   util.EXTENSIONS.file_path)
+        other = self.LoaderClass('_' + util.EXTENSIONS.name, util.EXTENSIONS.file_path)
         self.assertNotEqual(self.loader, other)
 
     def test_module(self):
@@ -53,8 +59,7 @@ class LoaderTests(abc.LoaderTests):
                                 ('__package__', '')]:
                 self.assertEqual(getattr(module, attr), value)
             self.assertIn(util.EXTENSIONS.name, sys.modules)
-            self.assertIsInstance(module.__loader__,
-                                  self.machinery.ExtensionFileLoader)
+            self.assertIsInstance(module.__loader__, self.LoaderClass)
 
     # No extension module as __init__ available for testing.
     test_package = None
@@ -81,7 +86,7 @@ class LoaderTests(abc.LoaderTests):
         self.assertFalse(self.loader.is_package(util.EXTENSIONS.name))
         for suffix in self.machinery.EXTENSION_SUFFIXES:
             path = os.path.join('some', 'path', 'pkg', '__init__' + suffix)
-            loader = self.machinery.ExtensionFileLoader('pkg', path)
+            loader = self.LoaderClass('pkg', path)
             self.assertTrue(loader.is_package('pkg'))
 
 (Frozen_LoaderTests,
@@ -92,12 +97,19 @@ class MultiPhaseExtensionModuleTests(abc.LoaderTests):
     # Test loading extension modules with multi-phase initialization (PEP 489).
 
     def setUp(self):
+
+        # Apple extensions must be distributed as frameworks. This requires
+        # a specialist loader.
+        if is_apple_mobile:
+            self.LoaderClass = self.machinery.AppleFrameworkLoader
+        else:
+            self.LoaderClass = self.machinery.ExtensionFileLoader
+
         self.name = '_testmultiphase'
         finder = self.machinery.FileFinder(None)
         self.spec = importlib.util.find_spec(self.name)
         assert self.spec
-        self.loader = self.machinery.ExtensionFileLoader(
-            self.name, self.spec.origin)
+        self.loader = self.LoaderClass(self.name, self.spec.origin)
 
     def load_module(self):
         # Load the module from the test extension.
@@ -108,7 +120,7 @@ class MultiPhaseExtensionModuleTests(abc.LoaderTests):
     def load_module_by_name(self, fullname):
         # Load a module from the test extension by name.
         origin = self.spec.origin
-        loader = self.machinery.ExtensionFileLoader(fullname, origin)
+        loader = self.LoaderClass(fullname, origin)
         spec = importlib.util.spec_from_loader(fullname, loader)
         module = importlib.util.module_from_spec(spec)
         loader.exec_module(module)
@@ -134,8 +146,7 @@ class MultiPhaseExtensionModuleTests(abc.LoaderTests):
             with self.assertRaises(AttributeError):
                 module.__path__
             self.assertIs(module, sys.modules[self.name])
-            self.assertIsInstance(module.__loader__,
-                                  self.machinery.ExtensionFileLoader)
+            self.assertIsInstance(module.__loader__, self.LoaderClass)
 
     def test_functionality(self):
         # Test basic functionality of stuff defined in an extension module.

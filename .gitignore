@@ -61,7 +61,7 @@ Lib/test/data/*
 !Lib/test/data/README
 /Makefile
 /Makefile.pre
-iOSTestbed.*
+/iOSTestbed.*
 iOS/Frameworks/
 iOS/Resources/Info.plist
 iOS/testbed/build
