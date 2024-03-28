@@ -752,6 +752,7 @@ class StartupTests(TestBase):
 
 class FinalizationTests(TestBase):
 
+    @support.requires_subprocess()
     def test_gh_109793(self):
         import subprocess
         argv = [sys.executable, '-c', '''if True:
