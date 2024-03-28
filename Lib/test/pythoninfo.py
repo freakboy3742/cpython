@@ -267,6 +267,7 @@ def collect_os(info_add):
         "HOMEDRIVE",
         "HOMEPATH",
         "IDLESTARTUP",
+        "IPHONEOS_DEPLOYMENT_TARGET",
         "LANG",
         "LDFLAGS",
         "LDSHARED",

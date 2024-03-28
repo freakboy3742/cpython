@@ -5,9 +5,10 @@ import os
 import unittest
 import subprocess
 from textwrap import dedent
-from test.support import cpython_only, SuppressCrashReport
+from test.support import cpython_only, SuppressCrashReport, requires_subprocess
 from test.support.script_helper import kill_python
 
+@requires_subprocess()
 def spawn_repl(*args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, **kw):
     """Run the Python REPL with the given arguments.
 

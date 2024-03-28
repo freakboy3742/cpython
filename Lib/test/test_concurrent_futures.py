@@ -152,6 +152,7 @@ class ThreadPoolMixin(ExecutorMixin):
     executor_type = futures.ThreadPoolExecutor
 
 
+@support.requires_subprocess()
 class ProcessPoolForkMixin(ExecutorMixin):
     executor_type = futures.ProcessPoolExecutor
     ctx = "fork"
@@ -166,6 +167,7 @@ class ProcessPoolForkMixin(ExecutorMixin):
         return super().get_context()
 
 
+@support.requires_subprocess()
 class ProcessPoolSpawnMixin(ExecutorMixin):
     executor_type = futures.ProcessPoolExecutor
     ctx = "spawn"
@@ -178,6 +180,7 @@ class ProcessPoolSpawnMixin(ExecutorMixin):
         return super().get_context()
 
 
+@support.requires_subprocess()
 class ProcessPoolForkserverMixin(ExecutorMixin):
     executor_type = futures.ProcessPoolExecutor
     ctx = "forkserver"

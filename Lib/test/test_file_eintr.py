@@ -15,6 +15,7 @@ import subprocess
 import sys
 import time
 import unittest
+from test import support
 
 # Test import all of the things we're about to try testing up front.
 import _io
@@ -69,6 +70,7 @@ class TestFileIOSignalInterrupt:
         self.fail('Error from IO process %s:\nSTDOUT:\n%sSTDERR:\n%s\n' %
                   (why, stdout.decode(), stderr.decode()))
 
+    @support.requires_subprocess()
     def _test_reading(self, data_to_write, read_and_verify_code):
         """Generic buffered read method test harness to validate EINTR behavior.
 

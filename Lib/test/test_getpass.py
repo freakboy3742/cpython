@@ -22,6 +22,8 @@ class GetpassGetuserTest(unittest.TestCase):
         environ.get.return_value = expected_name
         self.assertEqual(expected_name, getpass.getuser())
 
+    @unittest.skipIf(support.is_apple_mobile,
+                     "FIXME: getpwuid implementation not complete on simulator")
     def test_username_priorities_of_env_values(self, environ):
         environ.get.return_value = None
         try:

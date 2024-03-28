@@ -1,5 +1,3 @@
-import io
-
 import os
 import sys
 import subprocess
@@ -427,6 +425,7 @@ class TestCommandLineArgs(unittest.TestCase):
 
         self.assertEqual(program.testNamePatterns, ['*foo*', '*bar*', '*pat*'])
 
+    @support.requires_subprocess()
     def testSelectedTestNamesFunctionalTest(self):
         def run_unittest(args):
             p = subprocess.Popen([sys.executable, '-m', 'unittest'] + args,

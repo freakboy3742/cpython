@@ -2,7 +2,7 @@ import mailcap
 import os
 import copy
 import test.support
-from test.support import os_helper
+from test.support import os_helper, requires_subprocess
 import unittest
 import sys
 
@@ -220,6 +220,7 @@ class FindmatchTest(unittest.TestCase):
 
     @unittest.skipUnless(os.name == "posix", "Requires 'test' command on system")
     @unittest.skipIf(sys.platform == "vxworks", "'test' command is not supported on VxWorks")
+    @requires_subprocess()
     def test_test(self):
         # findmatch() will automatically check any "test" conditions and skip
         # the entry if the check fails.

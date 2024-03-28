@@ -13,6 +13,9 @@ if sys.platform == "win32":
 if sys.platform == 'darwin':
     raise unittest.SkipTest("test may crash on macOS (bpo-33725)")
 
+if support.is_apple_mobile:
+    raise unittest.SkipTest("Can't use fork on Apple mobile")
+
 test._test_multiprocessing.install_tests_in_module_dict(globals(), 'fork')
 
 if __name__ == '__main__':

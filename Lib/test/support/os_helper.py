@@ -4,11 +4,12 @@ import errno
 import os
 import re
 import stat
-import support
 import sys
 import time
 import unittest
 import warnings
+
+from test import support
 
 
 # Filename used for testing

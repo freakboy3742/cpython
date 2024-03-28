@@ -10,6 +10,7 @@
 #include <string.h>
 
 #ifdef __APPLE__
+#  include "TargetConditionals.h"
 #  include <mach-o/dyld.h>
 #endif
 
@@ -1090,7 +1091,7 @@ resolve_symlinks(wchar_t **path_p)
 #endif /* HAVE_READLINK */
 
 
-#ifdef WITH_NEXT_FRAMEWORK
+#if defined(WITH_NEXT_FRAMEWORK) && !defined(TARGET_OS_IPHONE)
 static PyStatus
 calculate_argv0_path_framework(PyCalculatePath *calculate, _PyPathConfig *pathconfig)
 {
@@ -1184,7 +1185,7 @@ calculate_argv0_path(PyCalculatePath *calculate,
         return _PyStatus_NO_MEMORY();
     }
 
-#ifdef WITH_NEXT_FRAMEWORK
+#if defined(WITH_NEXT_FRAMEWORK) && !defined(TARGET_OS_IPHONE)
     status = calculate_argv0_path_framework(calculate, pathconfig);
     if (_PyStatus_EXCEPTION(status)) {
         return status;

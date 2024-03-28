@@ -20,6 +20,7 @@ __all__ = [
 
 # Keys for get_config_var() that are never converted to Python integers.
 _ALWAYS_STR = {
+    'IPHONEOS_DEPLOYMENT_TARGET',
     'MACOSX_DEPLOYMENT_TARGET',
 }
 
@@ -56,6 +57,46 @@ _INSTALL_SCHEMES = {
         'scripts': '{base}/Scripts',
         'data': '{base}',
         },
+
+    # Downstream distributors can overwrite the default install scheme.
+    # This is done to support downstream modifications where distributors change
+    # the installation layout (eg. different site-packages directory).
+    # So, distributors will change the default scheme to one that correctly
+    # represents their layout.
+    # This presents an issue for projects/people that need to bootstrap virtual
+    # environments, like virtualenv. As distributors might now be customizing
+    # the default install scheme, there is no guarantee that the information
+    # returned by sysconfig.get_default_scheme/get_paths is correct for
+    # a virtual environment, the only guarantee we have is that it is correct
+    # for the *current* environment. When bootstrapping a virtual environment,
+    # we need to know its layout, so that we can place the files in the
+    # correct locations.
+    # The "*_venv" install scheme is a scheme to bootstrap virtual environments,
+    # essentially identical to the default posix_prefix/nt schemes.
+    # Downstream distributors who patch posix_prefix/nt scheme are encouraged to
+    # leave the following schemes unchanged
+    'posix_venv': {
+        'stdlib': '{installed_base}/{platlibdir}/python{py_version_short}',
+        'platstdlib': '{platbase}/{platlibdir}/python{py_version_short}',
+        'purelib': '{base}/lib/python{py_version_short}/site-packages',
+        'platlib': '{platbase}/{platlibdir}/python{py_version_short}/site-packages',
+        'include':
+            '{installed_base}/include/python{py_version_short}{abiflags}',
+        'platinclude':
+            '{installed_platbase}/include/python{py_version_short}{abiflags}',
+        'scripts': '{base}/bin',
+        'data': '{base}',
+        },
+    'nt_venv': {
+        'stdlib': '{installed_base}/Lib',
+        'platstdlib': '{base}/Lib',
+        'purelib': '{base}/Lib/site-packages',
+        'platlib': '{base}/Lib/site-packages',
+        'include': '{installed_base}/Include',
+        'platinclude': '{installed_base}/Include',
+        'scripts': '{base}/Scripts',
+        'data': '{base}',
+        },
     }
 
 
@@ -66,8 +107,8 @@ def _getuserbase():
     if env_base:
         return env_base
 
-    # VxWorks has no home directories
-    if sys.platform == "vxworks":
+    # iOS, tvOS, VxWorks and watchOS have no home directories
+    if sys.platform in {"ios", "tvos", "vxworks", "watchos"}:
         return None
 
     def joinuser(*args):
@@ -237,6 +278,7 @@ def _get_preferred_schemes():
             'home': 'posix_home',
             'user': 'osx_framework_user',
         }
+
     return {
         'prefix': 'posix_prefix',
         'home': 'posix_home',
@@ -740,10 +782,15 @@ def get_platform():
         if m:
             release = m.group()
     elif osname[:6] == "darwin":
-        import _osx_support
-        osname, release, machine = _osx_support.get_platform_osx(
-                                            get_config_vars(),
-                                            osname, release, machine)
+        if sys.platform == "ios":
+            release = get_config_vars().get("IPHONEOS_DEPLOYMENT_TARGET", "12.0")
+            osname = sys.platform
+            machine = sys.implementation._multiarch
+        else:
+            import _osx_support
+            osname, release, machine = _osx_support.get_platform_osx(
+                                                get_config_vars(),
+                                                osname, release, machine)
 
     return f"{osname}-{release}-{machine}"
 

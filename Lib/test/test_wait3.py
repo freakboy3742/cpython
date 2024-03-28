@@ -15,6 +15,9 @@ if not hasattr(os, 'fork'):
 if not hasattr(os, 'wait3'):
     raise unittest.SkipTest("os.wait3 not defined")
 
+if support.is_apple_mobile:
+    raise unittest.SkipTest("os.wait3 doesn't work on Apple mobile")
+
 class Wait3Test(ForkWait):
     def wait_impl(self, cpid, *, exitcode):
         # This many iterations can be required, since some previously run

@@ -89,10 +89,25 @@ def get_host_platform():
         if m:
             release = m.group()
     elif osname[:6] == "darwin":
-        import _osx_support, distutils.sysconfig
-        osname, release, machine = _osx_support.get_platform_osx(
-                                        distutils.sysconfig.get_config_vars(),
-                                        osname, release, machine)
+        import distutils.sysconfig
+        config_vars = distutils.sysconfig.get_config_vars()
+        if sys.platform == "ios":
+            release = config_vars.get("IPHONEOS_DEPLOYMENT_TARGET", "13.0")
+            osname = sys.platform
+            machine = sys.implementation._multiarch
+        elif sys.platform == "tvos":
+            release = config_vars.get("TVOS_DEPLOYMENT_TARGET", "9.0")
+            osname = sys.platform
+            machine = sys.implementation._multiarch
+        elif sys.platform == "watchos":
+            release = config_vars.get("WATCHOS_DEPLOYMENT_TARGET", "4.0")
+            osname = sys.platform
+            machine = sys.implementation._multiarch
+        else:
+            import _osx_support
+            osname, release, machine = _osx_support.get_platform_osx(
+                                            config_vars,
+                                            osname, release, machine)
 
     return "%s-%s-%s" % (osname, release, machine)
 
@@ -170,7 +185,7 @@ def check_environ ():
     if _environ_checked:
         return
 
-    if os.name == 'posix' and 'HOME' not in os.environ:
+    if os.name == 'posix' and 'HOME' not in os.environ and sys.platform not in {"ios", "tvos", "watchos"}:
         try:
             import pwd
             os.environ['HOME'] = pwd.getpwuid(os.getuid())[5]

@@ -10,7 +10,7 @@ import unittest
 from distutils import sysconfig
 from distutils.ccompiler import get_default_compiler
 from distutils.tests import support
-from test.support import run_unittest, swap_item
+from test.support import is_apple_mobile, requires_subprocess, run_unittest, swap_item
 from test.support.os_helper import TESTFN
 from test.support.warnings_helper import check_warnings
 
@@ -32,6 +32,7 @@ class SysconfigTestCase(support.EnvironGuard, unittest.TestCase):
         elif os.path.isdir(TESTFN):
             shutil.rmtree(TESTFN)
 
+    @unittest.skipIf(is_apple_mobile, "Header files not distributed with Apple mobile")
     def test_get_config_h_filename(self):
         config_h = sysconfig.get_config_h_filename()
         self.assertTrue(os.path.isfile(config_h), config_h)
@@ -48,6 +49,7 @@ class SysconfigTestCase(support.EnvironGuard, unittest.TestCase):
         self.assertIsInstance(cvars, dict)
         self.assertTrue(cvars)
 
+    @unittest.skipIf(is_apple_mobile, "Header files not distributed with Apple mobile")
     def test_srcdir(self):
         # See Issues #15322, #15364.
         srcdir = sysconfig.get_config_var('srcdir')
@@ -247,6 +249,7 @@ class SysconfigTestCase(support.EnvironGuard, unittest.TestCase):
         self.assertIsNotNone(vars['SO'])
         self.assertEqual(vars['SO'], vars['EXT_SUFFIX'])
 
+    @requires_subprocess()
     def test_customize_compiler_before_get_config_vars(self):
         # Issue #21923: test that a Distribution compiler
         # instance can be called without an explicit call to

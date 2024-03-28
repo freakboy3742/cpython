@@ -71,7 +71,7 @@ AC_SUBST(PYTHON_FOR_REGEN)
 if test "$cross_compiling" = yes; then
     AC_MSG_CHECKING([for python interpreter for cross build])
     if test -z "$PYTHON_FOR_BUILD"; then
-        for interp in python$PACKAGE_VERSION python3 python; do
+        for interp in $PYTHON_FOR_REGEN python$PACKAGE_VERSION python3 python; do
 	    which $interp >/dev/null 2>&1 || continue
 	    if $interp -c "import sys;sys.exit(not '.'.join(str(n) for n in sys.version_info@<:@:2@:>@) == '$PACKAGE_VERSION')"; then
 	        break
@@ -88,6 +88,7 @@ elif test "$cross_compiling" = maybe; then
     AC_MSG_ERROR([Cross compiling required --host=HOST-TUPLE and --build=ARCH])
 else
     PYTHON_FOR_BUILD='./$(BUILDPYTHON) -E'
+    AC_MSG_RESULT($interp)
 fi
 AC_SUBST(PYTHON_FOR_BUILD)
 
@@ -629,16 +630,16 @@ if test "$cross_compiling" = yes; then
 		_host_device=`echo $host | cut -d '-' -f4`
 		_host_device=${_host_device:=os}
 
-		dnl IOS_DEPLOYMENT_TARGET is the minimum supported iOS version
-		IOS_DEPLOYMENT_TARGET=${_host_os:3}
-		IOS_DEPLOYMENT_TARGET=${IOS_DEPLOYMENT_TARGET:=12.0}
+		# IPHONEOS_DEPLOYMENT_TARGET is the minimum supported iOS version
+		IPHONEOS_DEPLOYMENT_TARGET=${_host_os:3}
+		IPHONEOS_DEPLOYMENT_TARGET=${IPHONEOS_DEPLOYMENT_TARGET:=12.0}
 
 		case "$host_cpu" in
 			aarch64)
-				_host_ident=${IOS_DEPLOYMENT_TARGET}-arm64-iphone${_host_device}
+				_host_ident=${IPHONEOS_DEPLOYMENT_TARGET}-arm64-iphone${_host_device}
 				;;
 			*)
-				_host_ident=${IOS_DEPLOYMENT_TARGET}-$host_cpu-iphone${_host_device}
+				_host_ident=${IPHONEOS_DEPLOYMENT_TARGET}-$host_cpu-iphone${_host_device}
 				;;
 		esac
 		;;
@@ -773,6 +774,9 @@ AC_SUBST(EXPORT_MACOSX_DEPLOYMENT_TARGET)
 CONFIGURE_MACOSX_DEPLOYMENT_TARGET=
 EXPORT_MACOSX_DEPLOYMENT_TARGET='#'
 
+# Record the value of IPHONEOS_DEPLOYMENT_TARGET enforced by the selected host triple.
+AC_SUBST([IPHONEOS_DEPLOYMENT_TARGET])
+
 # checks for alternative programs
 
 # compiler flags are generated in two sets, BASECFLAGS and OPT.  OPT is just
@@ -798,9 +802,8 @@ fi
 dnl Add the compiler flag for the iOS minimum supported OS version.
 AS_CASE([$ac_sys_system],
   [iOS], [
-    AS_VAR_APPEND([CFLAGS], [" -mios-version-min=${IOS_DEPLOYMENT_TARGET}"])
-    AS_VAR_APPEND([LDFLAGS], [" -mios-version-min=${IOS_DEPLOYMENT_TARGET}"])
-    AC_SUBST([IOS_DEPLOYMENT_TARGET])
+    AS_VAR_APPEND([CFLAGS], [" -mios-version-min=${IPHONEOS_DEPLOYMENT_TARGET}"])
+    AS_VAR_APPEND([LDFLAGS], [" -mios-version-min=${IPHONEOS_DEPLOYMENT_TARGET}"])
   ],
 )
 
@@ -4011,7 +4014,7 @@ fi
 # header definition prevents usage - autoconf doesn't use the headers), or
 # raise an error if used at runtime. Force these symbols off.
 if test "$ac_sys_system" != "iOS" ; then
-  AC_CHECK_FUNCS([getentropy getgroups])
+  AC_CHECK_FUNCS([ getentropy getgroups system ])
 fi
 
 AC_CHECK_DECL(dirfd,
@@ -6001,7 +6004,12 @@ AC_ARG_WITH(ensurepip,
     [AS_HELP_STRING([--with-ensurepip@<:@=install|upgrade|no@:>@],
         ["install" or "upgrade" using bundled pip (default is upgrade)])],
     [],
-    [with_ensurepip=upgrade])
+    [
+      AS_CASE([$ac_sys_system],
+        [iOS], [with_ensurepip=no],
+        [with_ensurepip=upgrade]
+      )
+    ])
 AS_CASE($with_ensurepip,
     [yes|upgrade],[ENSUREPIP=upgrade],
     [install],[ENSUREPIP=install],
