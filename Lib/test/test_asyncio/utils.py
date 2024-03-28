@@ -11,7 +11,6 @@ import selectors
 import socket
 import socketserver
 import sys
-import tempfile
 import threading
 import time
 import unittest
@@ -34,6 +33,7 @@ from asyncio import futures
 from asyncio import tasks
 from asyncio.log import logger
 from test import support
+from test.support import socket_helper
 
 
 def data_file(filename):
@@ -249,8 +249,7 @@ if hasattr(socket, 'AF_UNIX'):
 
 
     def gen_unix_socket_path():
-        with tempfile.NamedTemporaryFile() as file:
-            return file.name
+        return socket_helper.create_unix_domain_name()
 
 
     @contextlib.contextmanager

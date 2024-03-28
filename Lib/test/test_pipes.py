@@ -52,6 +52,7 @@ class SimplePipeTests(unittest.TestCase):
         finally:
             f.close()
 
+    @unittest.skipIf(not hasattr(os, "system"), "Needs os.system")
     def testEmptyPipeline1(self):
         # copy through empty pipe
         d = 'empty pipeline test COPY'

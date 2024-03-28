@@ -12,6 +12,7 @@ import unittest
 from unittest import mock
 
 from test import support
+from test.support import is_apple_mobile
 from test.support import TESTFN, FakePath
 
 try:
@@ -1429,6 +1430,7 @@ class _BasePathTest(object):
         self.assertIs(type(p), type(q))
         self.assertTrue(p.is_absolute())
 
+    @unittest.skipIf(is_apple_mobile, "No home folder on Apple mobile")
     def test_home(self):
         with support.EnvironmentVarGuard() as env:
             self._test_home(self.cls.home())
@@ -2426,6 +2428,7 @@ class PosixPathTest(_BasePathTest, unittest.TestCase):
 
     @unittest.skipUnless(hasattr(pwd, 'getpwall'),
                          'pwd module does not expose getpwall()')
+    @unittest.skipIf(is_apple_mobile, "No home folder on Apple mobile")
     def test_expanduser(self):
         P = self.cls
         support.import_module('pwd')

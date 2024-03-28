@@ -7,7 +7,7 @@ import sys
 import unittest
 from multiprocessing import Process
 from test.support import (verbose, TESTFN, unlink, import_module,
-                          cpython_only, requires_subprocess)
+                          cpython_only, is_apple, requires_subprocess)
 
 # Skip test if no fcntl module.
 fcntl = import_module('fcntl')
@@ -23,7 +23,7 @@ def get_lockdata():
         start_len = "qq"
 
     if (sys.platform.startswith(('netbsd', 'freebsd', 'openbsd'))
-        or sys.platform == 'darwin'):
+        or is_apple):
         if struct.calcsize('l') == 8:
             off_t = 'l'
             pid_t = 'i'

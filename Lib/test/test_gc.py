@@ -3,7 +3,7 @@ import unittest.mock
 from test.support import (verbose, refcount_test,
                           cpython_only, start_threads,
                           temp_dir, TESTFN, unlink,
-                          import_module)
+                          import_module, requires_subprocess)
 from test.support.script_helper import assert_python_ok, make_script
 
 import gc
@@ -660,6 +660,7 @@ class GCTests(unittest.TestCase):
         gc.collect() # this blows up (bad C pointer) when it fails
 
     @cpython_only
+    @requires_subprocess()
     def test_garbage_at_shutdown(self):
         import subprocess
         code = """if 1:

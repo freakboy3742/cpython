@@ -13,6 +13,7 @@ import doctest
 import inspect
 import linecache
 import unittest
+from test.support import is_apple_mobile
 from test.support.script_helper import (spawn_python, kill_python, assert_python_ok,
                                         make_script, make_zip_script)
 
@@ -91,6 +92,7 @@ class ZipSupportTests(unittest.TestCase):
             finally:
                 del sys.modules["zip_pkg"]
 
+    @unittest.skipIf(is_apple_mobile, "FIXME: Edge case of doctest importer")
     def test_doctest_issue4197(self):
         # To avoid having to keep two copies of the doctest module's
         # unit tests in sync, this test works by taking the source of

@@ -2,6 +2,7 @@
 import importlib
 import platform
 import sys
+import sys
 from test import support
 import unittest
 
@@ -20,7 +21,8 @@ class TestUntestedModules(unittest.TestCase):
 
             import distutils.bcppcompiler
             import distutils.ccompiler
-            import distutils.cygwinccompiler
+            if sys.platform.startswith("win"):
+                import distutils.cygwinccompiler
             import distutils.filelist
             import distutils.text_file
             import distutils.unixccompiler

@@ -27,7 +27,7 @@ import unittest
 import sqlite3 as sqlite
 import sys
 
-from test.support import SHORT_TIMEOUT, TESTFN, unlink
+from test.support import SHORT_TIMEOUT, requires_subprocess, TESTFN, unlink
 
 
 class ModuleTests(unittest.TestCase):
@@ -965,6 +965,7 @@ class MultiprocessTests(unittest.TestCase):
     def tearDown(self):
         unlink(TESTFN)
 
+    @requires_subprocess()
     def test_ctx_mgr_rollback_if_commit_failed(self):
         # bpo-27334: ctx manager does not rollback if commit fails
         SCRIPT = f"""if 1:

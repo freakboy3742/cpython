@@ -403,6 +403,7 @@ class LocaleCoercionTests(_LocaleHandlingTestCase):
                                       expected_warnings=[LEGACY_LOCALE_WARNING],
                                       coercion_expected=False)
 
+    @support.requires_subprocess()
     def test_PYTHONCOERCECLOCALE_set_to_one(self):
         # skip the test if the LC_CTYPE locale is C or coerced
         old_loc = locale.setlocale(locale.LC_CTYPE, None)

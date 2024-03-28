@@ -69,6 +69,7 @@ class EmbeddingTestsMixin:
     def tearDown(self):
         os.chdir(self.oldcwd)
 
+    @support.requires_subprocess()
     def run_embedded_interpreter(self, *args, env=None,
                                  timeout=None, returncode=0, input=None,
                                  cwd=None):

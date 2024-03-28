@@ -691,7 +691,7 @@ class UnixSocketTestBase(SocketTestBase):
         super().setUp()
 
     def bindSock(self, sock):
-        path = tempfile.mktemp(dir=self.dir_path)
+        path = socket_helper.create_unix_domain_name()
         socket_helper.bind_unix_socket(sock, path)
         self.addCleanup(support.unlink, path)
 
@@ -1900,12 +1900,13 @@ class GeneralModuleTests(unittest.TestCase):
             self._test_socket_fileno(s, socket.AF_INET6, socket.SOCK_STREAM)
 
         if hasattr(socket, "AF_UNIX"):
-            tmpdir = tempfile.mkdtemp()
-            self.addCleanup(shutil.rmtree, tmpdir)
+            unix_name = socket_helper.create_unix_domain_name()
+            self.addCleanup(support.unlink, unix_name)
+
             s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
             self.addCleanup(s.close)
             try:
-                s.bind(os.path.join(tmpdir, 'socket'))
+                s.bind(unix_name)
             except PermissionError:
                 pass
             else:

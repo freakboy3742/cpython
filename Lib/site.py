@@ -257,6 +257,10 @@ def _getuserbase():
     if env_base:
         return env_base
 
+    # iOS, tvOS, VxWorks and watchOS have no home directories
+    if sys.platform in {"ios", "tvos", "vxworks", "watchos"}:
+        return None
+
     def joinuser(*args):
         return os.path.expanduser(os.path.join(*args))
 

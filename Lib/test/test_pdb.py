@@ -1289,6 +1289,7 @@ def test_pdb_issue_43318():
     """
 
 
+@support.requires_subprocess()
 class PdbTestCase(unittest.TestCase):
     def tearDown(self):
         support.unlink(support.TESTFN)

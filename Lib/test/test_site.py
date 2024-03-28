@@ -7,9 +7,8 @@ executing have not been removed.
 import unittest
 import test.support
 from test import support
-from test.support import socket_helper
-from test.support import (captured_stderr, TESTFN, EnvironmentVarGuard,
-                          change_cwd)
+from test.support import socket_helper, is_apple_mobile
+from test.support import (captured_stderr, TESTFN, EnvironmentVarGuard)
 import builtins
 import encodings
 import glob
@@ -212,6 +211,7 @@ class HelperFunctionsTests(unittest.TestCase):
             pth_file.cleanup()
 
     @unittest.skipUnless(sys.platform == 'win32', 'test needs Windows')
+    @support.requires_subprocess()
     def test_addsitedir_hidden_file_attribute(self):
         pth_file = PthFile()
         pth_file.cleanup(prep=True)
@@ -239,6 +239,7 @@ class HelperFunctionsTests(unittest.TestCase):
 
     @unittest.skipUnless(site.ENABLE_USER_SITE, "requires access to PEP 370 "
                           "user-site (site.ENABLE_USER_SITE)")
+    @support.requires_subprocess()
     def test_s_option(self):
         # (ncoghlan) Change this to use script_helper...
         usersite = site.USER_SITE
@@ -295,6 +296,7 @@ class HelperFunctionsTests(unittest.TestCase):
             self.assertTrue(site.getuserbase().startswith('xoxo'),
                             site.getuserbase())
 
+    @unittest.skipIf(is_apple_mobile, "Apple mobile doesn't have a user site")
     def test_getusersitepackages(self):
         site.USER_SITE = None
         site.USER_BASE = None
@@ -329,6 +331,7 @@ class HelperFunctionsTests(unittest.TestCase):
             wanted = os.path.join('xoxo', 'lib', 'site-packages')
             self.assertEqual(dirs[1], wanted)
 
+    @unittest.skipIf(is_apple_mobile, "Apple mobile doesn't have a user site")
     def test_no_home_directory(self):
         # bpo-10496: getuserbase() and getusersitepackages() must not fail if
         # the current user has no home directory (if expanduser() returns the
@@ -513,6 +516,7 @@ class ImportSideEffectTests(unittest.TestCase):
 
 class StartupImportTests(unittest.TestCase):
 
+    @support.requires_subprocess()
     def test_startup_imports(self):
         # Get sys.path in isolated mode (python3 -I)
         popen = subprocess.Popen([sys.executable, '-I', '-c',
@@ -561,17 +565,20 @@ class StartupImportTests(unittest.TestCase):
                           }.difference(sys.builtin_module_names)
         self.assertFalse(modules.intersection(collection_mods), stderr)
 
+    @support.requires_subprocess()
     def test_startup_interactivehook(self):
         r = subprocess.Popen([sys.executable, '-c',
             'import sys; sys.exit(hasattr(sys, "__interactivehook__"))']).wait()
         self.assertTrue(r, "'__interactivehook__' not added by site")
 
+    @support.requires_subprocess()
     def test_startup_interactivehook_isolated(self):
         # issue28192 readline is not automatically enabled in isolated mode
         r = subprocess.Popen([sys.executable, '-I', '-c',
             'import sys; sys.exit(hasattr(sys, "__interactivehook__"))']).wait()
         self.assertFalse(r, "'__interactivehook__' added in isolated mode")
 
+    @support.requires_subprocess()
     def test_startup_interactivehook_isolated_explicit(self):
         # issue28192 readline can be explicitly enabled in isolated mode
         r = subprocess.Popen([sys.executable, '-I', '-c',
@@ -609,6 +616,7 @@ class _pthFileTests(unittest.TestCase):
             sys_path.append(abs_path)
         return sys_path
 
+    @support.requires_subprocess()
     def test_underpth_nosite_file(self):
         libpath = os.path.dirname(os.path.dirname(encodings.__file__))
         exe_prefix = os.path.dirname(sys.executable)
@@ -637,6 +645,7 @@ class _pthFileTests(unittest.TestCase):
             "sys.path is incorrect"
         )
 
+    @support.requires_subprocess()
     def test_underpth_file(self):
         libpath = os.path.dirname(os.path.dirname(encodings.__file__))
         exe_prefix = os.path.dirname(sys.executable)

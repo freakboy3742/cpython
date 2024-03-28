@@ -5,7 +5,7 @@ import subprocess
 import shutil
 from copy import copy
 
-from test.support import (import_module, TESTFN, unlink, check_warnings,
+from test.support import (is_apple_mobile, import_module, TESTFN, unlink, check_warnings,
                           captured_stdout, skip_unless_symlink, change_cwd,
                           PythonSymlink)
 
@@ -223,13 +223,15 @@ class TestSysConfig(unittest.TestCase):
 
         # XXX more platforms to tests here
 
+    @unittest.skipIf(is_apple_mobile,
+                     f"{sys.platform} doesn't distribute header files in the runtime environment")
     def test_get_config_h_filename(self):
         config_h = sysconfig.get_config_h_filename()
         self.assertTrue(os.path.isfile(config_h), config_h)
 
     def test_get_scheme_names(self):
-        wanted = ('nt', 'nt_user', 'osx_framework_user',
-                  'posix_home', 'posix_prefix', 'posix_user')
+        wanted = ('nt', 'nt_user', 'nt_venv', 'osx_framework_user',
+                  'posix_home', 'posix_prefix', 'posix_user', 'posix_venv')
         self.assertEqual(get_scheme_names(), wanted)
 
     @skip_unless_symlink
@@ -238,6 +240,7 @@ class TestSysConfig(unittest.TestCase):
             cmd = "-c", "import sysconfig; print(sysconfig.get_platform())"
             self.assertEqual(py.call_real(*cmd), py.call_link(*cmd))
 
+    @unittest.skipIf(is_apple_mobile, "Apple mobile doesn't have a user home")
     def test_user_similar(self):
         # Issue #8759: make sure the posix scheme for the users
         # is similar to the global posix_prefix one
@@ -316,6 +319,8 @@ class TestSysConfig(unittest.TestCase):
         self.assertEqual(status, 0)
         self.assertEqual(my_platform, test_platform)
 
+    @unittest.skipIf(is_apple_mobile,
+                     f"{sys.platform} doesn't include config folder at runtime")
     def test_srcdir(self):
         # See Issues #15322, #15364.
         srcdir = sysconfig.get_config_var('srcdir')
@@ -392,6 +397,8 @@ class MakefileTests(unittest.TestCase):
 
     @unittest.skipIf(sys.platform.startswith('win'),
                      'Test is not Windows compatible')
+    @unittest.skipIf(is_apple_mobile,
+                     f"{sys.platform} doesn't include config folder at runtime")
     def test_get_makefile_filename(self):
         makefile = sysconfig.get_makefile_filename()
         self.assertTrue(os.path.isfile(makefile), makefile)

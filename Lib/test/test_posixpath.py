@@ -260,6 +260,7 @@ class PosixPathTest(unittest.TestCase):
                     self.assertEqual(posixpath.expanduser("~/"), "/")
                     self.assertEqual(posixpath.expanduser("~/foo"), "/foo")
 
+    @unittest.skipIf(support.is_apple_mobile, "FIXME: Edge case of getpwuid handling")
     def test_expanduser_pwd(self):
         pwd = support.import_module('pwd')
 

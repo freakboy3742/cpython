@@ -306,11 +306,15 @@ class SelectorEventLoopUnixSocketTests(test_utils.TestCase):
                 self.loop.run_until_complete(coro)
 
     def test_create_unix_server_existing_path_nonsock(self):
-        with tempfile.NamedTemporaryFile() as file:
-            coro = self.loop.create_unix_server(lambda: None, file.name)
-            with self.assertRaisesRegex(OSError,
-                                        'Address.*is already in use'):
-                self.loop.run_until_complete(coro)
+        path = test_utils.gen_unix_socket_path()
+        self.addCleanup(support.unlink, path)
+        # create the file
+        open(path, "wb").close()
+
+        coro = self.loop.create_unix_server(lambda: None, path)
+        with self.assertRaisesRegex(OSError,
+                                    'Address.*is already in use'):
+            self.loop.run_until_complete(coro)
 
     def test_create_unix_server_ssl_bool(self):
         coro = self.loop.create_unix_server(lambda: None, path='spam',

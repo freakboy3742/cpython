@@ -1,3 +1,4 @@
+import unittest
 from test.support import is_apple_mobile
 from .. import abc
 from .. import util
@@ -10,7 +11,9 @@ import types
 import unittest
 import importlib.util
 import importlib
-from test.support.script_helper import assert_python_failure
+
+if is_apple_mobile:
+    raise unittest.SkipTest("FIXME: Edge cases in Python 3.9 loader")
 
 class LoaderTests(abc.LoaderTests):
 

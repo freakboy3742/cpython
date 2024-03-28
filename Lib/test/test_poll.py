@@ -8,6 +8,7 @@ import threading
 import time
 import unittest
 from test.support import TESTFN, reap_threads, cpython_only
+from test.support import requires_subprocess
 
 try:
     select.poll
@@ -117,6 +118,7 @@ class PollTests(unittest.TestCase):
     # Another test case for poll().  This is copied from the test case for
     # select(), modified to use poll() instead.
 
+    @requires_subprocess()
     def test_poll2(self):
         cmd = 'for i in 0 1 2 3 4 5 6 7 8 9; do echo testing...; sleep 1; done'
         proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,

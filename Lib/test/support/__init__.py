@@ -41,7 +41,7 @@ __all__ = [
     "record_original_stdout", "get_original_stdout", "captured_stdout",
     "captured_stdin", "captured_stderr",
     # filesystem
-    "TESTFN", "SAVEDCWD", "unlink", "rmtree", "temp_cwd", "findfile",
+    "TESTFN", "TESTFN_UNENCODABLE", "SAVEDCWD", "unlink", "rmtree", "temp_cwd", "findfile",
     "create_empty_file", "can_symlink", "fs_is_case_insensitive",
     # unittest
     "is_resource_enabled", "requires", "requires_freebsd_version",
@@ -746,11 +746,6 @@ is_jython = sys.platform.startswith('java')
 
 is_android = hasattr(sys, 'getandroidapilevel')
 
-if sys.platform not in {"win32", "vxworks", "ios", "tvos", "watchos"}:
-    unix_shell = '/system/bin/sh' if is_android else '/bin/sh'
-else:
-    unix_shell = None
-
 # Apple mobile platforms (iOS/tvOS/watchOS) are POSIX-like but do not
 # have subprocess or fork support.
 is_apple_mobile = sys.platform in {"ios", "tvos", "watchos"}
@@ -766,6 +761,22 @@ has_subprocess_support = not is_apple_mobile
 def requires_subprocess():
     """Used for subprocess, os.spawn calls, fd inheritance"""
     return unittest.skipUnless(has_subprocess_support, "requires subprocess support")
+
+if sys.platform not in {"win32", "vxworks", "ios", "tvos", "watchos"}:
+    unix_shell = '/system/bin/sh' if is_android else '/bin/sh'
+else:
+    unix_shell = None
+
+# Filename used for testing
+if os.name == 'java':
+    # Jython disallows @ in module names
+    TESTFN_ASCII = '$test'
+else:
+    TESTFN_ASCII = '@test'
+
+# Disambiguate TESTFN for parallel testing, while letting it remain a valid
+# module name.
+TESTFN_ASCII = "{}_{}_tmp".format(TESTFN_ASCII, os.getpid())
 
 # Define the URL of a dedicated HTTP server for the network tests.
 # The URL must use clear-text HTTP: no redirection to encrypted HTTPS.
@@ -848,8 +859,8 @@ if os.name == 'nt':
                   'Unicode filename tests may not be effective'
                   % (TESTFN_UNENCODABLE, TESTFN_ENCODING))
             TESTFN_UNENCODABLE = None
-# Mac OS X denies unencodable filenames (invalid utf-8)
-elif sys.platform != 'darwin':
+# Apple platforms deny unencodable filenames (invalid utf-8)
+elif not is_apple:
     try:
         # ascii and utf-8 cannot encode the byte 0xff
         b'\xff'.decode(TESTFN_ENCODING)
@@ -2444,6 +2455,7 @@ class PythonSymlink:
                 if verbose:
                     print("failed to clean up {}: {}".format(link, ex))
 
+    @requires_subprocess()
     def _call(self, python, args, env, returncode):
         cmd = [python, *args]
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE,

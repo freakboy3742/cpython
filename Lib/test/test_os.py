@@ -31,6 +31,8 @@ import unittest
 import uuid
 import warnings
 from test import support
+from test.support import requires_fork
+from test.support import requires_subprocess
 from test.support import socket_helper
 from platform import win32_is_iot
 
@@ -953,6 +955,7 @@ class EnvironTests(mapping_tests.BasicTestMappingProtocol):
         value_str = value.decode(sys.getfilesystemencoding(), 'surrogateescape')
         self.assertEqual(os.environ['bytes'], value_str)
 
+    @requires_subprocess()
     def test_putenv_unsetenv(self):
         name = "PYTHONTESTVAR"
         value = "testvalue"
@@ -2133,6 +2136,7 @@ class PosixUidGidTests(unittest.TestCase):
         self.assertRaises(OverflowError, os.setreuid, 0, self.UID_OVERFLOW)
 
     @unittest.skipUnless(hasattr(os, 'setreuid'), 'test needs os.setreuid()')
+    @requires_subprocess()
     def test_setreuid_neg1(self):
         # Needs to accept -1.  We run this in a subprocess to avoid
         # altering the test runner's process state (issue8045).
@@ -2150,6 +2154,7 @@ class PosixUidGidTests(unittest.TestCase):
         self.assertRaises(OverflowError, os.setregid, 0, self.GID_OVERFLOW)
 
     @unittest.skipUnless(hasattr(os, 'setregid'), 'test needs os.setregid()')
+    @requires_subprocess()
     def test_setregid_neg1(self):
         # Needs to accept -1.  We run this in a subprocess to avoid
         # altering the test runner's process state (issue8045).
@@ -2822,6 +2827,7 @@ class DeviceEncodingTests(unittest.TestCase):
 
 class PidTests(unittest.TestCase):
     @unittest.skipUnless(hasattr(os, 'getppid'), "test needs os.getppid")
+    @requires_subprocess()
     def test_getppid(self):
         p = subprocess.Popen([sys.executable, '-c',
                               'import os; print(os.getppid())'],
@@ -2830,6 +2836,7 @@ class PidTests(unittest.TestCase):
         # We are the parent of our subprocess
         self.assertEqual(int(stdout), os.getpid())
 
+    @requires_fork()
     def check_waitpid(self, code, exitcode, callback=None):
         if sys.platform == 'win32':
             # On Windows, os.spawnv() simply joins arguments with spaces:
@@ -2892,6 +2899,7 @@ class PidTests(unittest.TestCase):
         self.check_waitpid(code, exitcode=-signum, callback=kill_process)
 
 
+@requires_fork()
 class SpawnTests(unittest.TestCase):
     def create_args(self, *, with_env=False, use_bytes=False):
         self.exitcode = 17
@@ -2974,6 +2982,7 @@ class SpawnTests(unittest.TestCase):
         self.assertEqual(exitcode, self.exitcode)
 
     @requires_os_func('spawnv')
+    @requires_fork()
     def test_nowait(self):
         args = self.create_args()
         pid = os.spawnv(os.P_NOWAIT, args[0], args)

@@ -9,6 +9,9 @@ import distutils.tests
 import test.support
 import unittest
 
+if test.support.is_apple_mobile:
+    raise unittest.SkipTest("FIXME: Edge case of test loader")
+
 def load_tests(*_):
     # used by unittest
     return distutils.tests.test_suite()

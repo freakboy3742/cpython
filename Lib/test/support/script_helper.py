@@ -11,12 +11,15 @@ import py_compile
 import zipfile
 
 from importlib.util import source_from_cache
+from test import support
 from test.support import make_legacy_pyc
 
 
 # Cached result of the expensive test performed in the function below.
 __cached_interp_requires_environment = None
 
+
+@support.requires_subprocess()
 def interpreter_requires_environment():
     """
     Returns True if our sys.executable interpreter requires environment
@@ -85,6 +88,7 @@ class _PythonRunResult(collections.namedtuple("_PythonRunResult",
 
 
 # Executing the interpreter in a subprocess
+@support.requires_subprocess()
 def run_python_until_end(*args, **env_vars):
     env_required = interpreter_requires_environment()
     cwd = env_vars.pop('__cwd', None)
@@ -142,6 +146,7 @@ def _assert_python(expected_success, /, *args, **env_vars):
         res.fail(cmd_line)
     return res
 
+@support.requires_subprocess()
 def assert_python_ok(*args, **env_vars):
     """
     Assert that running the interpreter with `args` and optional environment
@@ -155,6 +160,7 @@ def assert_python_ok(*args, **env_vars):
     """
     return _assert_python(True, *args, **env_vars)
 
+@support.requires_subprocess()
 def assert_python_failure(*args, **env_vars):
     """
     Assert that running the interpreter with `args` and optional environment
@@ -165,6 +171,7 @@ def assert_python_failure(*args, **env_vars):
     """
     return _assert_python(False, *args, **env_vars)
 
+@support.requires_subprocess()
 def spawn_python(*args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, **kw):
     """Run a Python subprocess with the given arguments.
 

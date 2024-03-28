@@ -11,6 +11,7 @@ import sys
 import unittest
 from subprocess import PIPE, Popen
 from test import support
+from test.support import requires_subprocess
 from test.support import _4G, bigmemtest
 from test.support.script_helper import assert_python_ok, assert_python_failure
 
@@ -742,6 +743,7 @@ def create_and_remove_directory(directory):
 class TestCommandLine(unittest.TestCase):
     data = b'This is a simple test with gzip'
 
+    @requires_subprocess()
     def test_decompress_stdin_stdout(self):
         with io.BytesIO() as bytes_io:
             with gzip.GzipFile(fileobj=bytes_io, mode='wb') as gzip_file:
@@ -777,6 +779,7 @@ class TestCommandLine(unittest.TestCase):
         self.assertEqual(rc, 1)
         self.assertEqual(out, b'')
 
+    @requires_subprocess()
     @create_and_remove_directory(TEMPDIR)
     def test_compress_stdin_outfile(self):
         args = sys.executable, '-m', 'gzip'

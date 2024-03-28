@@ -14,7 +14,7 @@ import unittest
 import warnings
 from test.support import (
     forget, make_legacy_pyc, unload, verbose, no_tracing,
-    create_empty_file, temp_dir)
+    create_empty_file, temp_dir, requires_subprocess)
 from test.support.script_helper import make_script, make_zip_script
 
 
@@ -780,6 +780,7 @@ class TestExit(unittest.TestCase):
             )
             super().run(*args, **kwargs)
 
+    @requires_subprocess()
     def assertSigInt(self, *args, **kwargs):
         proc = subprocess.run(*args, **kwargs, text=True, stderr=subprocess.PIPE)
         self.assertTrue(proc.stderr.endswith("\nKeyboardInterrupt\n"))

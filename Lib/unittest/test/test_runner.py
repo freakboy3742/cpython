@@ -9,6 +9,7 @@ from unittest.case import _Outcome
 
 from unittest.test.support import (LoggingResult,
                                    ResultWithNoStartTestRunStopTestRun)
+from test import support
 
 
 def resultFactory(*_):
@@ -1135,6 +1136,7 @@ class Test_TextTestRunner(unittest.TestCase):
         expectedresult = (runner.stream, DESCRIPTIONS, VERBOSITY)
         self.assertEqual(runner._makeResult(), expectedresult)
 
+    @support.requires_subprocess()
     def test_warnings(self):
         """
         Check that warnings argument of TextTestRunner correctly affects the
