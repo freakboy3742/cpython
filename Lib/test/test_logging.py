@@ -3866,6 +3866,7 @@ class ConfigDictTest(BaseTest):
                 self.addCleanup(os.remove, fn)
 
     @threading_helper.requires_working_threading()
+    @support.requires_subprocess()
     def test_config_queue_handler(self):
         q = CustomQueue()
         dq = {
