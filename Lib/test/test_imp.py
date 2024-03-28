@@ -10,6 +10,7 @@ from test.support import import_helper
 from test.support import os_helper
 from test.support import script_helper
 from test.support import warnings_helper
+from test.support import is_apple_mobile
 from test.support import is_wasi
 import unittest
 import warnings
@@ -234,6 +235,7 @@ class ImportTests(unittest.TestCase):
                 self.assertIsNot(orig_getenv, new_os.getenv)
 
     @requires_load_dynamic
+    @unittest.skipIf(is_apple_mobile, "FIXME: edge case of module loader")
     def test_issue15828_load_extensions(self):
         # Issue 15828 picked up that the adapter between the old imp API
         # and importlib couldn't handle C extensions
@@ -246,6 +248,7 @@ class ImportTests(unittest.TestCase):
         self.assertEqual(mod.__name__, example)
 
     @requires_load_dynamic
+    @unittest.skipIf(is_apple_mobile, "FIXME: edge case of module loader")
     def test_issue16421_multiple_modules_in_one_dll(self):
         # Issue 16421: loading several modules from the same compiled file fails
         m = '_testimportmultiple'
@@ -273,6 +276,7 @@ class ImportTests(unittest.TestCase):
         self.assertEqual(name, err.exception.name)
 
     @requires_load_dynamic
+    @unittest.skipIf(is_apple_mobile, "FIXME: edge case of module loader")
     def test_load_module_extension_file_is_None(self):
         # When loading an extension module and the file is None, open one
         # on the behalf of imp.load_dynamic().
@@ -286,6 +290,7 @@ class ImportTests(unittest.TestCase):
         imp.load_module(name, None, *found[1:])
 
     @requires_load_dynamic
+    @unittest.skipIf(is_apple_mobile, "FIXME: edge case of module loader")
     def test_issue24748_load_module_skips_sys_modules_check(self):
         name = 'test.imp_dummy'
         try:

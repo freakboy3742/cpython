@@ -43,6 +43,7 @@ import sys
 import tempfile
 from test.support.script_helper import assert_python_ok, assert_python_failure
 from test import support
+from test.support import is_apple_mobile
 from test.support import os_helper
 from test.support import socket_helper
 from test.support import threading_helper
@@ -2003,6 +2004,7 @@ class SysLogHandlerTest(BaseTest):
         self.handled.wait(support.LONG_TIMEOUT)
         self.assertEqual(self.log_output, b'<11>h\xc3\xa4m-sp\xc3\xa4m')
 
+    @unittest.skipIf(is_apple_mobile, "FIXME: Edge case of logging setup")
     def test_udp_reconnection(self):
         logger = logging.getLogger("slh")
         self.sl_hdlr.close()

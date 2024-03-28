@@ -11,7 +11,6 @@ import selectors
 import socket
 import socketserver
 import sys
-import tempfile
 import threading
 import time
 import unittest
@@ -34,7 +33,7 @@ from asyncio import futures
 from asyncio import tasks
 from asyncio.log import logger
 from test import support
-from test.support import threading_helper
+from test.support import threading_helper, socket_helper
 
 
 # Use the maximum known clock resolution (gh-75191, gh-110088): Windows
@@ -256,8 +255,7 @@ if hasattr(socket, 'AF_UNIX'):
 
 
     def gen_unix_socket_path():
-        with tempfile.NamedTemporaryFile() as file:
-            return file.name
+        return socket_helper.create_unix_domain_name()
 
 
     @contextlib.contextmanager

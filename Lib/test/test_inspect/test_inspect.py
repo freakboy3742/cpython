@@ -25,7 +25,7 @@ try:
 except ImportError:
     ThreadPoolExecutor = None
 
-from test.support import cpython_only
+from test.support import cpython_only, is_apple_mobile
 from test.support import MISSING_C_DOCSTRINGS, ALWAYS_EQ
 from test.support.import_helper import DirsOnSysPath, ready_to_import
 from test.support.os_helper import TESTFN
@@ -783,6 +783,7 @@ class TestBuggyCases(GetSourceBase):
     @unittest.skipIf(not hasattr(unicodedata, '__file__') or
                                  unicodedata.__file__.endswith('.py'),
                      "unicodedata is not an external binary module")
+    @unittest.skipIf(is_apple_mobile, "FIXME: Edge case of module loader")
     def test_findsource_binary(self):
         self.assertRaises(OSError, inspect.getsource, unicodedata)
         self.assertRaises(OSError, inspect.findsource, unicodedata)

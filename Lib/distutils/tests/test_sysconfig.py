@@ -10,7 +10,7 @@ import unittest
 from distutils import sysconfig
 from distutils.ccompiler import get_default_compiler
 from distutils.tests import support
-from test.support import swap_item, requires_subprocess, is_wasi
+from test.support import swap_item, requires_subprocess, is_apple_mobile, is_wasi
 from test.support.os_helper import TESTFN
 from test.support.warnings_helper import check_warnings
 
@@ -33,6 +33,7 @@ class SysconfigTestCase(support.EnvironGuard, unittest.TestCase):
             shutil.rmtree(TESTFN)
 
     @unittest.skipIf(is_wasi, "Incompatible with WASI mapdir and OOT builds")
+    @unittest.skipIf(is_apple_mobile, "Header files not distributed with Apple mobile")
     def test_get_config_h_filename(self):
         config_h = sysconfig.get_config_h_filename()
         self.assertTrue(os.path.isfile(config_h), config_h)
@@ -50,6 +51,7 @@ class SysconfigTestCase(support.EnvironGuard, unittest.TestCase):
         self.assertTrue(cvars)
 
     @unittest.skipIf(is_wasi, "Incompatible with WASI mapdir and OOT builds")
+    @unittest.skipIf(is_apple_mobile, "Header files not distributed with Apple mobile")
     def test_srcdir(self):
         # See Issues #15322, #15364.
         srcdir = sysconfig.get_config_var('srcdir')

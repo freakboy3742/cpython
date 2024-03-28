@@ -91,8 +91,7 @@ class SocketServerTest(unittest.TestCase):
         else:
             # XXX: We need a way to tell AF_UNIX to pick its own name
             # like AF_INET provides port==0.
-            dir = None
-            fn = tempfile.mktemp(prefix='unix_socket.', dir=dir)
+            fn = socket_helper.create_unix_domain_name()
             self.test_files.append(fn)
             return fn
 
