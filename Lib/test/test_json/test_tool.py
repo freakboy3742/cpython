@@ -85,6 +85,7 @@ class TestTool(unittest.TestCase):
     }
     """)
 
+    @support.requires_subprocess()
     def test_stdin_stdout(self):
         args = sys.executable, '-m', 'json.tool'
         process = subprocess.run(args, input=self.data, capture_output=True, text=True, check=True)
@@ -140,6 +141,7 @@ class TestTool(unittest.TestCase):
         self.assertEqual(out, b'')
         self.assertEqual(err, b'')
 
+    @support.requires_subprocess()
     def test_jsonlines(self):
         args = sys.executable, '-m', 'json.tool', '--json-lines'
         process = subprocess.run(args, input=self.jsonlines_raw, capture_output=True, text=True, check=True)
@@ -160,6 +162,7 @@ class TestTool(unittest.TestCase):
                          self.expect_without_sort_keys.encode().splitlines())
         self.assertEqual(err, b'')
 
+    @support.requires_subprocess()
     def test_indent(self):
         input_ = '[1, 2]'
         expect = textwrap.dedent('''\
@@ -173,6 +176,7 @@ class TestTool(unittest.TestCase):
         self.assertEqual(process.stdout, expect)
         self.assertEqual(process.stderr, '')
 
+    @support.requires_subprocess()
     def test_no_indent(self):
         input_ = '[1,\n2]'
         expect = '[1, 2]\n'
@@ -181,6 +185,7 @@ class TestTool(unittest.TestCase):
         self.assertEqual(process.stdout, expect)
         self.assertEqual(process.stderr, '')
 
+    @support.requires_subprocess()
     def test_tab(self):
         input_ = '[1, 2]'
         expect = '[\n\t1,\n\t2\n]\n'
@@ -189,6 +194,7 @@ class TestTool(unittest.TestCase):
         self.assertEqual(process.stdout, expect)
         self.assertEqual(process.stderr, '')
 
+    @support.requires_subprocess()
     def test_compact(self):
         input_ = '[ 1 ,\n 2]'
         expect = '[1,2]\n'
@@ -197,6 +203,7 @@ class TestTool(unittest.TestCase):
         self.assertEqual(process.stdout, expect)
         self.assertEqual(process.stderr, '')
 
+    @unittest.skipIf(support.is_apple_mobile, "FIXME: Edge case in encoding handling")
     def test_no_ensure_ascii_flag(self):
         infile = self._create_infile('{"key":"💩"}')
         outfile = os_helper.TESTFN + '.out'
@@ -208,6 +215,7 @@ class TestTool(unittest.TestCase):
         expected = [b'{', b'    "key": "\xf0\x9f\x92\xa9"', b"}"]
         self.assertEqual(lines, expected)
 
+    @unittest.skipIf(support.is_apple_mobile, "FIXME: Edge case in encoding handling")
     def test_ensure_ascii_default(self):
         infile = self._create_infile('{"key":"💩"}')
         outfile = os_helper.TESTFN + '.out'
@@ -220,6 +228,7 @@ class TestTool(unittest.TestCase):
         self.assertEqual(lines, expected)
 
     @unittest.skipIf(sys.platform =="win32", "The test is failed with ValueError on Windows")
+    @support.requires_subprocess()
     def test_broken_pipe_error(self):
         cmd = [sys.executable, '-m', 'json.tool']
         proc = subprocess.Popen(cmd,

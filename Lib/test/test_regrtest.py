@@ -513,6 +513,7 @@ class BaseTestCase(unittest.TestCase):
         self.assertTrue(0 <= randseed <= 10000000, randseed)
         return randseed
 
+    @support.requires_subprocess()
     def run_command(self, args, input=None, exitcode=0, **kw):
         if not input:
             input = ''

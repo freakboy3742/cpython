@@ -1042,8 +1042,10 @@ class PyBuildExt(build_ext):
         self.add(Extension('_csv', ['_csv.c']))
 
         # POSIX subprocess module helper.
-        self.add(Extension('_posixsubprocess', ['_posixsubprocess.c'],
-                           extra_compile_args=['-DPy_BUILD_CORE_MODULE']))
+        # iOS/tvOS/watchOS doesn't have this.
+        if not (IOS or TVOS or WATCHOS):
+            self.add(Extension('_posixsubprocess', ['_posixsubprocess.c'],
+                               extra_compile_args=['-DPy_BUILD_CORE_MODULE']))
 
     def detect_test_extensions(self):
         # Python C API test module
@@ -1533,6 +1535,15 @@ class PyBuildExt(build_ext):
                                                ],
                                            libraries=dblibs)
                         break
+
+            # iOS, tvOS and watchOS have DBM in the system libraries.
+            if IOS or TVOS or WATCHOS:
+                dbmext = Extension('_dbm', ['_dbmmodule.c'],
+                                           define_macros=[
+                                               ('HAVE_NDBM_H',None),
+                                               ],
+                                           libraries=['dbm'])
+
             if dbmext is not None:
                 self.add(dbmext)
             else:
@@ -1612,7 +1623,8 @@ class PyBuildExt(build_ext):
             if sqlite_libfile:
                 sqlite_libdir = [os.path.abspath(os.path.dirname(sqlite_libfile))]
 
-        if sqlite_incdir and sqlite_libdir:
+        # iOS, tvOS and watchOS provide SQLITE as part of the system libraries.
+        if (sqlite_incdir and sqlite_libdir) or IOS or TVOS or WATCHOS:
             sqlite_srcs = ['_sqlite/cache.c',
                 '_sqlite/connection.c',
                 '_sqlite/cursor.c',
@@ -1645,7 +1657,7 @@ class PyBuildExt(build_ext):
             # Only include the directory where sqlite was found if it does
             # not already exist in set include directories, otherwise you
             # can end up with a bad search path order.
-            if sqlite_incdir not in self.compiler.include_dirs:
+            if sqlite_incdir and sqlite_incdir not in self.compiler.include_dirs:
                 include_dirs.append(sqlite_incdir)
             # avoid a runtime library path for a system library dir
             if sqlite_libdir and sqlite_libdir[0] in self.lib_dirs:
@@ -1728,6 +1740,9 @@ class PyBuildExt(build_ext):
                     self.missing.append('zlib')
             else:
                 self.missing.append('zlib')
+        elif IOS or TVOS or WATCHOS:
+            # iOS/tvOS/watchOS include zlib in the system libraries.
+            self.add(Extension('zlib', ['zlibmodule.c'], libraries=['z']))
         else:
             self.missing.append('zlib')
 

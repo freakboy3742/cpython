@@ -13,7 +13,7 @@ import linecache
 
 from contextlib import ExitStack, redirect_stdout
 from io import StringIO
-from test.support import os_helper
+from test.support import os_helper, requires_subprocess
 # This little helper class is essential for testing pdb under doctest.
 from test.test_doctest import _FakeInput
 from unittest.mock import patch
@@ -1531,6 +1531,7 @@ def test_pdb_issue_gh_101673():
     """
 
 
+@requires_subprocess()
 class PdbTestCase(unittest.TestCase):
     def tearDown(self):
         os_helper.unlink(os_helper.TESTFN)

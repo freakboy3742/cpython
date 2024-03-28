@@ -200,6 +200,7 @@ class TestRandomNameSequence(BaseTestCase):
 
     @unittest.skipUnless(hasattr(os, 'fork'),
         "os.fork is required for this test")
+    @support.requires_fork()
     def test_process_awareness(self):
         # ensure that the random source differs between
         # child and parent.
@@ -461,6 +462,7 @@ class TestMkstempInner(TestBadTempdir, BaseTestCase):
         self.assertEqual(mode, expected)
 
     @unittest.skipUnless(has_spawnl, 'os.spawnl not available')
+    @support.requires_fork()
     def test_noinherit(self):
         # _mkstemp_inner file handles are not inherited by child processes
 

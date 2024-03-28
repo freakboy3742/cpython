@@ -43,6 +43,7 @@ import sys
 import tempfile
 from test.support.script_helper import assert_python_ok, assert_python_failure
 from test import support
+from test.support import is_apple_mobile
 from test.support import os_helper
 from test.support import socket_helper
 from test.support import threading_helper

@@ -26,7 +26,7 @@ import unittest
 import sqlite3 as sqlite
 import sys
 
-from test.support import check_disallow_instantiation, SHORT_TIMEOUT
+from test.support import check_disallow_instantiation, SHORT_TIMEOUT, is_apple, requires_subprocess
 from test.support.os_helper import TESTFN, unlink
 
 
@@ -87,7 +87,7 @@ class ModuleTests(unittest.TestCase):
 
     # sqlite3_enable_shared_cache() is deprecated on macOS and calling it may raise
     # OperationalError on some buildbots.
-    @unittest.skipIf(sys.platform == "darwin", "shared cache is deprecated on macOS")
+    @unittest.skipIf(is_apple, "shared cache is deprecated on Apple platforms")
     def test_shared_cache_deprecated(self):
         for enable in (True, False):
             with self.assertWarns(DeprecationWarning) as cm:
@@ -976,6 +976,7 @@ class MultiprocessTests(unittest.TestCase):
     def tearDown(self):
         unlink(TESTFN)
 
+    @requires_subprocess()
     def test_ctx_mgr_rollback_if_commit_failed(self):
         # bpo-27334: ctx manager does not rollback if commit fails
         SCRIPT = f"""if 1:

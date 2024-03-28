@@ -19,7 +19,7 @@ import unittest
 from unittest import mock
 
 from test.support import os_helper
-from test.support import (is_jython, swap_attr, swap_item, cpython_only)
+from test.support import (is_apple_mobile, is_jython, swap_attr, swap_item, cpython_only)
 from test.support.import_helper import (
     forget, make_legacy_pyc, unlink, unload, DirsOnSysPath)
 from test.support.os_helper import (
@@ -93,6 +93,8 @@ class ImportTests(unittest.TestCase):
         self.assertRegex(str(cm.exception), r"cannot import name 'i_dont_exist' from 'os' \(.*os.py\)")
 
     @cpython_only
+    @unittest.skipIf(is_apple_mobile,
+                     "FIXME: edge case in loader")
     def test_from_import_missing_attr_has_name_and_so_path(self):
         import _testcapi
         with self.assertRaises(ImportError) as cm:

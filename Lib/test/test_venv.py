@@ -17,7 +17,7 @@ import sys
 import tempfile
 from test.support import (captured_stdout, captured_stderr, requires_zlib,
                           skip_if_broken_multiprocessing_synchronize,
-                          requires_subprocess)
+                          requires_subprocess, is_apple_mobile)
 from test.support.os_helper import (can_symlink, EnvironmentVarGuard, rmtree)
 import unittest
 import venv

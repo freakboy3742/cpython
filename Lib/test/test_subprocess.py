@@ -48,6 +48,8 @@ except:
 
 if support.PGO:
     raise unittest.SkipTest("test is not helpful for PGO")
+if not support.has_subprocess_support:
+    raise unittest.SkipTest("test requires subprocess support")
 
 mswindows = (sys.platform == "win32")
 

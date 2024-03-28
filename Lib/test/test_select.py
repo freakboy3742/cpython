@@ -47,6 +47,7 @@ class SelectTestCase(unittest.TestCase):
         self.assertIsNot(w, x)
 
     @unittest.skipUnless(hasattr(os, 'popen'), "need os.popen()")
+    @support.requires_subprocess()
     def test_select(self):
         code = textwrap.dedent('''
             import time

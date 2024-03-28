@@ -5,7 +5,7 @@ import subprocess
 import shutil
 from copy import copy
 
-from test.support import (captured_stdout, PythonSymlink)
+from test.support import (is_apple_mobile, captured_stdout, PythonSymlink)
 from test.support.import_helper import import_module
 from test.support.os_helper import (TESTFN, unlink, skip_unless_symlink,
                                     change_cwd)
@@ -258,12 +258,14 @@ class TestSysConfig(unittest.TestCase):
 
         # XXX more platforms to tests here
 
+    @unittest.skipIf(is_apple_mobile,
+                     f"{sys.platform} doesn't distribute header files in the runtime environment")
     def test_get_config_h_filename(self):
         config_h = sysconfig.get_config_h_filename()
         self.assertTrue(os.path.isfile(config_h), config_h)
 
     def test_get_scheme_names(self):
-        wanted = ['nt', 'posix_home', 'posix_prefix']
+        wanted = ['nt', 'nt_venv', 'posix_home', 'posix_prefix', 'posix_venv']
         if HAS_USER_BASE:
             wanted.extend(['nt_user', 'osx_framework_user', 'posix_user'])
         self.assertEqual(get_scheme_names(), tuple(sorted(wanted)))
@@ -364,6 +366,8 @@ class TestSysConfig(unittest.TestCase):
         self.assertEqual(status, 0)
         self.assertEqual(my_platform, test_platform)
 
+    @unittest.skipIf(is_apple_mobile,
+                     f"{sys.platform} doesn't include config folder at runtime")
     def test_srcdir(self):
         # See Issues #15322, #15364.
         srcdir = sysconfig.get_config_var('srcdir')
@@ -440,6 +444,8 @@ class MakefileTests(unittest.TestCase):
 
     @unittest.skipIf(sys.platform.startswith('win'),
                      'Test is not Windows compatible')
+    @unittest.skipIf(is_apple_mobile,
+                     f"{sys.platform} doesn't include config folder at runtime")
     def test_get_makefile_filename(self):
         makefile = sysconfig.get_makefile_filename()
         self.assertTrue(os.path.isfile(makefile), makefile)

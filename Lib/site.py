@@ -276,8 +276,8 @@ def _getuserbase():
     if env_base:
         return env_base
 
-    # VxWorks has no home directories
-    if sys.platform == "vxworks":
+    # iOS, tvOS, VxWorks and watchOS have no home directories
+    if sys.platform in {"ios", "tvos", "vxworks", "watchos"}:
         return None
 
     def joinuser(*args):

@@ -12,6 +12,7 @@ import unittest
 from unittest import mock
 
 from test.support import import_helper
+from test.support import is_apple_mobile
 from test.support import os_helper
 from test.support.os_helper import TESTFN, FakePath
 
@@ -1468,6 +1469,7 @@ class _BasePathTest(object):
         self.assertIs(type(p), type(q))
         self.assertTrue(p.is_absolute())
 
+    @unittest.skipIf(is_apple_mobile, "No home folder on Apple mobile")
     def test_home(self):
         with os_helper.EnvironmentVarGuard() as env:
             self._test_home(self.cls.home())
@@ -2546,6 +2548,7 @@ class PosixPathTest(_BasePathTest, unittest.TestCase):
                          'pwd module does not expose getpwall()')
     @unittest.skipIf(sys.platform == "vxworks",
                      "no home directory on VxWorks")
+    @unittest.skipIf(is_apple_mobile, "No home folder on Apple mobile")
     def test_expanduser(self):
         P = self.cls
         import_helper.import_module('pwd')

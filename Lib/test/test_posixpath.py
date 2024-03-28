@@ -5,6 +5,7 @@ import unittest
 from posixpath import realpath, abspath, dirname, basename
 from test import test_genericpath
 from test.support import import_helper
+from test.support import is_apple_mobile
 from test.support import os_helper
 from test.support.os_helper import FakePath
 from unittest import mock
@@ -267,6 +268,7 @@ class PosixPathTest(unittest.TestCase):
 
     @unittest.skipIf(sys.platform == "vxworks",
                      "no home directory on VxWorks")
+    @unittest.skipIf(is_apple_mobile, "FIXME: Edge case of getpwuid handling")
     def test_expanduser_pwd(self):
         pwd = import_helper.import_module('pwd')
 

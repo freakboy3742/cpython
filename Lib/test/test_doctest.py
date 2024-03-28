@@ -4,7 +4,6 @@ Test script for doctest.
 
 from test import support
 from test.support import import_helper
-from test.support import os_helper
 import doctest
 import functools
 import os
@@ -14,7 +13,6 @@ import importlib.abc
 import importlib.util
 import unittest
 import tempfile
-import shutil
 import types
 import contextlib
 
@@ -431,8 +429,9 @@ Compare `DocTestCase`:
 
 """
 
-class test_DocTestFinder:
-    def basics(): r"""
+if not support.is_apple_mobile:
+    class test_DocTestFinder:
+        def basics(): r"""
 Unit tests for the `DocTestFinder` class.
 
 DocTestFinder is used to extract DocTests from an object's docstring
@@ -2759,7 +2758,8 @@ def test_hook(pathdir):
         hook.remove()
 
 
-def test_lineendings(): r"""
+if not support.is_apple_mobile:
+    def test_lineendings(): r"""
 *nix systems use \n line endings, while Windows systems use \r\n, and
 old Mac systems used \r, which Python still recognizes as a line ending.  Python
 handles this using universal newline mode for reading files.  Let's make
@@ -2875,7 +2875,8 @@ Check doctest with a non-ascii filename:
     TestResults(failed=1, attempted=1)
     """
 
-def test_CLI(): r"""
+if not support.is_apple_mobile:
+    def test_CLI(): r"""
 The doctest module can be used to run doctests against an arbitrary file.
 These tests test this CLI functionality.
 

@@ -7,7 +7,7 @@ import unittest
 from test import support
 import os, sys
 
-if not hasattr(os, 'popen'):
+if not hasattr(os, 'popen') or support.is_apple_mobile:
     raise unittest.SkipTest("need os.popen()")
 
 # Test that command-lines get down as we expect.

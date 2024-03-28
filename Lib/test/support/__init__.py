@@ -1444,6 +1444,7 @@ class PythonSymlink:
                 if verbose:
                     print("failed to clean up {}: {}".format(link, ex))
 
+    @requires_subprocess()
     def _call(self, python, args, env, returncode):
         import subprocess
         cmd = [python, *args]

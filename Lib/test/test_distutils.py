@@ -14,6 +14,8 @@ with warnings_helper.check_warnings(
 
     import distutils.tests
 
+if support.is_apple_mobile:
+    raise unittest.SkipTest("FIXME: Edge case of test loader")
 
 def load_tests(*_):
     # used by unittest

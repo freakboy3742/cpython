@@ -6,7 +6,7 @@ import sys
 import types
 import unittest
 
-from test.support import findfile
+from test.support import findfile, requires_subprocess
 
 
 def abspath(filename):
@@ -60,6 +60,7 @@ class TraceBackend:
             command += ["-c", subcommand]
         return command
 
+    @requires_subprocess()
     def trace(self, script_file, subcommand=None):
         command = self.generate_trace_command(script_file, subcommand)
         stdout, _ = subprocess.Popen(command,

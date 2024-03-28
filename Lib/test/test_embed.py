@@ -72,6 +72,7 @@ class EmbeddingTestsMixin:
     def tearDown(self):
         os.chdir(self.oldcwd)
 
+    @support.requires_subprocess()
     def run_embedded_interpreter(self, *args, env=None,
                                  timeout=None, returncode=0, input=None,
                                  cwd=None):
@@ -1421,6 +1422,7 @@ class InitConfigTests(EmbeddingTestsMixin, unittest.TestCase):
 
 
 class SetConfigTests(unittest.TestCase):
+    @support.requires_subprocess()
     def test_set_config(self):
         # bpo-42260: Test _PyInterpreterState_SetConfig()
         cmd = [sys.executable, '-I', '-m', 'test._test_embed_set_config']

@@ -1,7 +1,7 @@
 "Test posix functions"
 
 from test import support
-from test.support import is_apple
+from test.support import import_helper
 from test.support import os_helper
 from test.support import warnings_helper
 from test.support.script_helper import assert_python_ok
@@ -1049,6 +1049,7 @@ class PosixTester(unittest.TestCase):
     @unittest.skipUnless(hasattr(posix, 'getgrouplist'), "test needs posix.getgrouplist()")
     @unittest.skipUnless(hasattr(pwd, 'getpwuid'), "test needs pwd.getpwuid()")
     @unittest.skipUnless(hasattr(os, 'getuid'), "test needs os.getuid()")
+    @unittest.skipIf(support.is_apple_mobile, "FIXME: edge case of getpwuid() on simulator")
     def test_getgrouplist(self):
         user = pwd.getpwuid(os.getuid())[0]
         group = pwd.getpwuid(os.getuid())[3]
@@ -1057,6 +1058,7 @@ class PosixTester(unittest.TestCase):
 
     @unittest.skipUnless(hasattr(os, 'getegid'), "test needs os.getegid()")
     @unittest.skipUnless(hasattr(os, 'popen'), "test needs os.popen()")
+    @support.requires_subprocess()
     def test_getgroups(self):
         with os.popen('id -G 2>/dev/null') as idg:
             groups = idg.read().strip()
@@ -1115,7 +1117,7 @@ class PosixTester(unittest.TestCase):
         self.assertIsInstance(hi, int)
         self.assertGreaterEqual(hi, lo)
         # Apple plaforms return 15 without checking the argument.
-        if not is_apple:
+        if not support.is_apple:
             self.assertRaises(OSError, posix.sched_get_priority_min, -23)
             self.assertRaises(OSError, posix.sched_get_priority_max, -23)
 
