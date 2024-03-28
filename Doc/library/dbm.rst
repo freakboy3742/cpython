@@ -14,6 +14,7 @@ slow-but-simple implementation in module :mod:`dbm.dumb` will be used.  There
 is a `third party interface <https://www.jcea.es/programacion/pybsddb.htm>`_ to
 the Oracle Berkeley DB.
 
+.. include:: ../includes/wasm-ios-notavail.rst
 
 .. exception:: error
 
@@ -398,4 +399,3 @@ The :mod:`!dbm.dumb` module defines the following:
    .. method:: dumbdbm.close()
 
       Close the database.
-
