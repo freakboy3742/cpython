@@ -1,7 +1,9 @@
 import contextlib
 import errno
+import os.path
 import socket
 import subprocess
+import tempfile
 import sys
 import unittest
 
@@ -272,6 +274,16 @@ def transient_internet(resource_name, *, timeout=_NOT_SET, errnos=()):
     finally:
         socket.setdefaulttimeout(old_timeout)
 
+
+def create_unix_domain_name():
+    """
+    Create a UNIX domain name: socket.bind() argument of a AF_UNIX socket.
+
+    Return a path relative to the current directory to get a short path
+    (around 27 ASCII characters).
+    """
+    return tempfile.mktemp(prefix="test_python_", suffix='.sock',
+                           dir=os.path.curdir)
 
 # consider that sysctl values should not change while tests are running
 _sysctl_cache = {}

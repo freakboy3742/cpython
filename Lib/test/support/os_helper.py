@@ -9,6 +9,8 @@ import time
 import unittest
 import warnings
 
+from test import support
+
 
 # Filename used for testing
 if os.name == 'java':

@@ -6,7 +6,7 @@ import struct
 import sys
 import unittest
 from multiprocessing import Process
-from test.support import cpython_only, requires_subprocess, verbose
+from test.support import cpython_only, is_apple, requires_subprocess, verbose
 from test.support.import_helper import import_module
 from test.support.os_helper import TESTFN, unlink
 
@@ -25,7 +25,7 @@ def get_lockdata():
         start_len = "qq"
 
     if (sys.platform.startswith(('netbsd', 'freebsd', 'openbsd'))
-        or sys.platform == 'darwin'):
+        or is_apple):
         if struct.calcsize('l') == 8:
             off_t = 'l'
             pid_t = 'i'

@@ -270,9 +270,9 @@ class UnixCCompiler(CCompiler):
         static_f = self.library_filename(lib, lib_type='static')
 
         if sys.platform == 'darwin':
-            # On OSX users can specify an alternate SDK using
-            # '-isysroot', calculate the SDK root if it is specified
-            # (and use it further on)
+            # On macOS users can specify an alternate SDK using
+            # '-isysroot <path>' or --sysroot=<path>, calculate the SDK root
+            # if it is specified (and use it further on)
             #
             # Note that, as of Xcode 7, Apple SDKs may contain textual stub
             # libraries with .tbd extensions rather than the normal .dylib
@@ -291,11 +291,13 @@ class UnixCCompiler(CCompiler):
             cflags = sysconfig.get_config_var('CFLAGS')
             m = re.search(r'-isysroot\s*(\S+)', cflags)
             if m is None:
-                sysroot = _osx_support._default_sysroot(sysconfig.get_config_var('CC'))
+                m = re.search(r'--sysroot=(\S+)', cflags)
+                if m is None:
+                    sysroot = _osx_support._default_sysroot(sysconfig.get_config_var('CC'))
+                else:
+                    sysroot = m.group(1)
             else:
                 sysroot = m.group(1)
-
-
 
         for dir in dirs:
             shared = os.path.join(dir, shared_f)

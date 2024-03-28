@@ -4,6 +4,9 @@ import sys
 import os
 from io import BytesIO
 
+if sys.platform != 'win32':
+    raise unittest.SkipTest("Cygwin tests only needed on Windows")
+
 from distutils import cygwinccompiler
 from distutils.cygwinccompiler import (check_config_h,
                                        CONFIG_H_OK, CONFIG_H_NOTOK,

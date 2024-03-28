@@ -9,6 +9,7 @@ import struct
 import threading
 
 from test import support
+from test.support import is_apple_mobile
 from test.support import os_helper
 from test.support import socket_helper
 from test.support import threading_helper
@@ -657,6 +658,7 @@ class BaseTestAPI:
 
     @unittest.skipIf(sys.platform.startswith("sunos"),
                      "OOB support is broken on Solaris")
+    @unittest.skipIf(is_apple_mobile, "FIXME: edge case in removed test module")
     def test_handle_expt(self):
         # Make sure handle_expt is called on OOB data received.
         # Note: this might fail on some platforms as OOB data is

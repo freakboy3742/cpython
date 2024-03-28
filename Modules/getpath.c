@@ -15,6 +15,7 @@
 #endif
 
 #ifdef __APPLE__
+#  include "TargetConditionals.h"
 #  include <mach-o/dyld.h>
 #endif
 
@@ -767,7 +768,7 @@ library_to_dict(PyObject *dict, const char *key)
     if (PyWin_DLLhModule) {
         return winmodule_to_dict(dict, key, PyWin_DLLhModule);
     }
-#elif defined(WITH_NEXT_FRAMEWORK)
+#elif defined(WITH_NEXT_FRAMEWORK) && !defined(TARGET_OS_IPHONE)
     static char modPath[MAXPATHLEN + 1];
     static int modPathInitialized = -1;
     if (modPathInitialized < 0) {
@@ -961,4 +962,3 @@ _PyConfig_InitPathConfig(PyConfig *config, int compute_path_config)
 
     return _PyStatus_OK();
 }
-
