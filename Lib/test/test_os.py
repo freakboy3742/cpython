@@ -2010,6 +2010,7 @@ class TestInvalidFD(unittest.TestCase):
         self.check(os.fchown, -1, -1)
 
     @unittest.skipUnless(hasattr(os, 'fpathconf'), 'test needs os.fpathconf()')
+    @unittest.skipIf(support.is_apple_mobile, "gh-118201: Test is flaky on iOS")
     def test_fpathconf(self):
         self.check(os.pathconf, "PC_NAME_MAX")
         self.check(os.fpathconf, "PC_NAME_MAX")
