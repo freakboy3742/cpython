@@ -3895,11 +3895,9 @@ class ConfigDictTest(BaseTest):
             msg = str(ctx.exception)
             self.assertEqual(msg, "Unable to configure handler 'ah'")
 
+    @support.requires_subprocess()
     def test_multiprocessing_queues(self):
         # See gh-119819
-
-        # will skip test if it's not available
-        import_helper.import_module('_multiprocessing')
 
         cd = copy.deepcopy(self.config_queue_handler)
         from multiprocessing import Queue as MQ, Manager as MM
