@@ -185,7 +185,7 @@ these libraries pre-compiled for iOS can be found in `this repository
 <https://github.com/beeware/cpython-apple-source-deps/releases>`__.
 
 By default, Python will be compiled with an iOS deployment target (i.e., the
-minimum supported iOS version) of 12.0. To specify a different deployment
+minimum supported iOS version) of 13.0. To specify a different deployment
 target, provide the version number as part of the ``--host`` argument - for
 example, ``--host=arm64-apple-ios15.4-simulator`` would compile an ARM64
 simulator build with a deployment target of 15.4.
