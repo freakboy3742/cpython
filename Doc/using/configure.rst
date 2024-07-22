@@ -506,6 +506,75 @@ See ``Mac/README.rst``.
    Specify the name for the python framework on macOS only valid when
    :option:`--enable-framework` is set (default: ``Python``).
 
+.. option:: --with-app-store-compliance
+.. option:: --with-app-store-compliance=PATCH-FILE
+
+   The Python standard library contains strings that are known to trigger
+   automated inspection tool errors when submitted for distribution by
+   the macOS and iOS App Stores. If enabled, this option will apply the list of
+   patches that are known to correct app store compliance. A custom patch
+   file can also be specified. This option is disabled by default.
+
+   .. versionadded:: 3.13
+
+iOS Options
+-----------
+
+See :source:`iOS/README.rst`.
+
+.. option:: --enable-framework=INSTALLDIR
+
+   Create a Python.framework. Unlike macOS, the *INSTALLDIR* argument
+   specifying the installation path is mandatory.
+
+.. option:: --with-framework-name=FRAMEWORK
+
+   Specify the name for the framework (default: ``Python``).
+
+
+Cross Compiling Options
+-----------------------
+
+Cross compiling, also known as cross building, can be used to build Python
+for another CPU architecture or platform. Cross compiling requires a Python
+interpreter for the build platform. The version of the build Python must match
+the version of the cross compiled host Python.
+
+.. option:: --build=BUILD
+
+   configure for building on BUILD, usually guessed by :program:`config.guess`.
+
+.. option:: --host=HOST
+
+   cross-compile to build programs to run on HOST (target platform)
+
+.. option:: --with-build-python=path/to/python
+
+   path to build ``python`` binary for cross compiling
+
+   .. versionadded:: 3.11
+
+.. option:: CONFIG_SITE=file
+
+   An environment variable that points to a file with configure overrides.
+
+   Example *config.site* file:
+
+   .. code-block:: ini
+
+      # config.site-aarch64
+      ac_cv_buggy_getaddrinfo=no
+      ac_cv_file__dev_ptmx=yes
+      ac_cv_file__dev_ptc=no
+
+
+Cross compiling example::
+
+   CONFIG_SITE=config.site-aarch64 ../configure \
+       --build=x86_64-pc-linux-gnu \
+       --host=aarch64-unknown-linux-gnu \
+       --with-build-python=../x86_64/python
+
 
 Python Build System
 ===================
