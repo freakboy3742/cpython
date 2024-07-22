@@ -742,6 +742,7 @@ IPHONEOS_DEPLOYMENT_TARGET
 EXPORT_MACOSX_DEPLOYMENT_TARGET
 CONFIGURE_MACOSX_DEPLOYMENT_TARGET
 _PYTHON_HOST_PLATFORM
+APP_STORE_COMPLIANCE_PATCH
 INSTALLTARGETS
 FRAMEWORKINSTALLAPPSPREFIX
 FRAMEWORKUNIXTOOLSPREFIX
@@ -825,6 +826,7 @@ enable_universalsdk
 with_universal_archs
 with_framework_name
 enable_framework
+with_app_store_compliance
 with_cxx_main
 with_suffix
 enable_shared
@@ -1536,6 +1538,10 @@ Optional Packages:
                           specify the name for the python framework on macOS
                           only valid when --enable-framework is set. see
                           Mac/README.rst (default is 'Python')
+  --with-app-store-compliance=[PATCH-FILE]
+                          Enable any patches required for compiliance with app
+                          stores. Optional PATCH-FILE specifies the custom
+                          patch to apply.
   --with-cxx-main[=COMPILER]
                           compile main() and link Python executable with C++
                           compiler specified in COMPILER (default is $CXX)
@@ -3485,6 +3491,52 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for --with-app-store-compliance" >&5
+$as_echo_n "checking for --with-app-store-compliance... " >&6; }
+
+# Check whether --with-app_store_compliance was given.
+if test "${with_app_store_compliance+set}" = set; then :
+  withval=$with_app_store_compliance;
+    case "$withval" in
+    yes)
+      case $ac_sys_system in
+        Darwin|iOS)
+          # iOS is able to share the macOS patch
+          APP_STORE_COMPLIANCE_PATCH="Mac/Resources/app-store-compliance.patch"
+          ;;
+        *) as_fn_error $? "no default app store compliance patch available for $ac_sys_system" "$LINENO" 5 ;;
+      esac
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: applying default app store compliance patch" >&5
+$as_echo "applying default app store compliance patch" >&6; }
+      ;;
+    *)
+      APP_STORE_COMPLIANCE_PATCH="${withval}"
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: applying custom app store compliance patch" >&5
+$as_echo "applying custom app store compliance patch" >&6; }
+      ;;
+    esac
+
+else
+
+    case $ac_sys_system in
+      iOS)
+        # Always apply the compliance patch on iOS; we can use the macOS patch
+        APP_STORE_COMPLIANCE_PATCH="Mac/Resources/app-store-compliance.patch"
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: applying default app store compliance patch" >&5
+$as_echo "applying default app store compliance patch" >&6; }
+        ;;
+      *)
+        # No default app compliance patching on any other platform
+        APP_STORE_COMPLIANCE_PATCH=
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: not patching for app store compliance" >&5
+$as_echo "not patching for app store compliance" >&6; }
+        ;;
+    esac
+
+fi
+
+
+
 
 
 # Set name for machine-dependent library files
@@ -3580,12 +3632,12 @@ if test "$cross_compiling" = yes; then
 		_host_device=${_host_device:=os}
 
 		# IPHONEOS_DEPLOYMENT_TARGET is the minimum supported iOS version
-		{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking iOS deployment target" >&5
-printf %s "checking iOS deployment target... " >&6; }
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking iOS deployment target" >&5
+$as_echo_n "checking iOS deployment target... " >&6; }
 		IPHONEOS_DEPLOYMENT_TARGET=${_host_os:3}
 		IPHONEOS_DEPLOYMENT_TARGET=${IPHONEOS_DEPLOYMENT_TARGET:=13.0}
-		{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $IPHONEOS_DEPLOYMENT_TARGET" >&5
-printf "%s\n" "$IPHONEOS_DEPLOYMENT_TARGET" >&6; }
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $IPHONEOS_DEPLOYMENT_TARGET" >&5
+$as_echo "$IPHONEOS_DEPLOYMENT_TARGET" >&6; }
 
 		case "$host_cpu" in
 			aarch64)
