@@ -14,8 +14,11 @@ from ._bootstrap_external import FileFinder
 from ._bootstrap_external import SourceFileLoader
 from ._bootstrap_external import SourcelessFileLoader
 from ._bootstrap_external import ExtensionFileLoader
-from ._bootstrap_external import AppleFrameworkLoader
-
+try:
+    # For cross-build purposes, allow this import to fail
+    from ._bootstrap_external import AppleFrameworkLoader
+except ImportError:
+    pass
 
 def all_suffixes():
     """Returns a list of all recognized module suffixes for this process"""
