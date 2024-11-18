@@ -41,8 +41,16 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>MainModule</key>
-	<string>ios</string>
+	<key>TestArgs</key>
+	<array>
+		<string>test</string> <!-- Invoke "python -m test" -->
+        <string>-uall</string> <!-- Enable all resources -->
+        <string>-W</string> <!-- Display test output on failure -->
+		<!-- To run a subset of tests, add the test names below; e.g.,
+        <string>test_os</string>
+        <string>test_sys</string>
+		-->
+    </array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
