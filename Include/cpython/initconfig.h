@@ -180,6 +180,9 @@ typedef struct PyConfig {
     int use_frozen_modules;
     int safe_path;
     int int_max_str_digits;
+#ifdef __APPLE__
+    int use_system_logger;
+#endif
 
     /* --- Path configuration inputs ------------ */
     int pathconfig_warnings;
