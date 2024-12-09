@@ -287,24 +287,57 @@ This will:
 * Install the Python iOS framework into the copy of the testbed project; and
 * Run the test suite on an "iPhone SE (3rd generation)" simulator.
 
-While the test suite is running, Xcode does not display any console output.
-After showing some Xcode build commands, the console output will print ``Testing
-started``, and then appear to stop. It will remain in this state until the test
-suite completes. On a 2022 M1 MacBook Pro, the test suite takes approximately 12
-minutes to run; a couple of extra minutes is required to boot and prepare the
-iOS simulator.
-
 On success, the test suite will exit and report successful completion of the
-test suite. No output of the Python test suite will be displayed.
-
-On failure, the output of the Python test suite *will* be displayed. This will
-show the details of the tests that failed.
+test suite. On a 2022 M1 MacBook Pro, the test suite takes approximately 12
+minutes to run; a couple of extra minutes is required to compile the testbed
+project, and then boot and prepare the iOS simulator.
 
 Debugging test failures
 -----------------------
 
-The easiest way to diagnose a single test failure is to open the testbed project
-in Xcode and run the tests from there using the "Product > Test" menu item.
+Running ``make test`` generates a standalone version of the ``iOS/testbed``
+project, and runs the full test suite. It does this using ``iOS/testbed``
+itself - the folder is an executable module that can be used to create and run
+a clone of the testbed project.
+
+You can generate your own standalone testbed instance by running::
+
+    $ python iOS/testbed clone --framework iOS/Frameworks/arm64-iphonesimulator my-testbed
+
+This invocation assumes that ``iOS/Frameworks/arm64-iphonesimulator`` is the
+path to the iOS simulator framework for your platform (ARM64 in this case);
+``my-testbed`` is the name of the folder for the new testbed clone.
+
+You can then use the ``my-testbed`` folder to run the Python test suite,
+passing in any command line arguments you may require. For example, if you're
+trying to diagnose a failure in the ``os`` module, you might run::
+
+    $ python my-testbed run -- test -W test_os
+
+This is the equivalent of running ``python -m test -W test_os`` on a desktop
+Python build. Any arguments after the ``--`` will be passed to testbed as if
+they were arguments to ``python -m`` on a desktop machine.
+
+You can also open the testbed project in Xcode by running::
+
+    $ open my-testbed/iOSTestbed.xcodeproj
+
+This will allow you to use the full Xcode suite of tools for debugging.
+
+Testing on an iOS device
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+To test on an iOS device, the app needs to be signed with known developer
+credentials. To obtain these credentials, you must have an iOS Developer
+account, and your Xcode install will need to be logged into your account (see
+the Accounts tab of the Preferences dialog).
+
+Once the project is open, and you're signed into your Apple Developer account,
+select the root node of the project tree (labeled "iOSTestbed"), then the
+"Signing & Capabilities" tab in the details page. Select a development team
+(this will likely be your own name), and plug in a physical device to your
+macOS machine with a USB cable. You should then be able to select your physical
+device from the list of targets in the pulldown in the Xcode titlebar.
 
 Running specific tests
 ^^^^^^^^^^^^^^^^^^^^^^
