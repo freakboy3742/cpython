@@ -1776,7 +1776,7 @@ testios:
 	$(PYTHON_FOR_BUILD) $(srcdir)/iOS/testbed clone --framework $(PYTHONFRAMEWORKPREFIX) "$(XCFOLDER)"
 
 	# Run the testbed project
-	$(PYTHON_FOR_BUILD) "$(XCFOLDER)" run -- test -uall --single-process --rerun -W
+	$(PYTHON_FOR_BUILD) "$(XCFOLDER)" run --verbose -- test -uall --single-process --rerun -W
 
 # Like testall, but with only one pass and without multiple processes.
 # Run an optional script to include information about the build environment.
