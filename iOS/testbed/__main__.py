@@ -7,6 +7,7 @@ import subprocess
 import sys
 from contextlib import asynccontextmanager
 from datetime import datetime
+from itertools import chain
 from pathlib import Path
 
 
@@ -141,10 +142,12 @@ async def log_stream_task(initial_devices):
             else:
                 suppress_dupes = False
                 sys.stdout.write(line)
+            sys.stdout.flush()
 
 
-async def xcode_test(location, simulator):
+async def xcode_test(location, simulator, verbose):
     # Run the test suite on the named simulator
+    print("Starting xcodebuild...")
     args = [
         "xcodebuild",
         "test",
@@ -159,6 +162,9 @@ async def xcode_test(location, simulator):
         "-derivedDataPath",
         str(location / "DerivedData"),
     ]
+    if not verbose:
+        args += ["-quiet"]
+
     async with async_process(
         *args,
         stdout=subprocess.PIPE,
@@ -166,9 +172,21 @@ async def xcode_test(location, simulator):
     ) as process:
         while line := (await process.stdout.readline()).decode(*DECODE_ARGS):
             sys.stdout.write(line)
+            sys.stdout.flush()
 
         status = await asyncio.wait_for(process.wait(), timeout=1)
         exit(status)
+
+
+# A backport of Path.relative_to(*, walk_up=True)
+def relative_to(target, other):
+    for step, path in enumerate(chain([other], other.parents)):
+        if path == target or path in target.parents:
+            break
+    else:
+        raise ValueError(f"{str(target)!r} and {str(other)!r} have different anchors")
+    parts = ['..'] * step + list(target.parts[len(path.parts):])
+    return Path("/".join(parts))
 
 
 def clone_testbed(
@@ -182,7 +200,9 @@ def clone_testbed(
         sys.exit(10)
 
     if framework is None:
-        if not (source / "Python.xcframework/ios-arm64_x86_64-simulator/bin").is_dir():
+        if not (
+            source / "Python.xcframework/ios-arm64_x86_64-simulator/bin"
+        ).is_dir():
             print(
                 f"The testbed being cloned ({source}) does not contain "
                 f"a simulator framework. Re-run with --framework"
@@ -202,33 +222,48 @@ def clone_testbed(
             )
             sys.exit(13)
 
-    print("Cloning testbed project...")
-    shutil.copytree(source, target)
+    print("Cloning testbed project:")
+    print(f"  Cloning {source}...", end="", flush=True)
+    shutil.copytree(source, target, symlinks=True)
+    print(" done")
 
     if framework is not None:
         if framework.suffix == ".xcframework":
-            print("Installing XCFramework...")
-            xc_framework_path = target / "Python.xcframework"
-            shutil.rmtree(xc_framework_path)
-            shutil.copytree(framework, xc_framework_path)
+            print("  Installing XCFramework...", end="", flush=True)
+            xc_framework_path = (target / "Python.xcframework").resolve()
+            if xc_framework_path.is_dir():
+                shutil.rmtree(xc_framework_path)
+            else:
+                xc_framework_path.unlink()
+            xc_framework_path.symlink_to(
+                relative_to(framework, xc_framework_path.parent)
+            )
+            print(" done")
         else:
-            print("Installing simulator Framework...")
+            print("  Installing simulator framework...", end="", flush=True)
             sim_framework_path = (
                 target / "Python.xcframework" / "ios-arm64_x86_64-simulator"
+            ).resolve()
+            if sim_framework_path.is_dir():
+                shutil.rmtree(sim_framework_path)
+            else:
+                sim_framework_path.unlink()
+            sim_framework_path.symlink_to(
+                relative_to(framework, sim_framework_path.parent)
             )
-            shutil.rmtree(sim_framework_path)
-            shutil.copytree(framework, sim_framework_path)
+            print(" done")
     else:
-        print("Using pre-existing iOS framework.")
+        print("  Using pre-existing iOS framework.")
 
     for app_src in apps:
-        print(f"Installing app {app_src.name!r}...")
+        print(f"  Installing app {app_src.name!r}...", end="", flush=True)
         app_target = target / f"iOSTestbed/app/{app_src.name}"
         if app_target.is_dir():
             shutil.rmtree(app_target)
         shutil.copytree(app_src, app_target)
+        print(" done")
 
-    print(f"Testbed project created in {target}")
+    print(f"Successfully cloned testbed: {target.resolve()}")
 
 
 def update_plist(testbed_path, args):
@@ -243,10 +278,11 @@ def update_plist(testbed_path, args):
         plistlib.dump(info, f)
 
 
-async def run_testbed(simulator: str, args: list[str]):
+async def run_testbed(simulator: str, args: list[str], verbose: bool=False):
     location = Path(__file__).parent
-    print("Updating plist...")
+    print("Updating plist...", end="", flush=True)
     update_plist(location, args)
+    print(" done.")
 
     # Get the list of devices that are booted at the start of the test run.
     # The simulator started by the test suite will be detected as the new
@@ -256,10 +292,10 @@ async def run_testbed(simulator: str, args: list[str]):
     try:
         async with asyncio.TaskGroup() as tg:
             tg.create_task(log_stream_task(initial_devices))
-            tg.create_task(xcode_test(location, simulator))
-    except* MySystemExit as e:
+            tg.create_task(xcode_test(location, simulator=simulator, verbose=verbose))
+    except MySystemExit as e:
         raise SystemExit(*e.exceptions[0].args) from None
-    except* subprocess.CalledProcessError as e:
+    except subprocess.CalledProcessError as e:
         # Extract it from the ExceptionGroup so it can be handled by `main`.
         raise e.exceptions[0]
 
@@ -315,6 +351,11 @@ def main():
         default="iPhone SE (3rd Generation)",
         help="The name of the simulator to use (default: 'iPhone SE (3rd Generation)')",
     )
+    run.add_argument(
+        "-v", "--verbose",
+        action="store_true",
+        help="Enable verbose output",
+    )
 
     try:
         pos = sys.argv.index("--")
@@ -330,7 +371,7 @@ def main():
         clone_testbed(
             source=Path(__file__).parent,
             target=Path(context.location),
-            framework=Path(context.framework) if context.framework else None,
+            framework=Path(context.framework).resolve() if context.framework else None,
             apps=[Path(app) for app in context.apps],
         )
     elif context.subcommand == "run":
@@ -348,6 +389,7 @@ def main():
             asyncio.run(
                 run_testbed(
                     simulator=context.simulator,
+                    verbose=context.verbose,
                     args=test_args,
                 )
             )
