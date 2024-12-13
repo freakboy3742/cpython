@@ -24,6 +24,7 @@ _PLATFORMS = frozenset({
     "DragonFlyBSD",
     "Emscripten",
     "FreeBSD",
+    "iOS",
     "Linux",
     "macOS",
     "NetBSD",
