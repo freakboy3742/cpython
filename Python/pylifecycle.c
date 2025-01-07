@@ -19,8 +19,25 @@
 
 #if defined(__APPLE__)
 #  include <AvailabilityMacros.h>
+#  include <TargetConditionals.h>
 #  include <mach-o/loader.h>
-#  include <os/log.h>
+// The os_log unified logging APIs were introduced in macOS 10.12, iOS 10.0,
+// tvOS 10.0, and watchOS 3.0;
+#  if defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE
+#    define HAS_APPLE_SYSTEM_LOG 1
+#  elif defined(TARGET_OS_OSX) && TARGET_OS_OSX
+#    if defined(MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
+#      define HAS_APPLE_SYSTEM_LOG 1
+#    else
+#      define HAS_APPLE_SYSTEM_LOG 0
+#    endif
+#  else
+#    define HAS_APPLE_SYSTEM_LOG 0
+#  endif
+
+#  if HAS_APPLE_SYSTEM_LOG
+#    include <os/log.h>
+#  endif
 #endif
 
 #ifdef HAVE_SIGNAL_H
@@ -60,7 +77,7 @@ static PyStatus add_main_module(PyInterpreterState *interp);
 static PyStatus init_import_site(void);
 static PyStatus init_set_builtins_open(void);
 static PyStatus init_sys_streams(PyThreadState *tstate);
-#if defined(__APPLE__)
+#if defined(__APPLE__) && HAS_APPLE_SYSTEM_LOG
 static PyStatus init_apple_streams(PyThreadState *tstate);
 #endif
 static void wait_for_thread_shutdown(PyThreadState *tstate);
@@ -1131,7 +1148,7 @@ init_interp_main(PyThreadState *tstate)
         return status;
     }
 
-#if defined(__APPLE__)
+#if defined(__APPLE__) && HAS_APPLE_SYSTEM_LOG
     if (config->use_system_logger) {
         status = init_apple_streams(tstate);
         if (_PyStatus_EXCEPTION(status)) {
@@ -2426,7 +2443,7 @@ done:
     return res;
 }
 
-#if defined(__APPLE__)
+#if defined(__APPLE__) && HAS_APPLE_SYSTEM_LOG
 
 static PyObject *
 apple_log_write_impl(PyObject *self, PyObject *args)
@@ -2437,14 +2454,9 @@ apple_log_write_impl(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    // Call the underlying Apple logging API. The os_log unified logging APIs
-    // were introduced in macOS 10.12, iOS 10.0, tvOS 10.0, and watchOS 3.0;
-    // this call is a no-op on older versions.
-    #if TARGET_OS_IPHONE || (TARGET_OS_OSX && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12)
     // Pass the user-provided text through explicit %s formatting
     // to avoid % literals being interpreted as a formatting directive.
     os_log_with_type(OS_LOG_DEFAULT, logtype, "%s", text);
-    #endif
     Py_RETURN_NONE;
 }
 
@@ -2479,7 +2491,6 @@ init_apple_streams(PyThreadState *tstate)
     if (result == NULL) {
         goto error;
     }
-
     goto done;
 
 error:
@@ -2493,7 +2504,7 @@ done:
     return status;
 }
 
-#endif  // __APPLE__
+#endif  // __APPLE__ && HAS_APPLE_SYSTEM_LOG
 
 
 static void
