@@ -907,7 +907,6 @@ CFLAGS_ALIASING
 OPT
 BOLT_APPLY_FLAGS
 BOLT_INSTRUMENT_FLAGS
-BOLT_COMMON_FLAGS
 BOLT_BINARIES
 MERGE_FDATA
 LLVM_BOLT
@@ -1146,7 +1145,6 @@ LIBS
 CPPFLAGS
 CPP
 PROFILE_TASK
-BOLT_COMMON_FLAGS
 BOLT_INSTRUMENT_FLAGS
 BOLT_APPLY_FLAGS
 LIBUUID_CFLAGS
@@ -1970,8 +1968,6 @@ Some influential environment variables:
   CPP         C preprocessor
   PROFILE_TASK
               Python args for PGO generation task
-  BOLT_COMMON_FLAGS
-              Common arguments to llvm-bolt when instrumenting and applying
   BOLT_INSTRUMENT_FLAGS
               Arguments to llvm-bolt when instrumenting binaries
   BOLT_APPLY_FLAGS
@@ -9558,21 +9554,11 @@ then :
 fi
 
 
-
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking BOLT_COMMON_FLAGS" >&5
-printf %s "checking BOLT_COMMON_FLAGS... " >&6; }
-if test -z "${BOLT_COMMON_FLAGS}"
-then
-  BOLT_COMMON_FLAGS=" -update-debug-sections -skip-funcs=_PyEval_EvalFrameDefault,sre_ucs1_match/1,sre_ucs2_match/1,sre_ucs4_match/1 "
-
-fi
-
-
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking BOLT_INSTRUMENT_FLAGS" >&5
 printf %s "checking BOLT_INSTRUMENT_FLAGS... " >&6; }
 if test -z "${BOLT_INSTRUMENT_FLAGS}"
 then
-  BOLT_INSTRUMENT_FLAGS="${BOLT_COMMON_FLAGS}"
+  BOLT_INSTRUMENT_FLAGS=
 fi
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $BOLT_INSTRUMENT_FLAGS" >&5
 printf "%s\n" "$BOLT_INSTRUMENT_FLAGS" >&6; }
@@ -9582,7 +9568,7 @@ printf "%s\n" "$BOLT_INSTRUMENT_FLAGS" >&6; }
 printf %s "checking BOLT_APPLY_FLAGS... " >&6; }
 if test -z "${BOLT_APPLY_FLAGS}"
 then
-  BOLT_APPLY_FLAGS=" ${BOLT_COMMON_FLAGS} -reorder-blocks=ext-tsp -reorder-functions=cdsort -split-functions -icf=1 -inline-all -split-eh -reorder-functions-use-hot-size -peepholes=none -jump-tables=aggressive -inline-ap -indirect-call-promotion=all -dyno-stats -use-gnu-stack -frame-opt=hot "
+  BOLT_APPLY_FLAGS=" -update-debug-sections -reorder-blocks=ext-tsp -reorder-functions=hfsort+ -split-functions -icf=1 -inline-all -split-eh -reorder-functions-use-hot-size -peepholes=none -jump-tables=aggressive -inline-ap -indirect-call-promotion=all -dyno-stats -use-gnu-stack -frame-opt=hot "
 
 fi
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $BOLT_APPLY_FLAGS" >&5
@@ -11637,12 +11623,6 @@ ac_fn_c_check_header_compile "$LINENO" "sys/param.h" "ac_cv_header_sys_param_h" 
 if test "x$ac_cv_header_sys_param_h" = xyes
 then :
   printf "%s\n" "#define HAVE_SYS_PARAM_H 1" >>confdefs.h
-
-fi
-ac_fn_c_check_header_compile "$LINENO" "sys/pidfd.h" "ac_cv_header_sys_pidfd_h" "$ac_includes_default"
-if test "x$ac_cv_header_sys_pidfd_h" = xyes
-then :
-  printf "%s\n" "#define HAVE_SYS_PIDFD_H 1" >>confdefs.h
 
 fi
 ac_fn_c_check_header_compile "$LINENO" "sys/poll.h" "ac_cv_header_sys_poll_h" "$ac_includes_default"
@@ -14223,7 +14203,7 @@ save_LIBS=$LIBS
 
 
         CPPFLAGS="$CPPFLAGS $LIBUUID_CFLAGS"
-        LIBS="$LIBS $LIBUUID_LIBS"
+        LDFLAGS="$LDFLAGS $LIBUUID_LIBS"
                for ac_header in uuid/uuid.h
 do :
   ac_fn_c_check_header_compile "$LINENO" "uuid/uuid.h" "ac_cv_header_uuid_uuid_h" "$ac_includes_default"
@@ -14365,7 +14345,7 @@ save_LIBS=$LIBS
 
 
         CPPFLAGS="$CPPFLAGS $LIBUUID_CFLAGS"
-        LIBS="$LIBS $LIBUUID_LIBS"
+        LDFLAGS="$LDFLAGS $LIBUUID_LIBS"
                for ac_header in uuid/uuid.h
 do :
   ac_fn_c_check_header_compile "$LINENO" "uuid/uuid.h" "ac_cv_header_uuid_uuid_h" "$ac_includes_default"
@@ -15263,7 +15243,7 @@ save_LIBS=$LIBS
 
 
       CPPFLAGS="$CPPFLAGS $LIBFFI_CFLAGS"
-      LIBS="$LIBS $LIBFFI_LIBS"
+      LDFLAGS="$LDFLAGS $LIBFFI_LIBS"
       ac_fn_c_check_header_compile "$LINENO" "ffi.h" "ac_cv_header_ffi_h" "$ac_includes_default"
 if test "x$ac_cv_header_ffi_h" = xyes
 then :
@@ -15345,7 +15325,7 @@ save_LIBS=$LIBS
 
 
       CPPFLAGS="$CPPFLAGS $LIBFFI_CFLAGS"
-      LIBS="$LIBS $LIBFFI_LIBS"
+      LDFLAGS="$LDFLAGS $LIBFFI_LIBS"
       ac_fn_c_check_header_compile "$LINENO" "ffi.h" "ac_cv_header_ffi_h" "$ac_includes_default"
 if test "x$ac_cv_header_ffi_h" = xyes
 then :
@@ -15465,8 +15445,8 @@ save_LDFLAGS=$LDFLAGS
 save_LIBS=$LIBS
 
 
-    CFLAGS="$CFLAGS $LIBFFI_CFLAGS"
-    LIBS="$LIBS $LIBFFI_LIBS"
+    CFLAGS="$LIBFFI_CFLAGS $CFLAGS"
+    LDFLAGS="$LIBFFI_LIBS $LDFLAGS"
 
 
 
@@ -15792,8 +15772,8 @@ save_LDFLAGS=$LDFLAGS
 save_LIBS=$LIBS
 
 
-    CPPFLAGS="$CPPFLAGS $LIBMPDEC_CFLAGS"
-    LIBS="$LIBS $LIBMPDEC_LIBS"
+    CPPFLAGS="$LIBMPDEC_CFLAGS $CPPFLAGS"
+    LIBS="$LIBMPDEC_LIBS $LIBS"
 
     cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
@@ -16063,7 +16043,7 @@ save_LIBS=$LIBS
 
 
   CPPFLAGS="$CPPFLAGS $LIBSQLITE3_CFLAGS"
-  LIBS="$LIBS $LIBSQLITE3_LIBS"
+  LDFLAGS="$LIBSQLITE3_LIBS $LDFLAGS"
 
   ac_fn_c_check_header_compile "$LINENO" "sqlite3.h" "ac_cv_header_sqlite3_h" "$ac_includes_default"
 if test "x$ac_cv_header_sqlite3_h" = xyes
@@ -17053,7 +17033,7 @@ save_LIBS=$LIBS
 
 
   CPPFLAGS="$CPPFLAGS $TCLTK_CFLAGS"
-  LIBS="$LIBS $TCLTK_LIBS"
+  LIBS="$TCLTK_LIBS $LDFLAGS"
 
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
@@ -17120,7 +17100,7 @@ save_LIBS=$LIBS
 
 
   CPPFLAGS="$CPPFLAGS $GDBM_CFLAGS"
-  LIBS="$LIBS $GDBM_LIBS"
+  LDFLAGS="$GDBM_LIBS $LDFLAGS"
          for ac_header in gdbm.h
 do :
   ac_fn_c_check_header_compile "$LINENO" "gdbm.h" "ac_cv_header_gdbm_h" "$ac_includes_default"
@@ -19188,6 +19168,12 @@ then :
   printf "%s\n" "#define HAVE_DUP3 1" >>confdefs.h
 
 fi
+ac_fn_c_check_func "$LINENO" "execv" "ac_cv_func_execv"
+if test "x$ac_cv_func_execv" = xyes
+then :
+  printf "%s\n" "#define HAVE_EXECV 1" >>confdefs.h
+
+fi
 ac_fn_c_check_func "$LINENO" "explicit_bzero" "ac_cv_func_explicit_bzero"
 if test "x$ac_cv_func_explicit_bzero" = xyes
 then :
@@ -19246,6 +19232,18 @@ ac_fn_c_check_func "$LINENO" "fexecve" "ac_cv_func_fexecve"
 if test "x$ac_cv_func_fexecve" = xyes
 then :
   printf "%s\n" "#define HAVE_FEXECVE 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "fork" "ac_cv_func_fork"
+if test "x$ac_cv_func_fork" = xyes
+then :
+  printf "%s\n" "#define HAVE_FORK 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "fork1" "ac_cv_func_fork1"
+if test "x$ac_cv_func_fork1" = xyes
+then :
+  printf "%s\n" "#define HAVE_FORK1 1" >>confdefs.h
 
 fi
 ac_fn_c_check_func "$LINENO" "fpathconf" "ac_cv_func_fpathconf"
@@ -19674,6 +19672,24 @@ then :
   printf "%s\n" "#define HAVE_POSIX_OPENPT 1" >>confdefs.h
 
 fi
+ac_fn_c_check_func "$LINENO" "posix_spawn" "ac_cv_func_posix_spawn"
+if test "x$ac_cv_func_posix_spawn" = xyes
+then :
+  printf "%s\n" "#define HAVE_POSIX_SPAWN 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "posix_spawnp" "ac_cv_func_posix_spawnp"
+if test "x$ac_cv_func_posix_spawnp" = xyes
+then :
+  printf "%s\n" "#define HAVE_POSIX_SPAWNP 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "posix_spawn_file_actions_addclosefrom_np" "ac_cv_func_posix_spawn_file_actions_addclosefrom_np"
+if test "x$ac_cv_func_posix_spawn_file_actions_addclosefrom_np" = xyes
+then :
+  printf "%s\n" "#define HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCLOSEFROM_NP 1" >>confdefs.h
+
+fi
 ac_fn_c_check_func "$LINENO" "pread" "ac_cv_func_pread"
 if test "x$ac_cv_func_pread" = xyes
 then :
@@ -19974,6 +19990,12 @@ then :
   printf "%s\n" "#define HAVE_SIGACTION 1" >>confdefs.h
 
 fi
+ac_fn_c_check_func "$LINENO" "sigaltstack" "ac_cv_func_sigaltstack"
+if test "x$ac_cv_func_sigaltstack" = xyes
+then :
+  printf "%s\n" "#define HAVE_SIGALTSTACK 1" >>confdefs.h
+
+fi
 ac_fn_c_check_func "$LINENO" "sigfillset" "ac_cv_func_sigfillset"
 if test "x$ac_cv_func_sigfillset" = xyes
 then :
@@ -20118,10 +20140,10 @@ then :
   printf "%s\n" "#define HAVE_TRUNCATE 1" >>confdefs.h
 
 fi
-ac_fn_c_check_func "$LINENO" "ttyname_r" "ac_cv_func_ttyname_r"
-if test "x$ac_cv_func_ttyname_r" = xyes
+ac_fn_c_check_func "$LINENO" "ttyname" "ac_cv_func_ttyname"
+if test "x$ac_cv_func_ttyname" = xyes
 then :
-  printf "%s\n" "#define HAVE_TTYNAME_R 1" >>confdefs.h
+  printf "%s\n" "#define HAVE_TTYNAME 1" >>confdefs.h
 
 fi
 ac_fn_c_check_func "$LINENO" "umask" "ac_cv_func_umask"
@@ -21684,7 +21706,7 @@ save_LIBS=$LIBS
 
 
     CPPFLAGS="$CPPFLAGS $ZLIB_CFLAGS"
-    LIBS="$LIBS $ZLIB_LIBS"
+    LDFLAGS="$LDFLAGS $ZLIB_LIBS"
            for ac_header in zlib.h
 do :
   ac_fn_c_check_header_compile "$LINENO" "zlib.h" "ac_cv_header_zlib_h" "$ac_includes_default"
@@ -21831,7 +21853,7 @@ save_LIBS=$LIBS
 
 
     CPPFLAGS="$CPPFLAGS $ZLIB_CFLAGS"
-    LIBS="$LIBS $ZLIB_LIBS"
+    LDFLAGS="$LDFLAGS $ZLIB_LIBS"
            for ac_header in zlib.h
 do :
   ac_fn_c_check_header_compile "$LINENO" "zlib.h" "ac_cv_header_zlib_h" "$ac_includes_default"
@@ -22068,7 +22090,7 @@ save_LIBS=$LIBS
 
 
     CPPFLAGS="$CPPFLAGS $BZIP2_CFLAGS"
-    LIBS="$LIBS $BZIP2_LIBS"
+    LDFLAGS="$LDFLAGS $BZIP2_LIBS"
            for ac_header in bzlib.h
 do :
   ac_fn_c_check_header_compile "$LINENO" "bzlib.h" "ac_cv_header_bzlib_h" "$ac_includes_default"
@@ -22160,7 +22182,7 @@ save_LIBS=$LIBS
 
 
     CPPFLAGS="$CPPFLAGS $BZIP2_CFLAGS"
-    LIBS="$LIBS $BZIP2_LIBS"
+    LDFLAGS="$LDFLAGS $BZIP2_LIBS"
            for ac_header in bzlib.h
 do :
   ac_fn_c_check_header_compile "$LINENO" "bzlib.h" "ac_cv_header_bzlib_h" "$ac_includes_default"
@@ -22316,7 +22338,7 @@ save_LIBS=$LIBS
 
 
     CPPFLAGS="$CPPFLAGS $LIBLZMA_CFLAGS"
-    LIBS="$LIBS $LIBLZMA_LIBS"
+    LDFLAGS="$LDFLAGS $LIBLZMA_LIBS"
            for ac_header in lzma.h
 do :
   ac_fn_c_check_header_compile "$LINENO" "lzma.h" "ac_cv_header_lzma_h" "$ac_includes_default"
@@ -22408,7 +22430,7 @@ save_LIBS=$LIBS
 
 
     CPPFLAGS="$CPPFLAGS $LIBLZMA_CFLAGS"
-    LIBS="$LIBS $LIBLZMA_LIBS"
+    LDFLAGS="$LDFLAGS $LIBLZMA_LIBS"
            for ac_header in lzma.h
 do :
   ac_fn_c_check_header_compile "$LINENO" "lzma.h" "ac_cv_header_lzma_h" "$ac_includes_default"
@@ -23511,7 +23533,7 @@ esac
 fi
 
 done
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for library containing login_tty" >&5
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for library containing login_tty" >&5
 printf %s "checking for library containing login_tty... " >&6; }
 if test ${ac_cv_search_login_tty+y}
 then :
@@ -26653,7 +26675,7 @@ save_LIBS=$LIBS
 
 
       CPPFLAGS="$CPPFLAGS $LIBREADLINE_CFLAGS"
-      LIBS="$LIBS $LIBREADLINE_LIBS"
+      LDFLAGS="$LDFLAGS $LIBREADLINE_LIBS"
              for ac_header in readline/readline.h
 do :
   ac_fn_c_check_header_compile "$LINENO" "readline/readline.h" "ac_cv_header_readline_readline_h" "$ac_includes_default"
@@ -26815,7 +26837,7 @@ save_LIBS=$LIBS
 
 
       CPPFLAGS="$CPPFLAGS $LIBEDIT_CFLAGS"
-      LIBS="$LIBS $LIBEDIT_LIBS"
+      LDFLAGS="$LDFLAGS $LIBEDIT_LIBS"
              for ac_header in editline/readline.h
 do :
   ac_fn_c_check_header_compile "$LINENO" "editline/readline.h" "ac_cv_header_editline_readline_h" "$ac_includes_default"
@@ -26906,7 +26928,7 @@ save_LIBS=$LIBS
 
 
       CPPFLAGS="$CPPFLAGS $LIBEDIT_CFLAGS"
-      LIBS="$LIBS $LIBEDIT_LIBS"
+      LDFLAGS="$LDFLAGS $LIBEDIT_LIBS"
              for ac_header in editline/readline.h
 do :
   ac_fn_c_check_header_compile "$LINENO" "editline/readline.h" "ac_cv_header_editline_readline_h" "$ac_includes_default"
@@ -27024,7 +27046,7 @@ save_LIBS=$LIBS
 
 
     CPPFLAGS="$CPPFLAGS $READLINE_CFLAGS"
-    LIBS="$LIBS $READLINE_LIBS"
+    LIBS="$READLINE_LIBS $LIBS"
     LIBS_SAVE=$LIBS
 
 
