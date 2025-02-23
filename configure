@@ -19168,12 +19168,6 @@ then :
   printf "%s\n" "#define HAVE_DUP3 1" >>confdefs.h
 
 fi
-ac_fn_c_check_func "$LINENO" "execv" "ac_cv_func_execv"
-if test "x$ac_cv_func_execv" = xyes
-then :
-  printf "%s\n" "#define HAVE_EXECV 1" >>confdefs.h
-
-fi
 ac_fn_c_check_func "$LINENO" "explicit_bzero" "ac_cv_func_explicit_bzero"
 if test "x$ac_cv_func_explicit_bzero" = xyes
 then :
@@ -19232,18 +19226,6 @@ ac_fn_c_check_func "$LINENO" "fexecve" "ac_cv_func_fexecve"
 if test "x$ac_cv_func_fexecve" = xyes
 then :
   printf "%s\n" "#define HAVE_FEXECVE 1" >>confdefs.h
-
-fi
-ac_fn_c_check_func "$LINENO" "fork" "ac_cv_func_fork"
-if test "x$ac_cv_func_fork" = xyes
-then :
-  printf "%s\n" "#define HAVE_FORK 1" >>confdefs.h
-
-fi
-ac_fn_c_check_func "$LINENO" "fork1" "ac_cv_func_fork1"
-if test "x$ac_cv_func_fork1" = xyes
-then :
-  printf "%s\n" "#define HAVE_FORK1 1" >>confdefs.h
 
 fi
 ac_fn_c_check_func "$LINENO" "fpathconf" "ac_cv_func_fpathconf"
@@ -19672,24 +19654,6 @@ then :
   printf "%s\n" "#define HAVE_POSIX_OPENPT 1" >>confdefs.h
 
 fi
-ac_fn_c_check_func "$LINENO" "posix_spawn" "ac_cv_func_posix_spawn"
-if test "x$ac_cv_func_posix_spawn" = xyes
-then :
-  printf "%s\n" "#define HAVE_POSIX_SPAWN 1" >>confdefs.h
-
-fi
-ac_fn_c_check_func "$LINENO" "posix_spawnp" "ac_cv_func_posix_spawnp"
-if test "x$ac_cv_func_posix_spawnp" = xyes
-then :
-  printf "%s\n" "#define HAVE_POSIX_SPAWNP 1" >>confdefs.h
-
-fi
-ac_fn_c_check_func "$LINENO" "posix_spawn_file_actions_addclosefrom_np" "ac_cv_func_posix_spawn_file_actions_addclosefrom_np"
-if test "x$ac_cv_func_posix_spawn_file_actions_addclosefrom_np" = xyes
-then :
-  printf "%s\n" "#define HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCLOSEFROM_NP 1" >>confdefs.h
-
-fi
 ac_fn_c_check_func "$LINENO" "pread" "ac_cv_func_pread"
 if test "x$ac_cv_func_pread" = xyes
 then :
@@ -19988,12 +19952,6 @@ ac_fn_c_check_func "$LINENO" "sigaction" "ac_cv_func_sigaction"
 if test "x$ac_cv_func_sigaction" = xyes
 then :
   printf "%s\n" "#define HAVE_SIGACTION 1" >>confdefs.h
-
-fi
-ac_fn_c_check_func "$LINENO" "sigaltstack" "ac_cv_func_sigaltstack"
-if test "x$ac_cv_func_sigaltstack" = xyes
-then :
-  printf "%s\n" "#define HAVE_SIGALTSTACK 1" >>confdefs.h
 
 fi
 ac_fn_c_check_func "$LINENO" "sigfillset" "ac_cv_func_sigfillset"
