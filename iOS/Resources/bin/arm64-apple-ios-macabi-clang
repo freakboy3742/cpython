@@ -1,0 +1,2 @@
+#!/bin/sh
+xcrun --sdk macosx${MACOSX_SDK_VERSION} clang -target arm64-apple-ios-macabi "$@"
