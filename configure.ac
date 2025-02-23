@@ -4136,7 +4136,7 @@ AS_VAR_IF([have_libffi], [missing], [
   PKG_CHECK_MODULES([LIBFFI], [libffi], [have_libffi=yes], [
     WITH_SAVE_ENV([
       CPPFLAGS="$CPPFLAGS $LIBFFI_CFLAGS"
-      LIBS="$LIBS $LIBFFI_LIBS"
+      LDFLAGS="$LDFLAGS $LIBFFI_LIBS"
       AC_CHECK_HEADER([ffi.h], [
         AC_CHECK_LIB([ffi], [ffi_call], [
           have_libffi=yes
