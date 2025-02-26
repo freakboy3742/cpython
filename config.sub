@@ -1128,6 +1128,9 @@ case $cpu-$vendor in
 	xscale-* | xscalee[bl]-*)
 		cpu=`echo "$cpu" | sed 's/^xscale/arm/'`
 		;;
+	arm64-apple*-macabi )
+		cpu=arm64
+		;;
 	arm64-* | aarch64le-* | arm64_32-*)
 		cpu=aarch64
 		;;
