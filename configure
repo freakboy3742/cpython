@@ -907,6 +907,7 @@ CFLAGS_ALIASING
 OPT
 BOLT_APPLY_FLAGS
 BOLT_INSTRUMENT_FLAGS
+BOLT_COMMON_FLAGS
 BOLT_BINARIES
 MERGE_FDATA
 LLVM_BOLT
@@ -1145,6 +1146,7 @@ LIBS
 CPPFLAGS
 CPP
 PROFILE_TASK
+BOLT_COMMON_FLAGS
 BOLT_INSTRUMENT_FLAGS
 BOLT_APPLY_FLAGS
 LIBUUID_CFLAGS
@@ -1968,6 +1970,8 @@ Some influential environment variables:
   CPP         C preprocessor
   PROFILE_TASK
               Python args for PGO generation task
+  BOLT_COMMON_FLAGS
+              Common arguments to llvm-bolt when instrumenting and applying
   BOLT_INSTRUMENT_FLAGS
               Arguments to llvm-bolt when instrumenting binaries
   BOLT_APPLY_FLAGS
@@ -4198,17 +4202,15 @@ fi
 if test -z "$AR"; then
 	case "$host" in
 		aarch64-apple-ios*-simulator) AR=arm64-apple-ios-simulator-ar ;;
-    aarch64-apple-ios*-macabi) AR=arm64-apple-ios-macabi-ar ;;
+		aarch64-apple-ios*-macabi) AR=arm64-apple-ios-macabi-ar ;;
 		aarch64-apple-ios*)           AR=arm64-apple-ios-ar ;;
 		x86_64-apple-ios*-simulator)  AR=x86_64-apple-ios-simulator-ar ;;
 
 		aarch64-apple-tvos*-simulator) AR=arm64-apple-tvos-simulator-ar ;;
-    aarch64-apple-tvos*-macabi) AR=arm64-apple-tvos-macabi-ar ;;
 		aarch64-apple-tvos*)           AR=arm64-apple-tvos-ar ;;
 		x86_64-apple-tvos*-simulator)  AR=x86_64-apple-tvos-simulator-ar ;;
 
 		aarch64-apple-watchos*-simulator) AR=arm64-apple-watchos-simulator-ar ;;
-    aarch64-apple-watchos*-macabi) AR=arm64-apple-watchos-macabi-ar ;;
 		aarch64-apple-watchos*)           AR=arm64_32-apple-watchos-ar ;;
 		x86_64-apple-watchos*-simulator)  AR=x86_64-apple-watchos-simulator-ar ;;
 		*)
@@ -4217,17 +4219,15 @@ fi
 if test -z "$CC"; then
 	case "$host" in
 		aarch64-apple-ios*-simulator) CC=arm64-apple-ios-simulator-clang ;;
-    aarch64-apple-ios*-macabi) CC=arm64-apple-ios-macabi-clang ;;
+		aarch64-apple-ios*-macabi) CC=arm64-apple-ios-macabi-clang ;;
 		aarch64-apple-ios*)           CC=arm64-apple-ios-clang ;;
 		x86_64-apple-ios*-simulator)  CC=x86_64-apple-ios-simulator-clang ;;
 
 		aarch64-apple-tvos*-simulator) CC=arm64-apple-tvos-simulator-clang ;;
-    aarch64-apple-tvos*-macabi) CC=arm64-apple-tvos-macabi-clang ;;
 		aarch64-apple-tvos*)           CC=arm64-apple-tvos-clang ;;
 		x86_64-apple-tvos*-simulator)  CC=x86_64-apple-tvos-simulator-clang ;;
 
 		aarch64-apple-watchos*-simulator) CC=arm64-apple-watchos-simulator-clang ;;
-    aarch64-apple-watchos*-macabi) CC=arm64-apple-watchos-macabi-clang ;;
 		aarch64-apple-watchos*)           CC=arm64_32-apple-watchos-clang ;;
 		x86_64-apple-watchos*-simulator)  CC=x86_64-apple-watchos-simulator-clang ;;
 		*)
@@ -4236,17 +4236,15 @@ fi
 if test -z "$CPP"; then
 	case "$host" in
 		aarch64-apple-ios*-simulator) CPP=arm64-apple-ios-simulator-cpp ;;
-    aarch64-apple-ios*-macabi) CPP=arm64-apple-ios-macabi-cpp ;;
+		aarch64-apple-ios*-macabi) CPP=arm64-apple-ios-macabi-cpp ;;
 		aarch64-apple-ios*)           CPP=arm64-apple-ios-cpp ;;
 		x86_64-apple-ios*-simulator)  CPP=x86_64-apple-ios-simulator-cpp ;;
 
 		aarch64-apple-tvos*-simulator) CPP=arm64-apple-tvos-simulator-cpp ;;
-    aarch64-apple-tvos*-macabi) CPP=arm64-apple-tvos-macabi-cpp ;;
 		aarch64-apple-tvos*)           CPP=arm64-apple-tvos-cpp ;;
 		x86_64-apple-tvos*-simulator)  CPP=x86_64-apple-tvos-simulator-cpp ;;
 
 		aarch64-apple-watchos*-simulator) CPP=arm64-apple-watchos-simulator-cpp ;;
-    aarch64-apple-watchos*-macabi) CPP=arm64-apple-watchos-macabi-cpp ;;
 		aarch64-apple-watchos*)           CPP=arm64_32-apple-watchos-cpp ;;
 		x86_64-apple-watchos*-simulator)  CPP=x86_64-apple-watchos-simulator-cpp ;;
 		*)
@@ -4255,17 +4253,15 @@ fi
 if test -z "$CXX"; then
 	case "$host" in
 		aarch64-apple-ios*-simulator) CXX=arm64-apple-ios-simulator-clang++ ;;
-    aarch64-apple-ios*-macabi) CXX=arm64-apple-ios-macabi-clang++ ;;
+		aarch64-apple-ios*-macabi) CXX=arm64-apple-ios-macabi-clang++ ;;
 		aarch64-apple-ios*)           CXX=arm64-apple-ios-clang++ ;;
 		x86_64-apple-ios*-simulator)  CXX=x86_64-apple-ios-simulator-clang++ ;;
 
 		aarch64-apple-tvos*-simulator) CXX=arm64-apple-tvos-simulator-clang++ ;;
-    aarch64-apple-tvos*-macabi) CXX=arm64-apple-tvos-macabi-clang++ ;;
 		aarch64-apple-tvos*)           CXX=arm64-apple-tvos-clang++ ;;
 		x86_64-apple-tvos*-simulator)  CXX=x86_64-apple-tvos-simulator-clang++ ;;
 
 		aarch64-apple-watchos*-simulator) CXX=arm64-apple-watchos-simulator-clang++ ;;
-    aarch64-apple-watchos*-macabi) CXX=arm64-apple-watchos-macabi-clang++ ;;
 		aarch64-apple-watchos*)           CXX=arm64_32-apple-watchos-clang++ ;;
 		x86_64-apple-watchos*-simulator)  CXX=x86_64-apple-watchos-simulator-clang++ ;;
 		*)
