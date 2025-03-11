@@ -4205,6 +4205,7 @@ if test -z "$AR"; then
 		aarch64-apple-ios*-macabi) AR=arm64-apple-ios-macabi-ar ;;
 		aarch64-apple-ios*)           AR=arm64-apple-ios-ar ;;
 		x86_64-apple-ios*-simulator)  AR=x86_64-apple-ios-simulator-ar ;;
+		x86_64-apple-ios*-macabi) AR=x86_64-apple-ios-macabi-ar ;;
 
 		aarch64-apple-tvos*-simulator) AR=arm64-apple-tvos-simulator-ar ;;
 		aarch64-apple-tvos*)           AR=arm64-apple-tvos-ar ;;
@@ -4222,6 +4223,7 @@ if test -z "$CC"; then
 		aarch64-apple-ios*-macabi) CC=arm64-apple-ios-macabi-clang ;;
 		aarch64-apple-ios*)           CC=arm64-apple-ios-clang ;;
 		x86_64-apple-ios*-simulator)  CC=x86_64-apple-ios-simulator-clang ;;
+		x86_64-apple-ios*-macabi) CC=x86_64-apple-ios-macabi-clang ;;
 
 		aarch64-apple-tvos*-simulator) CC=arm64-apple-tvos-simulator-clang ;;
 		aarch64-apple-tvos*)           CC=arm64-apple-tvos-clang ;;
@@ -4239,6 +4241,7 @@ if test -z "$CPP"; then
 		aarch64-apple-ios*-macabi) CPP=arm64-apple-ios-macabi-cpp ;;
 		aarch64-apple-ios*)           CPP=arm64-apple-ios-cpp ;;
 		x86_64-apple-ios*-simulator)  CPP=x86_64-apple-ios-simulator-cpp ;;
+		x86_64-apple-ios*-macabi) CPP=x86_64-apple-ios-macabi-cpp ;;
 
 		aarch64-apple-tvos*-simulator) CPP=arm64-apple-tvos-simulator-cpp ;;
 		aarch64-apple-tvos*)           CPP=arm64-apple-tvos-cpp ;;
@@ -4256,6 +4259,7 @@ if test -z "$CXX"; then
 		aarch64-apple-ios*-macabi) CXX=arm64-apple-ios-macabi-clang++ ;;
 		aarch64-apple-ios*)           CXX=arm64-apple-ios-clang++ ;;
 		x86_64-apple-ios*-simulator)  CXX=x86_64-apple-ios-simulator-clang++ ;;
+		x86_64-apple-ios*-macabi) CXX=x86_64-apple-ios-macabi-clang++ ;;
 
 		aarch64-apple-tvos*-simulator) CXX=arm64-apple-tvos-simulator-clang++ ;;
 		aarch64-apple-tvos*)           CXX=arm64-apple-tvos-clang++ ;;
