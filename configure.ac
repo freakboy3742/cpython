@@ -424,6 +424,7 @@ AC_SUBST([host_exec_prefix])
 if test -z "$AR"; then
 	case "$host" in
 		aarch64-apple-ios*-simulator) AR=arm64-apple-ios-simulator-ar ;;
+		aarch64-apple-ios*-macabi) AR=arm64-apple-ios-macabi-ar ;;
 		aarch64-apple-ios*)           AR=arm64-apple-ios-ar ;;
 		x86_64-apple-ios*-simulator)  AR=x86_64-apple-ios-simulator-ar ;;
 
@@ -440,6 +441,7 @@ fi
 if test -z "$CC"; then
 	case "$host" in
 		aarch64-apple-ios*-simulator) CC=arm64-apple-ios-simulator-clang ;;
+		aarch64-apple-ios*-macabi) CC=arm64-apple-ios-macabi-clang ;;
 		aarch64-apple-ios*)           CC=arm64-apple-ios-clang ;;
 		x86_64-apple-ios*-simulator)  CC=x86_64-apple-ios-simulator-clang ;;
 
@@ -456,6 +458,7 @@ fi
 if test -z "$CPP"; then
 	case "$host" in
 		aarch64-apple-ios*-simulator) CPP=arm64-apple-ios-simulator-cpp ;;
+		aarch64-apple-ios*-macabi) CXX=arm64-apple-ios-macabi-clang++ ;;
 		aarch64-apple-ios*)           CPP=arm64-apple-ios-cpp ;;
 		x86_64-apple-ios*-simulator)  CPP=x86_64-apple-ios-simulator-cpp ;;
 
