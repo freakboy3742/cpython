@@ -254,28 +254,14 @@ PLATFORM_TRIPLET=x86_64-iphonesimulator
 #      else
 PLATFORM_TRIPLET=arm64-iphonesimulator
 #      endif
+#    elif defined(TARGET_OS_MACCATALYST) && TARGET_OS_MACCATALYST
+#      if __x86_64__
+PLATFORM_TRIPLET=x86_64-iphoneos-macabi
+#      else
+PLATFORM_TRIPLET=arm64-iphoneos-macabi
+#      endif
 #    else
 PLATFORM_TRIPLET=arm64-iphoneos
-#    endif
-#  elif defined(TARGET_OS_TV) && TARGET_OS_TV
-#    if defined(TARGET_OS_SIMULATOR) && TARGET_OS_SIMULATOR
-#      if __x86_64__
-PLATFORM_TRIPLET=x86_64-appletvsimulator
-#      else
-PLATFORM_TRIPLET=arm64-appletvsimulator
-#      endif
-#    else
-PLATFORM_TRIPLET=arm64-appletvos
-#    endif
-#  elif defined(TARGET_OS_WATCH) && TARGET_OS_WATCH
-#    if defined(TARGET_OS_SIMULATOR) && TARGET_OS_SIMULATOR
-#      if __x86_64__
-PLATFORM_TRIPLET=x86_64-watchsimulator
-#      else
-PLATFORM_TRIPLET=arm64-watchsimulator
-#      endif
-#    else
-PLATFORM_TRIPLET=arm64_32-watchos
 #    endif
 // Older macOS SDKs do not define TARGET_OS_OSX
 #  elif !defined(TARGET_OS_OSX) || TARGET_OS_OSX
