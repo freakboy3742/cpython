@@ -7381,6 +7381,10 @@ case $host/$ac_cv_cc_name in #(
     PY_SUPPORT_TIER=3 ;; #(
     aarch64-apple-tvos*-simulator/clang) :
     PY_SUPPORT_TIER=3 ;; #(
+    aarch64-apple-ios*-macabi/clang) :
+    PY_SUPPORT_TIER=3 ;; #(
+    x86_64-apple-ios*-macabi/clang) :
+    PY_SUPPORT_TIER=3 ;; #(
     aarch64-apple-tvos*/clang) :
     PY_SUPPORT_TIER=3 ;; #(
     aarch64-apple-watchos*-simulator/clang) :

@@ -1358,6 +1358,8 @@ AS_CASE([$host/$ac_cv_cc_name],
   [aarch64-apple-ios*-simulator/clang],   [PY_SUPPORT_TIER=3], dnl iOS Simulator on arm64
   [aarch64-apple-ios*/clang],             [PY_SUPPORT_TIER=3], dnl iOS on ARM64
   [aarch64-apple-tvos*-simulator/clang],  [PY_SUPPORT_TIER=3], dnl tvOS Simulator on arm64
+  [aarch64-apple-ios*-macabi/clang],  [PY_SUPPORT_TIER=3], dnl MacCatalyst on arm64
+  [x86_64-apple-ios*-macabi/clang],  [PY_SUPPORT_TIER=3], dnl MacCatalyst on x86_64
   [aarch64-apple-tvos*/clang],            [PY_SUPPORT_TIER=3], dnl tvOS on ARM64
   [aarch64-apple-watchos*-simulator/clang],   [PY_SUPPORT_TIER=3], dnl watchOS Simulator on arm64
   [arm64_32-apple-watchos*/clang],            [PY_SUPPORT_TIER=3], dnl watchOS on ARM64
