@@ -665,9 +665,6 @@ config_check_consistency(const PyConfig *config)
     assert(config->safe_path >= 0);
     // config->use_frozen_modules is initialized later
     // by _PyConfig_InitImportConfig().
-#ifdef __APPLE__
-    assert(config->use_system_logger >= 0);
-#endif
     return 1;
 }
 #endif
@@ -761,9 +758,6 @@ _PyConfig_InitCompatConfig(PyConfig *config)
     config->safe_path = 0;
     config->_is_python_build = 0;
     config->code_debug_ranges = 1;
-#ifdef __APPLE__
-    config->use_system_logger = 0;
-#endif
 }
 
 /* Excluded from public struct PyConfig for backporting reasons. */
@@ -792,9 +786,6 @@ config_init_defaults(PyConfig *config)
     config->pathconfig_warnings = 1;
 #ifdef MS_WINDOWS
     config->legacy_windows_stdio = 0;
-#endif
-#ifdef __APPLE__
-    config->use_system_logger = 0;
 #endif
 }
 
@@ -828,9 +819,6 @@ PyConfig_InitIsolatedConfig(PyConfig *config)
     config->pathconfig_warnings = 0;
 #ifdef MS_WINDOWS
     config->legacy_windows_stdio = 0;
-#endif
-#ifdef __APPLE__
-    config->use_system_logger = 0;
 #endif
 }
 
