@@ -644,9 +644,6 @@ config_check_consistency(const PyConfig *config)
     assert(config->check_hash_pycs_mode != NULL);
     assert(config->_install_importlib >= 0);
     assert(config->pathconfig_warnings >= 0);
-#ifdef __APPLE__
-    assert(config->use_system_logger >= 0);
-#endif
     return 1;
 }
 #endif
@@ -731,9 +728,6 @@ _PyConfig_InitCompatConfig(PyConfig *config)
 #ifdef MS_WINDOWS
     config->legacy_windows_stdio = -1;
 #endif
-#ifdef __APPLE__
-    config->use_system_logger = 0;
-#endif
 }
 
 /* Excluded from public struct PyConfig for backporting reasons. */
@@ -762,9 +756,6 @@ config_init_defaults(PyConfig *config)
     config->pathconfig_warnings = 1;
 #ifdef MS_WINDOWS
     config->legacy_windows_stdio = 0;
-#endif
-#ifdef __APPLE__
-    config->use_system_logger = 0;
 #endif
 }
 
@@ -797,9 +788,6 @@ PyConfig_InitIsolatedConfig(PyConfig *config)
     config->pathconfig_warnings = 0;
 #ifdef MS_WINDOWS
     config->legacy_windows_stdio = 0;
-#endif
-#ifdef __APPLE__
-    config->use_system_logger = 0;
 #endif
 }
 
