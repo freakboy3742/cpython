@@ -727,6 +727,10 @@ def get_platform():
             release = get_config_vars().get("WATCHOS_DEPLOYMENT_TARGET", "4.0")
             osname = sys.platform
             machine = sys.implementation._multiarch
+        elif sys.platform == "xros":
+            release = get_config_vars().get("XROS_DEPLOYMENT_TARGET", "4.0")
+            osname = sys.platform
+            machine = sys.implementation._multiarch
         else:
             import _osx_support
             osname, release, machine = _osx_support.get_platform_osx(

@@ -974,6 +974,7 @@ LDFLAGS
 CFLAGS
 CC
 HAS_XCRUN
+XROS_DEPLOYMENT_TARGET
 WATCHOS_DEPLOYMENT_TARGET
 TVOS_DEPLOYMENT_TARGET
 IPHONEOS_DEPLOYMENT_TARGET
@@ -4063,6 +4064,9 @@ printf "%s\n" "no" >&6; }
 		PKG_CONFIG=""
 	fi
 fi
+if test -z "$PKG_CONFIG"; then
+	as_fn_error $? "pkg-config not found" "$LINENO" 5
+fi
    ;; #(
   no) :
 
@@ -4107,6 +4111,9 @@ then
 		;;
 	*-apple-watchos*)
 		ac_sys_system=watchOS
+		;;
+	*-apple-xros*)
+		ac_sys_system=xrOS
 		;;
 	*-*-darwin*)
 		ac_sys_system=Darwin
@@ -4189,7 +4196,7 @@ fi
 # On cross-compile builds, configure will look for a host-specific compiler by
 # prepending the user-provided host triple to the required binary name.
 #
-# On iOS/tvOS/watchOS, this results in binaries like "arm64-apple-ios13.0-simulator-gcc",
+# On iOS/tvOS/watchOS/xrOS, this results in binaries like "arm64-apple-ios13.0-simulator-gcc",
 # which isn't a binary that exists, and isn't very convenient, as it contains the
 # iOS version. As the default cross-compiler name won't exist, configure falls
 # back to gcc, which *definitely* won't work. We're providing wrapper scripts for
@@ -4212,6 +4219,9 @@ if test -z "$AR"; then
 		aarch64-apple-watchos*-simulator) AR=arm64-apple-watchos-simulator-ar ;;
 		aarch64-apple-watchos*)           AR=arm64_32-apple-watchos-ar ;;
 		x86_64-apple-watchos*-simulator)  AR=x86_64-apple-watchos-simulator-ar ;;
+
+		aarch64-apple-xros*-simulator) AR=arm64-apple-xros-simulator-ar ;;
+		aarch64-apple-xros*)           AR=arm64-apple-xros-ar ;;
 		*)
 	esac
 fi
@@ -4228,6 +4238,9 @@ if test -z "$CC"; then
 		aarch64-apple-watchos*-simulator) CC=arm64-apple-watchos-simulator-clang ;;
 		aarch64-apple-watchos*)           CC=arm64_32-apple-watchos-clang ;;
 		x86_64-apple-watchos*-simulator)  CC=x86_64-apple-watchos-simulator-clang ;;
+
+		aarch64-apple-xros*-simulator) CC=arm64-apple-xros-simulator-clang ;;
+		aarch64-apple-xros*)           CC=arm64-apple-xros-clang ;;
 		*)
 	esac
 fi
@@ -4244,6 +4257,9 @@ if test -z "$CPP"; then
 		aarch64-apple-watchos*-simulator) CPP=arm64-apple-watchos-simulator-cpp ;;
 		aarch64-apple-watchos*)           CPP=arm64_32-apple-watchos-cpp ;;
 		x86_64-apple-watchos*-simulator)  CPP=x86_64-apple-watchos-simulator-cpp ;;
+
+		aarch64-apple-xros*-simulator) CPP=arm64-apple-xros-simulator-cpp ;;
+		aarch64-apple-xros*)           CPP=arm64-apple-xros-cpp ;;
 		*)
 	esac
 fi
@@ -4258,8 +4274,11 @@ if test -z "$CXX"; then
 		x86_64-apple-tvos*-simulator)  CXX=x86_64-apple-tvos-simulator-clang++ ;;
 
 		aarch64-apple-watchos*-simulator) CXX=arm64-apple-watchos-simulator-clang++ ;;
-		aarch64-apple-watchos*)           CXX=arm64_32-apple-watchos-clang++ ;;
+		aarch64-apple-watchos*)           CXX=arm64-apple-watchos-clang++ ;;
 		x86_64-apple-watchos*-simulator)  CXX=x86_64-apple-watchos-simulator-clang++ ;;
+
+		aarch64-apple-xros*-simulator) CXX=arm64-apple-xros-simulator-clang++ ;;
+		aarch64-apple-xros*)           CXX=arm64-apple-xros-clang++ ;;
 		*)
 	esac
 fi
@@ -4386,6 +4405,7 @@ then :
 			iOS)     enableval=iOS/Frameworks/\$\(MULTIARCH\) ;;
 			tvOS)    enableval=tvOS/Frameworks/\$\(MULTIARCH\) ;;
 			watchOS) enableval=watchOS/Frameworks/\$\(MULTIARCH\) ;;
+			xrOS) enableval=xrOS/Frameworks/\$\(MULTIARCH\) ;;
 			*) as_fn_error $? "Unknown platform for framework build" "$LINENO" 5
 		esac
 	esac
@@ -4396,6 +4416,7 @@ then :
 			iOS) as_fn_error $? "iOS builds must use --enable-framework" "$LINENO" 5 ;;
 			tvOS) as_fn_error $? "tvOS builds must use --enable-framework" "$LINENO" 5 ;;
 			watchOS) as_fn_error $? "watchOS builds must use --enable-framework" "$LINENO" 5 ;;
+			xrOS) as_fn_error $? "xrOS builds must use --enable-framework" "$LINENO" 5 ;;
 			*)
 				PYTHONFRAMEWORK=
 				PYTHONFRAMEWORKDIR=no-framework
@@ -4533,6 +4554,21 @@ then :
 				ac_config_files="$ac_config_files watchOS/Resources/Info.plist"
 
 				;;
+			xrOS) :
+				FRAMEWORKINSTALLFIRST="frameworkinstallunversionedstructure"
+				FRAMEWORKALTINSTALLFIRST="frameworkinstallunversionedstructure "
+				FRAMEWORKINSTALLLAST="frameworkinstallmobileheaders"
+				FRAMEWORKALTINSTALLLAST="frameworkinstallmobileheaders"
+				FRAMEWORKPYTHONW=
+				INSTALLTARGETS="libinstall inclinstall sharedinstall"
+
+				prefix=$PYTHONFRAMEWORKPREFIX
+				PYTHONFRAMEWORKINSTALLNAMEPREFIX="@rpath/$PYTHONFRAMEWORKDIR"
+				RESSRCDIR=xrOS/Resources
+
+				ac_config_files="$ac_config_files xrOS/Resources/Info.plist"
+
+				;;
 			*)
 				as_fn_error $? "Unknown platform for framework build" "$LINENO" 5
 				;;
@@ -4545,6 +4581,7 @@ else case e in #(
 		iOS) as_fn_error $? "iOS builds must use --enable-framework" "$LINENO" 5 ;;
 		tvOS) as_fn_error $? "tvOS builds must use --enable-framework" "$LINENO" 5 ;;
 		watchOS) as_fn_error $? "watchOS builds must use --enable-framework" "$LINENO" 5 ;;
+		xrOS) as_fn_error $? "xrOS builds must use --enable-framework" "$LINENO" 5 ;;
 		*)
 			PYTHONFRAMEWORK=
 			PYTHONFRAMEWORKDIR=no-framework
@@ -4599,8 +4636,8 @@ then :
     case "$withval" in
     yes)
       case $ac_sys_system in
-        Darwin|iOS|tvOS|watchOS)
-          # iOS/tvOS/watchOS is able to share the macOS patch
+        Darwin|iOS|tvOS|watchOS|xrOS)
+          # iOS/tvOS/watchOS/xrOS is able to share the macOS patch
           APP_STORE_COMPLIANCE_PATCH="Mac/Resources/app-store-compliance.patch"
           ;;
         *) as_fn_error $? "no default app store compliance patch available for $ac_sys_system" "$LINENO" 5 ;;
@@ -4618,8 +4655,8 @@ printf "%s\n" "applying custom app store compliance patch" >&6; }
 else case e in #(
   e)
     case $ac_sys_system in
-      iOS|tvOS|watchOS)
-        # Always apply the compliance patch on iOS/tvOS/watchOS; we can use the macOS patch
+      iOS|tvOS|watchOS|xrOS)
+        # Always apply the compliance patch on iOS/tvOS/watchOS/xrOS; we can use the macOS patch
         APP_STORE_COMPLIANCE_PATCH="Mac/Resources/app-store-compliance.patch"
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: applying default app store compliance patch" >&5
 printf "%s\n" "applying default app store compliance patch" >&6; }
@@ -4718,6 +4755,28 @@ printf "%s\n" "$WATCHOS_DEPLOYMENT_TARGET" >&6; }
 				;;
 		esac
 		;;
+	*-apple-xros*)
+		_host_os=`echo $host | cut -d '-' -f3`
+		_host_device=`echo $host | cut -d '-' -f4`
+		_host_device=${_host_device:=os}
+
+		# XROS_DEPLOYMENT_TARGET is the minimum supported xrOS version
+		{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking xrOS deployment target" >&5
+printf %s "checking xrOS deployment target... " >&6; }
+		XROS_DEPLOYMENT_TARGET=${_host_os:7}
+		XROS_DEPLOYMENT_TARGET=${XROS_DEPLOYMENT_TARGET:=4.0}
+		{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $XROS_DEPLOYMENT_TARGET" >&5
+printf "%s\n" "$XROS_DEPLOYMENT_TARGET" >&6; }
+
+		case "$host_cpu" in
+			aarch64)
+				_host_ident=${XROS_DEPLOYMENT_TARGET}-arm64-xr${_host_device}
+				;;
+			*)
+				_host_ident=${XROS_DEPLOYMENT_TARGET}-$host_cpu-xr${_host_device}
+				;;
+		esac
+		;;
 	*-*-darwin*)
 		case "$host_cpu" in
 		arm*)
@@ -4808,12 +4867,14 @@ printf "%s\n" "#define _BSD_SOURCE 1" >>confdefs.h
     define_xopen_source=no;;
   Darwin/[12][0-9].*)
     define_xopen_source=no;;
-  # On iOS/tvOS/watchOS, defining _POSIX_C_SOURCE also disables platform specific features.
+  # On iOS/tvOS/watchOS/xrOS, defining _POSIX_C_SOURCE also disables platform specific features.
   iOS/*)
     define_xopen_source=no;;
   tvOS/*)
     define_xopen_source=no;;
   watchOS/*)
+    define_xopen_source=no;;
+  xrOS/*)
     define_xopen_source=no;;
   # On QNX 6.3.2, defining _XOPEN_SOURCE prevents netdb.h from
   # defining NI_NUMERICHOST.
@@ -4878,7 +4939,8 @@ CONFIGURE_MACOSX_DEPLOYMENT_TARGET=
 EXPORT_MACOSX_DEPLOYMENT_TARGET='#'
 
 # Record the value of IPHONEOS_DEPLOYMENT_TARGET / TVOS_DEPLOYMENT_TARGET /
-# WATCHOS_DEPLOYMENT_TARGET enforced by the selected host triple.
+# WATCHOS_DEPLOYMENT_TARGET / XROS_DEPLOYMENT_TARGET enforced by the selected host triple.
+
 
 
 
@@ -7304,6 +7366,8 @@ case $ac_sys_system in #(
     MULTIARCH="" ;; #(
   watchOS) :
     MULTIARCH="" ;; #(
+  xrOS) :
+    MULTIARCH="" ;; #(
   FreeBSD*) :
     MULTIARCH="" ;; #(
   *) :
@@ -7324,7 +7388,7 @@ fi
 printf "%s\n" "$MULTIARCH" >&6; }
 
 case $ac_sys_system in #(
-  iOS|tvOS|watchOS) :
+  iOS|tvOS|watchOS|xrOS) :
     SOABI_PLATFORM=`echo "$PLATFORM_TRIPLET" | cut -d '-' -f2` ;; #(
   *) :
     SOABI_PLATFORM=$PLATFORM_TRIPLET
@@ -7382,6 +7446,10 @@ case $host/$ac_cv_cc_name in #(
     aarch64-apple-watchos*-simulator/clang) :
     PY_SUPPORT_TIER=3 ;; #(
     arm64_32-apple-watchos*/clang) :
+    PY_SUPPORT_TIER=3 ;; #(
+    aarch64-apple-xros*-simulator/clang) :
+    PY_SUPPORT_TIER=3 ;; #(
+    arm64-apple-xros*/clang) :
     PY_SUPPORT_TIER=3 ;; #(
     aarch64-*-linux-android/clang) :
     PY_SUPPORT_TIER=3 ;; #(
@@ -7819,7 +7887,7 @@ then
   case $ac_sys_system in
     Darwin)
       LDLIBRARY='$(PYTHONFRAMEWORKDIR)/Versions/$(VERSION)/$(PYTHONFRAMEWORK)';;
-    iOS|tvOS|watchOS)
+    iOS|tvOS|watchOS|xrOS)
       LDLIBRARY='$(PYTHONFRAMEWORKDIR)/$(PYTHONFRAMEWORK)';;
     *)
       as_fn_error $? "Unknown platform for framework build" "$LINENO" 5;;
@@ -7885,7 +7953,7 @@ printf "%s\n" "#define Py_ENABLE_SHARED 1" >>confdefs.h
       BLDLIBRARY='-L. -lpython$(LDVERSION)'
       RUNSHARED=DYLD_LIBRARY_PATH=`pwd`${DYLD_LIBRARY_PATH:+:${DYLD_LIBRARY_PATH}}
       ;;
-    iOS|tvOS|watchOS)
+    iOS|tvOS|watchOS|xrOS)
       LDLIBRARY='libpython$(LDVERSION).dylib'
       ;;
     AIX*)
@@ -8593,15 +8661,18 @@ if test "$Py_OPT" = 'true' ; then
   if test "x$ac_cv_gcc_compat" = xyes
 then :
 
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts -fno-semantic-interposition" >&5
-printf %s "checking whether C compiler accepts -fno-semantic-interposition... " >&6; }
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether the C compiler accepts -fno-semantic-interposition" >&5
+printf %s "checking whether the C compiler accepts -fno-semantic-interposition... " >&6; }
 if test ${ax_cv_check_cflags__Werror__fno_semantic_interposition+y}
 then :
   printf %s "(cached) " >&6
 else case e in #(
   e)
   ax_check_save_flags=$CFLAGS
-  CFLAGS="$CFLAGS -Werror -fno-semantic-interposition"
+  if test x"$GCC" = xyes ; then
+    add_gnu_werror="-Werror"
+  fi
+  CFLAGS="$CFLAGS -Werror -fno-semantic-interposition $add_gnu_werror"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -8731,15 +8802,18 @@ if test "$Py_LTO" = 'true' ; then
   case $ac_cv_cc_name in
     clang)
       LDFLAGS_NOLTO="-fno-lto"
-                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts -flto=thin" >&5
-printf %s "checking whether C compiler accepts -flto=thin... " >&6; }
+                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether the C compiler accepts -flto=thin" >&5
+printf %s "checking whether the C compiler accepts -flto=thin... " >&6; }
 if test ${ax_cv_check_cflags___flto_thin+y}
 then :
   printf %s "(cached) " >&6
 else case e in #(
   e)
   ax_check_save_flags=$CFLAGS
-  CFLAGS="$CFLAGS  -flto=thin"
+  if test x"$GCC" = xyes ; then
+    add_gnu_werror="-Werror"
+  fi
+  CFLAGS="$CFLAGS  -flto=thin $add_gnu_werror"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -8916,15 +8990,18 @@ printf "%s\n" "$as_me: llvm-ar found via xcrun: ${LLVM_AR}" >&6;}
           if test $Py_LTO_POLICY = default
           then
             # Check that ThinLTO is accepted.
-            { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts -flto=thin" >&5
-printf %s "checking whether C compiler accepts -flto=thin... " >&6; }
+            { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether the C compiler accepts -flto=thin" >&5
+printf %s "checking whether the C compiler accepts -flto=thin... " >&6; }
 if test ${ax_cv_check_cflags___flto_thin+y}
 then :
   printf %s "(cached) " >&6
 else case e in #(
   e)
   ax_check_save_flags=$CFLAGS
-  CFLAGS="$CFLAGS  -flto=thin"
+  if test x"$GCC" = xyes ; then
+    add_gnu_werror="-Werror"
+  fi
+  CFLAGS="$CFLAGS  -flto=thin $add_gnu_werror"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -8973,15 +9050,18 @@ fi
           if test $Py_LTO_POLICY = default
           then
             # Check that ThinLTO is accepted
-            { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts -flto=thin" >&5
-printf %s "checking whether C compiler accepts -flto=thin... " >&6; }
+            { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether the C compiler accepts -flto=thin" >&5
+printf %s "checking whether the C compiler accepts -flto=thin... " >&6; }
 if test ${ax_cv_check_cflags___flto_thin+y}
 then :
   printf %s "(cached) " >&6
 else case e in #(
   e)
   ax_check_save_flags=$CFLAGS
-  CFLAGS="$CFLAGS  -flto=thin"
+  if test x"$GCC" = xyes ; then
+    add_gnu_werror="-Werror"
+  fi
+  CFLAGS="$CFLAGS  -flto=thin $add_gnu_werror"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -9258,15 +9338,18 @@ if test "$Py_BOLT" = 'true' ; then
 
   # -fno-reorder-blocks-and-partition is required for bolt to work.
   # Possibly GCC only.
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts -fno-reorder-blocks-and-partition" >&5
-printf %s "checking whether C compiler accepts -fno-reorder-blocks-and-partition... " >&6; }
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether the C compiler accepts -fno-reorder-blocks-and-partition" >&5
+printf %s "checking whether the C compiler accepts -fno-reorder-blocks-and-partition... " >&6; }
 if test ${ax_cv_check_cflags___fno_reorder_blocks_and_partition+y}
 then :
   printf %s "(cached) " >&6
 else case e in #(
   e)
   ax_check_save_flags=$CFLAGS
-  CFLAGS="$CFLAGS  -fno-reorder-blocks-and-partition"
+  if test x"$GCC" = xyes ; then
+    add_gnu_werror="-Werror"
+  fi
+  CFLAGS="$CFLAGS  -fno-reorder-blocks-and-partition $add_gnu_werror"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -9914,15 +9997,18 @@ printf "%s\n" "$enable_safety" >&6; }
 
 if test "$enable_safety" = "yes"
 then
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts -fstack-protector-strong" >&5
-printf %s "checking whether C compiler accepts -fstack-protector-strong... " >&6; }
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether the C compiler accepts -fstack-protector-strong" >&5
+printf %s "checking whether the C compiler accepts -fstack-protector-strong... " >&6; }
 if test ${ax_cv_check_cflags__Werror__fstack_protector_strong+y}
 then :
   printf %s "(cached) " >&6
 else case e in #(
   e)
   ax_check_save_flags=$CFLAGS
-  CFLAGS="$CFLAGS -Werror -fstack-protector-strong"
+  if test x"$GCC" = xyes ; then
+    add_gnu_werror="-Werror"
+  fi
+  CFLAGS="$CFLAGS -Werror -fstack-protector-strong $add_gnu_werror"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -9956,15 +10042,18 @@ printf "%s\n" "$as_me: WARNING: -fstack-protector-strong not supported" >&2;} ;;
 esac
 fi
 
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts -Wtrampolines" >&5
-printf %s "checking whether C compiler accepts -Wtrampolines... " >&6; }
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether the C compiler accepts -Wtrampolines" >&5
+printf %s "checking whether the C compiler accepts -Wtrampolines... " >&6; }
 if test ${ax_cv_check_cflags__Werror__Wtrampolines+y}
 then :
   printf %s "(cached) " >&6
 else case e in #(
   e)
   ax_check_save_flags=$CFLAGS
-  CFLAGS="$CFLAGS -Werror -Wtrampolines"
+  if test x"$GCC" = xyes ; then
+    add_gnu_werror="-Werror"
+  fi
+  CFLAGS="$CFLAGS -Werror -Wtrampolines $add_gnu_werror"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -9998,15 +10087,18 @@ printf "%s\n" "$as_me: WARNING: -Wtrampolines not supported" >&2;} ;;
 esac
 fi
 
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts -Wimplicit-fallthrough" >&5
-printf %s "checking whether C compiler accepts -Wimplicit-fallthrough... " >&6; }
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether the C compiler accepts -Wimplicit-fallthrough" >&5
+printf %s "checking whether the C compiler accepts -Wimplicit-fallthrough... " >&6; }
 if test ${ax_cv_check_cflags__Werror__Wimplicit_fallthrough+y}
 then :
   printf %s "(cached) " >&6
 else case e in #(
   e)
   ax_check_save_flags=$CFLAGS
-  CFLAGS="$CFLAGS -Werror -Wimplicit-fallthrough"
+  if test x"$GCC" = xyes ; then
+    add_gnu_werror="-Werror"
+  fi
+  CFLAGS="$CFLAGS -Werror -Wimplicit-fallthrough $add_gnu_werror"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -10040,15 +10132,18 @@ printf "%s\n" "$as_me: WARNING: -Wimplicit-fallthrough not supported" >&2;} ;;
 esac
 fi
 
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts -Werror=format-security" >&5
-printf %s "checking whether C compiler accepts -Werror=format-security... " >&6; }
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether the C compiler accepts -Werror=format-security" >&5
+printf %s "checking whether the C compiler accepts -Werror=format-security... " >&6; }
 if test ${ax_cv_check_cflags__Werror__Werror_format_security+y}
 then :
   printf %s "(cached) " >&6
 else case e in #(
   e)
   ax_check_save_flags=$CFLAGS
-  CFLAGS="$CFLAGS -Werror -Werror=format-security"
+  if test x"$GCC" = xyes ; then
+    add_gnu_werror="-Werror"
+  fi
+  CFLAGS="$CFLAGS -Werror -Werror=format-security $add_gnu_werror"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -10082,15 +10177,18 @@ printf "%s\n" "$as_me: WARNING: -Werror=format-security not supported" >&2;} ;;
 esac
 fi
 
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts -Wbidi-chars=any" >&5
-printf %s "checking whether C compiler accepts -Wbidi-chars=any... " >&6; }
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether the C compiler accepts -Wbidi-chars=any" >&5
+printf %s "checking whether the C compiler accepts -Wbidi-chars=any... " >&6; }
 if test ${ax_cv_check_cflags__Werror__Wbidi_chars_any+y}
 then :
   printf %s "(cached) " >&6
 else case e in #(
   e)
   ax_check_save_flags=$CFLAGS
-  CFLAGS="$CFLAGS -Werror -Wbidi-chars=any"
+  if test x"$GCC" = xyes ; then
+    add_gnu_werror="-Werror"
+  fi
+  CFLAGS="$CFLAGS -Werror -Wbidi-chars=any $add_gnu_werror"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -10124,15 +10222,18 @@ printf "%s\n" "$as_me: WARNING: -Wbidi-chars=any not supported" >&2;} ;;
 esac
 fi
 
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts -Wall" >&5
-printf %s "checking whether C compiler accepts -Wall... " >&6; }
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether the C compiler accepts -Wall" >&5
+printf %s "checking whether the C compiler accepts -Wall... " >&6; }
 if test ${ax_cv_check_cflags__Werror__Wall+y}
 then :
   printf %s "(cached) " >&6
 else case e in #(
   e)
   ax_check_save_flags=$CFLAGS
-  CFLAGS="$CFLAGS -Werror -Wall"
+  if test x"$GCC" = xyes ; then
+    add_gnu_werror="-Werror"
+  fi
+  CFLAGS="$CFLAGS -Werror -Wall $add_gnu_werror"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -10190,15 +10291,18 @@ printf "%s\n" "$enable_slower_safety" >&6; }
 
 if test "$enable_slower_safety" = "yes"
 then
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts -D_FORTIFY_SOURCE=3" >&5
-printf %s "checking whether C compiler accepts -D_FORTIFY_SOURCE=3... " >&6; }
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether the C compiler accepts -D_FORTIFY_SOURCE=3" >&5
+printf %s "checking whether the C compiler accepts -D_FORTIFY_SOURCE=3... " >&6; }
 if test ${ax_cv_check_cflags__Werror__D_FORTIFY_SOURCE_3+y}
 then :
   printf %s "(cached) " >&6
 else case e in #(
   e)
   ax_check_save_flags=$CFLAGS
-  CFLAGS="$CFLAGS -Werror -D_FORTIFY_SOURCE=3"
+  if test x"$GCC" = xyes ; then
+    add_gnu_werror="-Werror"
+  fi
+  CFLAGS="$CFLAGS -Werror -D_FORTIFY_SOURCE=3 $add_gnu_werror"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -10799,15 +10903,18 @@ printf "%s\n" "$CC" >&6; }
 
         # Error on unguarded use of new symbols, which will fail at runtime for
         # users on older versions of macOS
-        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts -Wunguarded-availability" >&5
-printf %s "checking whether C compiler accepts -Wunguarded-availability... " >&6; }
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether the C compiler accepts -Wunguarded-availability" >&5
+printf %s "checking whether the C compiler accepts -Wunguarded-availability... " >&6; }
 if test ${ax_cv_check_cflags__Werror__Wunguarded_availability+y}
 then :
   printf %s "(cached) " >&6
 else case e in #(
   e)
   ax_check_save_flags=$CFLAGS
-  CFLAGS="$CFLAGS -Werror -Wunguarded-availability"
+  if test x"$GCC" = xyes ; then
+    add_gnu_werror="-Werror"
+  fi
+  CFLAGS="$CFLAGS -Werror -Wunguarded-availability $add_gnu_werror"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -13490,15 +13597,18 @@ then :
   withval=$with_memory_sanitizer;
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $withval" >&5
 printf "%s\n" "$withval" >&6; }
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts -fsanitize=memory" >&5
-printf %s "checking whether C compiler accepts -fsanitize=memory... " >&6; }
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether the C compiler accepts -fsanitize=memory" >&5
+printf %s "checking whether the C compiler accepts -fsanitize=memory... " >&6; }
 if test ${ax_cv_check_cflags___fsanitize_memory+y}
 then :
   printf %s "(cached) " >&6
 else case e in #(
   e)
   ax_check_save_flags=$CFLAGS
-  CFLAGS="$CFLAGS  -fsanitize=memory"
+  if test x"$GCC" = xyes ; then
+    add_gnu_werror="-Werror"
+  fi
+  CFLAGS="$CFLAGS  -fsanitize=memory $add_gnu_werror"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -13693,7 +13803,7 @@ then
 			BLDSHARED="$LDSHARED"
 		fi
 		;;
-	iOS/*|tvOS/*|watchOS/*)
+	iOS/*|tvOS/*|watchOS/*|xrOS/*)
 		LDSHARED='$(CC) -dynamiclib -F . -framework $(PYTHONFRAMEWORK)'
 		LDCXXSHARED='$(CXX) -dynamiclib -F . -framework $(PYTHONFRAMEWORK)'
 		BLDSHARED="$LDSHARED"
@@ -13826,7 +13936,7 @@ then
 	Linux-android*) LINKFORSHARED="-pie -Xlinker -export-dynamic";;
 	Linux*|GNU*) LINKFORSHARED="-Xlinker -export-dynamic";;
 	# -u libsys_s pulls in all symbols in libsys
-	Darwin/*|iOS/*|tvOS/*|watchOS/*)
+	Darwin/*|iOS/*|tvOS/*|watchOS/*|xrOS/*)
 		LINKFORSHARED="$extra_undefs -framework CoreFoundation"
 
 		# Issue #18075: the default maximum stack size (8MBytes) is too
@@ -13850,7 +13960,7 @@ printf "%s\n" "#define THREAD_STACK_SIZE 0x$stack_size" >>confdefs.h
 				LINKFORSHARED="$LINKFORSHARED "'$(PYTHONFRAMEWORKDIR)/Versions/$(VERSION)/$(PYTHONFRAMEWORK)'
 			fi
 			LINKFORSHARED="$LINKFORSHARED"
-		elif test "$ac_sys_system" = "iOS" -o "$ac_sys_system" = "tvOS" -o "$ac_sys_system" = "watchOS"; then
+		elif test "$ac_sys_system" = "iOS" -o "$ac_sys_system" = "tvOS" -o "$ac_sys_system" = "watchOS" -o "$ac_sys_system" = "xrOS"; then
 			LINKFORSHARED="-Wl,-stack_size,$stack_size $LINKFORSHARED "'$(PYTHONFRAMEWORKDIR)/$(PYTHONFRAMEWORK)'
 		fi
 		;;
@@ -15435,7 +15545,7 @@ then :
 
             ctypes_malloc_closure=yes
      ;; #(
-  iOS|tvOS|watchOS) :
+  iOS|tvOS|watchOS|xrOS) :
 
       ctypes_malloc_closure=yes
      ;; #(
@@ -20247,11 +20357,11 @@ fi
 
 fi
 
-# iOS/tvOS/watchOS define some system methods that can be linked (so they are
+# iOS/tvOS/watchOS/xrOS define some system methods that can be linked (so they are
 # found by configure), but either raise a compilation error (because the
 # header definition prevents usage - autoconf doesn't use the headers), or
 # raise an error if used at runtime. Force these symbols off.
-if test "$ac_sys_system" != "iOS" -a "$ac_sys_system" != "tvOS" -a "$ac_sys_system" != "watchOS" ; then
+if test "$ac_sys_system" != "iOS" -a "$ac_sys_system" != "tvOS" -a "$ac_sys_system" != "watchOS" -a "$ac_sys_system" != "xrOS" ; then
   ac_fn_c_check_func "$LINENO" "getentropy" "ac_cv_func_getentropy"
 if test "x$ac_cv_func_getentropy" = xyes
 then :
@@ -20273,8 +20383,8 @@ fi
 
 fi
 
-# tvOS/watchOS have some additional methods that can be found, but not used.
-if test "$ac_sys_system" != "tvOS" -a "$ac_sys_system" != "watchOS" ; then
+# tvOS/watchOS.xrOS have some additional methods that can be found, but not used.
+if test "$ac_sys_system" != "tvOS" -a "$ac_sys_system" != "watchOS" -a "$ac_sys_system" != "xrOS"; then
   ac_fn_c_check_func "$LINENO" "execv" "ac_cv_func_execv"
 if test "x$ac_cv_func_execv" = xyes
 then :
@@ -23403,7 +23513,7 @@ fi
 
 # check for openpty, login_tty, and forkpty
 # tvOS/watchOS have functions for tty, but can't use them
-if test "$ac_sys_system" != "tvOS" -a "$ac_sys_system" != "watchOS" ; then
+if test "$ac_sys_system" != "tvOS" -a "$ac_sys_system" != "watchOS" -a "$ac_sys_system" != "xrOS"; then
 
   for ac_func in openpty
 do :
@@ -23966,10 +24076,10 @@ fi
 
 done
 
-# On Android, iOS, tvOS and watchOS, clock_settime can be linked (so it is found by
+# On Android, iOS, tvOS, watchOS, and xrOS, clock_settime can be linked (so it is found by
 # configure), but when used in an unprivileged process, it crashes rather than
 # returning an error. Force the symbol off.
-if test "$ac_sys_system" != "Linux-android" -a "$ac_sys_system" != "iOS" -a "$ac_sys_system" != "tvOS" -a "$ac_sys_system" != "watchOS"
+if test "$ac_sys_system" != "Linux-android" -a "$ac_sys_system" != "iOS" -a "$ac_sys_system" != "tvOS" -a "$ac_sys_system" != "watchOS" -a "$ac_sys_system" != "xrOS"
 then
 
   for ac_func in clock_settime
@@ -25392,10 +25502,10 @@ if ac_fn_c_try_link "$LINENO"
 then :
 
 
-if grep noonsees conftest* > /dev/null ; then
+if grep noonsees conftest$EXEEXT >/dev/null ; then
   ax_cv_c_float_words_bigendian=yes
 fi
-if grep seesnoon conftest* >/dev/null ; then
+if grep seesnoon conftest$EXEEXT >/dev/null ; then
   if test "$ax_cv_c_float_words_bigendian" = unknown; then
     ax_cv_c_float_words_bigendian=no
   else
@@ -26309,7 +26419,7 @@ if test "$PY_ENABLE_SHARED" = "1" && ( test -n "$ANDROID_API_LEVEL" || test "$MA
 fi
 
 # On iOS/tvOS/watchOS the shared libraries must be linked with the Python framework
-if test "$ac_sys_system" = "iOS" -o $ac_sys_system = "tvOS" -o $ac_sys_system = "watchOS"; then
+if test "$ac_sys_system" = "iOS" -o $ac_sys_system = "tvOS" -o $ac_sys_system = "watchOS" -o $ac_sys_system = "xrOS"; then
   MODULE_DEPS_SHARED="$MODULE_DEPS_SHARED \$(PYTHONFRAMEWORKDIR)/\$(PYTHONFRAMEWORK)"
 fi
 
@@ -29179,7 +29289,7 @@ LIBS=$save_LIBS
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for device files" >&5
 printf "%s\n" "$as_me: checking for device files" >&6;}
 
-if test "$ac_sys_system" = "Linux-android" -o "$ac_sys_system" = "iOS" -o "$ac_sys_system" = "tvOS" -o "$ac_sys_system" = "watchOS" ; then
+if test "$ac_sys_system" = "Linux-android" -o "$ac_sys_system" = "iOS" -o "$ac_sys_system" = "tvOS" -o "$ac_sys_system" = "watchOS"  -o "$ac_sys_system" = "xrOS"; then
   ac_cv_file__dev_ptmx=no
   ac_cv_file__dev_ptc=no
 else
@@ -29660,7 +29770,7 @@ else case e in #(
     with_ensurepip=no ;; #(
   WASI) :
     with_ensurepip=no ;; #(
-  iOS|tvOS|watchOS) :
+  iOS|tvOS|watchOS|xrOS) :
     with_ensurepip=no ;; #(
   *) :
     with_ensurepip=upgrade
@@ -30640,7 +30750,7 @@ case $ac_sys_system in #(
  ;; #(
     Darwin) :
      ;; #(
-  iOS|tvOS|watchOS) :
+  iOS|tvOS|watchOS|xrOS) :
 
 
 
@@ -32238,15 +32348,18 @@ esac
 # Android.
 # The *mmintrin.h headers are x86-family-specific, so can't be used on WASI.
 if test "$ac_sys_system" != "Linux-android" -a "$ac_sys_system" != "WASI" || test "$ANDROID_API_LEVEL" -ge 28; then
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts -msse -msse2 -msse3 -msse4.1 -msse4.2" >&5
-printf %s "checking whether C compiler accepts -msse -msse2 -msse3 -msse4.1 -msse4.2... " >&6; }
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether the C compiler accepts -msse -msse2 -msse3 -msse4.1 -msse4.2" >&5
+printf %s "checking whether the C compiler accepts -msse -msse2 -msse3 -msse4.1 -msse4.2... " >&6; }
 if test ${ax_cv_check_cflags__Werror__msse__msse2__msse3__msse4_1__msse4_2+y}
 then :
   printf %s "(cached) " >&6
 else case e in #(
   e)
   ax_check_save_flags=$CFLAGS
-  CFLAGS="$CFLAGS -Werror -msse -msse2 -msse3 -msse4.1 -msse4.2"
+  if test x"$GCC" = xyes ; then
+    add_gnu_werror="-Werror"
+  fi
+  CFLAGS="$CFLAGS -Werror -msse -msse2 -msse3 -msse4.1 -msse4.2 $add_gnu_werror"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -32313,15 +32426,18 @@ fi
 # (https://developer.android.com/ndk/guides/abis#86-64), this is safe because we do a
 # runtime CPUID check.
 if test "$ac_sys_system" != "Linux-android" -a "$ac_sys_system" != "WASI" || test "$ANDROID_API_LEVEL" -ge 28; then
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts -mavx2" >&5
-printf %s "checking whether C compiler accepts -mavx2... " >&6; }
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether the C compiler accepts -mavx2" >&5
+printf %s "checking whether the C compiler accepts -mavx2... " >&6; }
 if test ${ax_cv_check_cflags__Werror__mavx2+y}
 then :
   printf %s "(cached) " >&6
 else case e in #(
   e)
   ax_check_save_flags=$CFLAGS
-  CFLAGS="$CFLAGS -Werror -mavx2"
+  if test x"$GCC" = xyes ; then
+    add_gnu_werror="-Werror"
+  fi
+  CFLAGS="$CFLAGS -Werror -mavx2 $add_gnu_werror"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -34645,6 +34761,7 @@ do
     "iOS/Resources/Info.plist") CONFIG_FILES="$CONFIG_FILES iOS/Resources/Info.plist" ;;
     "tvOS/Resources/Info.plist") CONFIG_FILES="$CONFIG_FILES tvOS/Resources/Info.plist" ;;
     "watchOS/Resources/Info.plist") CONFIG_FILES="$CONFIG_FILES watchOS/Resources/Info.plist" ;;
+    "xrOS/Resources/Info.plist") CONFIG_FILES="$CONFIG_FILES xrOS/Resources/Info.plist" ;;
     "Makefile.pre") CONFIG_FILES="$CONFIG_FILES Makefile.pre" ;;
     "Misc/python.pc") CONFIG_FILES="$CONFIG_FILES Misc/python.pc" ;;
     "Misc/python-embed.pc") CONFIG_FILES="$CONFIG_FILES Misc/python-embed.pc" ;;
