@@ -492,7 +492,7 @@ if test -z "$CXX"; then
 		x86_64-apple-tvos*-simulator)  CXX=x86_64-apple-tvos-simulator-clang++ ;;
 
 		aarch64-apple-watchos*-simulator) CXX=arm64-apple-watchos-simulator-clang++ ;;
-		aarch64-apple-watchos*)           CXX=arm64-apple-watchos-clang++ ;;
+		aarch64-apple-watchos*)           CXX=arm64_32-apple-watchos-clang++ ;;
 		x86_64-apple-watchos*-simulator)  CXX=x86_64-apple-watchos-simulator-clang++ ;;
 
 		aarch64-apple-xros*-simulator) CXX=arm64-apple-xros-simulator-clang++ ;;
