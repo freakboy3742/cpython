@@ -84,6 +84,8 @@ tvOS/Frameworks
 tvOS/Resources/Info.plist
 watchOS/Frameworks
 watchOS/Resources/Info.plist
+tvOS/Frameworks
+tvOS/Resources/Info.plist
 Mac/Makefile
 Mac/PythonLauncher/Info.plist
 Mac/PythonLauncher/Makefile
