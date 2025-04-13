@@ -4772,17 +4772,17 @@ printf "%s\n" "$WATCHOS_DEPLOYMENT_TARGET" >&6; }
 		# VISIONOS_DEPLOYMENT_TARGET is the minimum supported visionOS version
 		{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking visionOS deployment target" >&5
 printf %s "checking visionOS deployment target... " >&6; }
-		VISIONOS_DEPLOYMENT_TARGET=${_host_os:7}
+		VISIONOS_DEPLOYMENT_TARGET=${_host_os:8}
 		VISIONOS_DEPLOYMENT_TARGET=${VISIONOS_DEPLOYMENT_TARGET:=2.0}
 		{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $VISIONOS_DEPLOYMENT_TARGET" >&5
 printf "%s\n" "$VISIONOS_DEPLOYMENT_TARGET" >&6; }
 
 		case "$host_cpu" in
 			aarch64)
-				_host_ident=${VISIONOS_DEPLOYMENT_TARGET}-arm64-xr${_host_device}
+				_host_ident=${VISIONOS_DEPLOYMENT_TARGET}-arm64-vision${_host_device}
 				;;
 			*)
-				_host_ident=${VISIONOS_DEPLOYMENT_TARGET}-$host_cpu-xr${_host_device}
+				_host_ident=${VISIONOS_DEPLOYMENT_TARGET}-$host_cpu-vision${_host_device}
 				;;
 		esac
 		;;
@@ -7458,7 +7458,7 @@ case $host/$ac_cv_cc_name in #(
     PY_SUPPORT_TIER=3 ;; #(
     aarch64-apple-visionos*-simulator/clang) :
     PY_SUPPORT_TIER=3 ;; #(
-    arm64-apple-visionos*/clang) :
+    aarch64-apple-visionos*/clang) :
     PY_SUPPORT_TIER=3 ;; #(
     aarch64-*-linux-android/clang) :
     PY_SUPPORT_TIER=3 ;; #(

@@ -957,16 +957,16 @@ if test "$cross_compiling" = yes; then
 
 		# VISIONOS_DEPLOYMENT_TARGET is the minimum supported visionOS version
 		AC_MSG_CHECKING([visionOS deployment target])
-		VISIONOS_DEPLOYMENT_TARGET=${_host_os:7}
+		VISIONOS_DEPLOYMENT_TARGET=${_host_os:8}
 		VISIONOS_DEPLOYMENT_TARGET=${VISIONOS_DEPLOYMENT_TARGET:=2.0}
 		AC_MSG_RESULT([$VISIONOS_DEPLOYMENT_TARGET])
 
 		case "$host_cpu" in
 			aarch64)
-				_host_ident=${VISIONOS_DEPLOYMENT_TARGET}-arm64-xr${_host_device}
+				_host_ident=${VISIONOS_DEPLOYMENT_TARGET}-arm64-vision${_host_device}
 				;;
 			*)
-				_host_ident=${VISIONOS_DEPLOYMENT_TARGET}-$host_cpu-xr${_host_device}
+				_host_ident=${VISIONOS_DEPLOYMENT_TARGET}-$host_cpu-vision${_host_device}
 				;;
 		esac
 		;;
@@ -1429,7 +1429,7 @@ AS_CASE([$host/$ac_cv_cc_name],
   [arm64_32-apple-watchos*/clang],            [PY_SUPPORT_TIER=3], dnl watchOS on ARM64
 dnl not adding the xros triplet, even though it's recognized
   [aarch64-apple-visionos*-simulator/clang],   [PY_SUPPORT_TIER=3], dnl visionOS Simulator on arm64
-  [arm64-apple-visionos*/clang],            [PY_SUPPORT_TIER=3],    dnl visionOS on ARM64
+  [aarch64-apple-visionos*/clang],            [PY_SUPPORT_TIER=3],    dnl visionOS on ARM64
   [aarch64-*-linux-android/clang],   [PY_SUPPORT_TIER=3], dnl Android on ARM64
   [x86_64-*-linux-android/clang],    [PY_SUPPORT_TIER=3], dnl Android on AMD64
 
