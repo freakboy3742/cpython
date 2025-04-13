@@ -1,2 +1,2 @@
 #!/bin/bash
-xcrun --sdk xrsimulator${XROS_SDK_VERSION} clang++ -target arm64-apple-xros-simulator "$@"
+xcrun --sdk xrsimulator${XROS_SDK_VERSION} clang++ -target arm64-apple-visionos-simulator "$@"

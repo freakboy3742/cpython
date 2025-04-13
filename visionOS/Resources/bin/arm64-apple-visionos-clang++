@@ -1,2 +1,2 @@
 #!/bin/bash
-xcrun --sdk xros${XROS_SDK_VERSION} clang++ -target arm64_32-apple-xros "$@"
+xcrun --sdk xros${XROS_SDK_VERSION} clang++ -target arm64-apple-visionos "$@"
