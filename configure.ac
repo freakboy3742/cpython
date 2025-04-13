@@ -336,8 +336,8 @@ then
 	*-apple-watchos*)
 		ac_sys_system=watchOS
 		;;
-	*-apple-xros*)
-		ac_sys_system=xrOS
+	*-apple-xros*|*apple-visionos*)
+		ac_sys_system=visionOS
 		;;
 	*-*-darwin*)
 		ac_sys_system=Darwin
@@ -414,7 +414,7 @@ AC_SUBST([host_exec_prefix])
 # On cross-compile builds, configure will look for a host-specific compiler by
 # prepending the user-provided host triple to the required binary name.
 #
-# On iOS/tvOS/watchOS/xrOS, this results in binaries like "arm64-apple-ios13.0-simulator-gcc",
+# On iOS/tvOS/watchOS/visionOS, this results in binaries like "arm64-apple-ios13.0-simulator-gcc",
 # which isn't a binary that exists, and isn't very convenient, as it contains the
 # iOS version. As the default cross-compiler name won't exist, configure falls
 # back to gcc, which *definitely* won't work. We're providing wrapper scripts for
@@ -438,8 +438,11 @@ if test -z "$AR"; then
 		aarch64-apple-watchos*)           AR=arm64_32-apple-watchos-ar ;;
 		x86_64-apple-watchos*-simulator)  AR=x86_64-apple-watchos-simulator-ar ;;
 
-		aarch64-apple-xros*-simulator) AR=arm64-apple-xros-simulator-ar ;;
-		aarch64-apple-xros*)           AR=arm64-apple-xros-ar ;;
+		aarch64-apple-xros*-simulator) AR=arm64-apple-visionos-simulator-ar ;;
+		aarch64-apple-xros*)           AR=arm64-apple-visionos-ar ;;
+
+		aarch64-apple-visionos*-simulator) AR=arm64-apple-visionos-simulator-ar ;;
+		aarch64-apple-visionos*)           AR=arm64-apple-visionos-ar ;;
 		*)
 	esac
 fi
@@ -457,8 +460,11 @@ if test -z "$CC"; then
 		aarch64-apple-watchos*)           CC=arm64_32-apple-watchos-clang ;;
 		x86_64-apple-watchos*-simulator)  CC=x86_64-apple-watchos-simulator-clang ;;
 
-		aarch64-apple-xros*-simulator) CC=arm64-apple-xros-simulator-clang ;;
-		aarch64-apple-xros*)           CC=arm64-apple-xros-clang ;;
+		aarch64-apple-visionos*-simulator) CC=arm64-apple-visionos-simulator-clang ;;
+		aarch64-apple-visionos*)           CC=arm64-apple-visionos-clang ;;
+
+		aarch64-apple-visionos*-simulator) CC=arm64-apple-visionos-simulator-clang ;;
+		aarch64-apple-visionos*)           CC=arm64-apple-visionos-clang ;;
 		*)
 	esac
 fi
@@ -476,8 +482,11 @@ if test -z "$CPP"; then
 		aarch64-apple-watchos*)           CPP=arm64_32-apple-watchos-cpp ;;
 		x86_64-apple-watchos*-simulator)  CPP=x86_64-apple-watchos-simulator-cpp ;;
 
-		aarch64-apple-xros*-simulator) CPP=arm64-apple-xros-simulator-cpp ;;
-		aarch64-apple-xros*)           CPP=arm64-apple-xros-cpp ;;
+		aarch64-apple-xros*-simulator) CPP=arm64-apple-visionos-simulator-cpp ;;
+		aarch64-apple-xros*)           CPP=arm64-apple-visionos-cpp ;;
+
+		aarch64-apple-visionos*-simulator) CPP=arm64-apple-visionos-simulator-cpp ;;
+		aarch64-apple-visionos*)           CPP=arm64-apple-visionos-cpp ;;
 		*)
 	esac
 fi
@@ -495,8 +504,11 @@ if test -z "$CXX"; then
 		aarch64-apple-watchos*)           CXX=arm64-apple-watchos-clang++ ;;
 		x86_64-apple-watchos*-simulator)  CXX=x86_64-apple-watchos-simulator-clang++ ;;
 
-		aarch64-apple-xros*-simulator) CXX=arm64-apple-xros-simulator-clang++ ;;
-		aarch64-apple-xros*)           CXX=arm64-apple-xros-clang++ ;;
+		aarch64-apple-xros*-simulator) CXX=arm64-apple-visionos-simulator-clang++ ;;
+		aarch64-apple-xros*)           CXX=arm64-apple-visionos-clang++ ;;
+
+		aarch64-apple-visionos*-simulator) CXX=arm64-apple-visionos-simulator-clang++ ;;
+		aarch64-apple-visionos*)           CXX=arm64-apple-visionos-clang++ ;;
 		*)
 	esac
 fi
@@ -615,7 +627,7 @@ AC_ARG_ENABLE([framework],
 			iOS)     enableval=iOS/Frameworks/\$\(MULTIARCH\) ;;
 			tvOS)    enableval=tvOS/Frameworks/\$\(MULTIARCH\) ;;
 			watchOS) enableval=watchOS/Frameworks/\$\(MULTIARCH\) ;;
-			xrOS) enableval=xrOS/Frameworks/\$\(MULTIARCH\) ;;
+			visionOS) enableval=visionOS/Frameworks/\$\(MULTIARCH\) ;;
 			*) AC_MSG_ERROR([Unknown platform for framework build])
 		esac
 	esac
@@ -626,7 +638,7 @@ AC_ARG_ENABLE([framework],
 			iOS) AC_MSG_ERROR([iOS builds must use --enable-framework]) ;;
 			tvOS) AC_MSG_ERROR([tvOS builds must use --enable-framework]) ;;
 			watchOS) AC_MSG_ERROR([watchOS builds must use --enable-framework]) ;;
-			xrOS) AC_MSG_ERROR([xrOS builds must use --enable-framework]) ;;
+			visionOS) AC_MSG_ERROR([visionOS builds must use --enable-framework]) ;;
 			*)
 				PYTHONFRAMEWORK=
 				PYTHONFRAMEWORKDIR=no-framework
@@ -757,7 +769,7 @@ AC_ARG_ENABLE([framework],
 
 				AC_CONFIG_FILES([watchOS/Resources/Info.plist])
 				;;
-			xrOS) :
+			visionOS) :
 				FRAMEWORKINSTALLFIRST="frameworkinstallunversionedstructure"
 				FRAMEWORKALTINSTALLFIRST="frameworkinstallunversionedstructure "
 				FRAMEWORKINSTALLLAST="frameworkinstallmobileheaders"
@@ -767,9 +779,9 @@ AC_ARG_ENABLE([framework],
 
 				prefix=$PYTHONFRAMEWORKPREFIX
 				PYTHONFRAMEWORKINSTALLNAMEPREFIX="@rpath/$PYTHONFRAMEWORKDIR"
-				RESSRCDIR=xrOS/Resources
+				RESSRCDIR=visionOS/Resources
 
-				AC_CONFIG_FILES([xrOS/Resources/Info.plist])
+				AC_CONFIG_FILES([visionOS/Resources/Info.plist])
 				;;
 			*)
 				AC_MSG_ERROR([Unknown platform for framework build])
@@ -781,7 +793,7 @@ AC_ARG_ENABLE([framework],
 		iOS) AC_MSG_ERROR([iOS builds must use --enable-framework]) ;;
 		tvOS) AC_MSG_ERROR([tvOS builds must use --enable-framework]) ;;
 		watchOS) AC_MSG_ERROR([watchOS builds must use --enable-framework]) ;;
-		xrOS) AC_MSG_ERROR([xrOS builds must use --enable-framework]) ;;
+		visionOS) AC_MSG_ERROR([visionOS builds must use --enable-framework]) ;;
 		*)
 			PYTHONFRAMEWORK=
 			PYTHONFRAMEWORKDIR=no-framework
@@ -834,8 +846,8 @@ AC_ARG_WITH(
     case "$withval" in
     yes)
       case $ac_sys_system in
-        Darwin|iOS|tvOS|watchOS|xrOS)
-          # iOS/tvOS/watchOS/xrOS is able to share the macOS patch
+        Darwin|iOS|tvOS|watchOS|visionOS)
+          # iOS/tvOS/watchOS/visionOS is able to share the macOS patch
           APP_STORE_COMPLIANCE_PATCH="Mac/Resources/app-store-compliance.patch"
           ;;
         *) AC_MSG_ERROR([no default app store compliance patch available for $ac_sys_system]) ;;
@@ -849,8 +861,8 @@ AC_ARG_WITH(
     esac
   ],[
     case $ac_sys_system in
-      iOS|tvOS|watchOS|xrOS)
-        # Always apply the compliance patch on iOS/tvOS/watchOS/xrOS; we can use the macOS patch
+      iOS|tvOS|watchOS|visionOS)
+        # Always apply the compliance patch on iOS/tvOS/watchOS/visionOS; we can use the macOS patch
         APP_STORE_COMPLIANCE_PATCH="Mac/Resources/app-store-compliance.patch"
         AC_MSG_RESULT([applying default app store compliance patch])
         ;;
@@ -938,23 +950,23 @@ if test "$cross_compiling" = yes; then
 				;;
 		esac
 		;;
-	*-apple-xros*)
+	*-apple-xros*|*apple-visionos*)
 		_host_os=`echo $host | cut -d '-' -f3`
 		_host_device=`echo $host | cut -d '-' -f4`
 		_host_device=${_host_device:=os}
 
-		# XROS_DEPLOYMENT_TARGET is the minimum supported xrOS version
-		AC_MSG_CHECKING([xrOS deployment target])
-		XROS_DEPLOYMENT_TARGET=${_host_os:7}
-		XROS_DEPLOYMENT_TARGET=${XROS_DEPLOYMENT_TARGET:=4.0}
-		AC_MSG_RESULT([$XROS_DEPLOYMENT_TARGET])
+		# VISIONOS_DEPLOYMENT_TARGET is the minimum supported visionOS version
+		AC_MSG_CHECKING([visionOS deployment target])
+		VISIONOS_DEPLOYMENT_TARGET=${_host_os:7}
+		VISIONOS_DEPLOYMENT_TARGET=${VISIONOS_DEPLOYMENT_TARGET:=2.0}
+		AC_MSG_RESULT([$VISIONOS_DEPLOYMENT_TARGET])
 
 		case "$host_cpu" in
 			aarch64)
-				_host_ident=${XROS_DEPLOYMENT_TARGET}-arm64-xr${_host_device}
+				_host_ident=${VISIONOS_DEPLOYMENT_TARGET}-arm64-xr${_host_device}
 				;;
 			*)
-				_host_ident=${XROS_DEPLOYMENT_TARGET}-$host_cpu-xr${_host_device}
+				_host_ident=${VISIONOS_DEPLOYMENT_TARGET}-$host_cpu-xr${_host_device}
 				;;
 		esac
 		;;
@@ -1047,14 +1059,14 @@ case $ac_sys_system/$ac_sys_release in
     define_xopen_source=no;;
   Darwin/@<:@[12]@:>@@<:@0-9@:>@.*)
     define_xopen_source=no;;
-  # On iOS/tvOS/watchOS/xrOS, defining _POSIX_C_SOURCE also disables platform specific features.
+  # On iOS/tvOS/watchOS/visionOS, defining _POSIX_C_SOURCE also disables platform specific features.
   iOS/*)
     define_xopen_source=no;;
   tvOS/*)
     define_xopen_source=no;;
   watchOS/*)
     define_xopen_source=no;;
-  xrOS/*)
+  visionOS/*)
     define_xopen_source=no;;
   # On QNX 6.3.2, defining _XOPEN_SOURCE prevents netdb.h from
   # defining NI_NUMERICHOST.
@@ -1115,11 +1127,11 @@ CONFIGURE_MACOSX_DEPLOYMENT_TARGET=
 EXPORT_MACOSX_DEPLOYMENT_TARGET='#'
 
 # Record the value of IPHONEOS_DEPLOYMENT_TARGET / TVOS_DEPLOYMENT_TARGET /
-# WATCHOS_DEPLOYMENT_TARGET / XROS_DEPLOYMENT_TARGET enforced by the selected host triple.
+# WATCHOS_DEPLOYMENT_TARGET / VISIONOS_DEPLOYMENT_TARGET enforced by the selected host triple.
 AC_SUBST([IPHONEOS_DEPLOYMENT_TARGET])
 AC_SUBST([TVOS_DEPLOYMENT_TARGET])
 AC_SUBST([WATCHOS_DEPLOYMENT_TARGET])
-AC_SUBST([XROS_DEPLOYMENT_TARGET])
+AC_SUBST([VISIONOS_DEPLOYMENT_TARGET])
 
 # checks for alternative programs
 
@@ -1153,8 +1165,8 @@ AS_CASE([$host],
   ],
 )
 
-dnl Add the compiler flag for the iOS/tvOS/watchOS/xrOS minimum supported OS version,
-dnl albeit I don't know the flag for the version in xrOS.
+dnl Add the compiler flag for the iOS/tvOS/watchOS/visionOS minimum supported OS version,
+dnl albeit Apple now encodes the visionOS value into the target triplet.
 AS_CASE([$ac_sys_system],
   [iOS], [
     AS_VAR_APPEND([CFLAGS], [" -mios-version-min=${IPHONEOS_DEPLOYMENT_TARGET}"])
@@ -1355,7 +1367,7 @@ AS_CASE([$ac_sys_system],
   [iOS], [MULTIARCH=""],
   [tvOS], [MULTIARCH=""],
   [watchOS], [MULTIARCH=""],
-  [xrOS], [MULTIARCH=""],
+  [visionOS], [MULTIARCH=""],
   [FreeBSD*], [MULTIARCH=""],
   [MULTIARCH=$($CC --print-multiarch 2>/dev/null)]
 )
@@ -1377,7 +1389,7 @@ dnl will have multiple sysconfig modules (one for each CPU architecture), but
 dnl use a single "fat" binary at runtime. SOABI_PLATFORM is the component of
 dnl the PLATFORM_TRIPLET that will be used in binary module extensions.
 AS_CASE([$ac_sys_system],
-  [iOS|tvOS|watchOS|xrOS], [SOABI_PLATFORM=`echo "$PLATFORM_TRIPLET" | cut -d '-' -f2`],
+  [iOS|tvOS|watchOS|visionOS], [SOABI_PLATFORM=`echo "$PLATFORM_TRIPLET" | cut -d '-' -f2`],
   [SOABI_PLATFORM=$PLATFORM_TRIPLET]
 )
 
@@ -1415,8 +1427,9 @@ AS_CASE([$host/$ac_cv_cc_name],
   [aarch64-apple-tvos*/clang],            [PY_SUPPORT_TIER=3], dnl tvOS on ARM64
   [aarch64-apple-watchos*-simulator/clang],   [PY_SUPPORT_TIER=3], dnl watchOS Simulator on arm64
   [arm64_32-apple-watchos*/clang],            [PY_SUPPORT_TIER=3], dnl watchOS on ARM64
-  [aarch64-apple-xros*-simulator/clang],   [PY_SUPPORT_TIER=3], dnl xrOS Simulator on arm64
-  [arm64-apple-xros*/clang],            [PY_SUPPORT_TIER=3], dnl xrOS on ARM64
+dnl not adding the xros triplet, even though it's recognized
+  [aarch64-apple-visionos*-simulator/clang],   [PY_SUPPORT_TIER=3], dnl visionOS Simulator on arm64
+  [arm64-apple-visionos*/clang],            [PY_SUPPORT_TIER=3],    dnl visionOS on ARM64
   [aarch64-*-linux-android/clang],   [PY_SUPPORT_TIER=3], dnl Android on ARM64
   [x86_64-*-linux-android/clang],    [PY_SUPPORT_TIER=3], dnl Android on AMD64
 
@@ -1726,7 +1739,7 @@ then
   case $ac_sys_system in
     Darwin)
       LDLIBRARY='$(PYTHONFRAMEWORKDIR)/Versions/$(VERSION)/$(PYTHONFRAMEWORK)';;
-    iOS|tvOS|watchOS|xrOS)
+    iOS|tvOS|watchOS|visionOS)
       LDLIBRARY='$(PYTHONFRAMEWORKDIR)/$(PYTHONFRAMEWORK)';;
     *)
       AC_MSG_ERROR([Unknown platform for framework build]);;
@@ -1791,7 +1804,7 @@ if test $enable_shared = "yes"; then
       BLDLIBRARY='-L. -lpython$(LDVERSION)'
       RUNSHARED=DYLD_LIBRARY_PATH=`pwd`${DYLD_LIBRARY_PATH:+:${DYLD_LIBRARY_PATH}}
       ;;
-    iOS|tvOS|watchOS|xrOS)
+    iOS|tvOS|watchOS|visionOS)
       LDLIBRARY='libpython$(LDVERSION).dylib'
       ;;
     AIX*)
@@ -3646,7 +3659,7 @@ then
 			BLDSHARED="$LDSHARED"
 		fi
 		;;
-	iOS/*|tvOS/*|watchOS/*|xrOS/*)
+	iOS/*|tvOS/*|watchOS/*|visionOS/*)
 		LDSHARED='$(CC) -dynamiclib -F . -framework $(PYTHONFRAMEWORK)'
 		LDCXXSHARED='$(CXX) -dynamiclib -F . -framework $(PYTHONFRAMEWORK)'
 		BLDSHARED="$LDSHARED"
@@ -3770,7 +3783,7 @@ then
 	Linux-android*) LINKFORSHARED="-pie -Xlinker -export-dynamic";;
 	Linux*|GNU*) LINKFORSHARED="-Xlinker -export-dynamic";;
 	# -u libsys_s pulls in all symbols in libsys
-	Darwin/*|iOS/*|tvOS/*|watchOS/*|xrOS/*)
+	Darwin/*|iOS/*|tvOS/*|watchOS/*|visionOS/*)
 		LINKFORSHARED="$extra_undefs -framework CoreFoundation"
 
 		# Issue #18075: the default maximum stack size (8MBytes) is too
@@ -3794,7 +3807,7 @@ then
 				LINKFORSHARED="$LINKFORSHARED "'$(PYTHONFRAMEWORKDIR)/Versions/$(VERSION)/$(PYTHONFRAMEWORK)'
 			fi
 			LINKFORSHARED="$LINKFORSHARED"
-		elif test "$ac_sys_system" = "iOS" -o "$ac_sys_system" = "tvOS" -o "$ac_sys_system" = "watchOS" -o "$ac_sys_system" = "xrOS"; then
+		elif test "$ac_sys_system" = "iOS" -o "$ac_sys_system" = "tvOS" -o "$ac_sys_system" = "watchOS" -o "$ac_sys_system" = "visionOS"; then
 			LINKFORSHARED="-Wl,-stack_size,$stack_size $LINKFORSHARED "'$(PYTHONFRAMEWORKDIR)/$(PYTHONFRAMEWORK)'
 		fi
 		;;
@@ -4214,7 +4227,7 @@ AS_VAR_IF([have_libffi], [yes], [
       dnl when do we need USING_APPLE_OS_LIBFFI?
       ctypes_malloc_closure=yes
     ],
-    [iOS|tvOS|watchOS|xrOS], [
+    [iOS|tvOS|watchOS|visionOS], [
       ctypes_malloc_closure=yes
     ],
     [sunos5], [AS_VAR_APPEND([LIBFFI_LIBS], [" -mimpure-text"])]
@@ -5357,16 +5370,17 @@ if test "$MACHDEP" != linux; then
   AC_CHECK_FUNCS([lchmod])
 fi
 
-# iOS/tvOS/watchOS/xrOS define some system methods that can be linked (so they are
+# iOS/tvOS/watchOS/visionOS define some system methods that can be linked (so they are
 # found by configure), but either raise a compilation error (because the
 # header definition prevents usage - autoconf doesn't use the headers), or
 # raise an error if used at runtime. Force these symbols off.
-if test "$ac_sys_system" != "iOS" -a "$ac_sys_system" != "tvOS" -a "$ac_sys_system" != "watchOS" -a "$ac_sys_system" != "xrOS" ; then
+if test "$ac_sys_system" != "iOS" -a "$ac_sys_system" != "tvOS" -a "$ac_sys_system" != "watchOS" -a "$ac_sys_system" != "visionOS" ; then
   AC_CHECK_FUNCS([ getentropy getgroups system ])
 fi
 
-# tvOS/watchOS.xrOS have some additional methods that can be found, but not used.
-if test "$ac_sys_system" != "tvOS" -a "$ac_sys_system" != "watchOS" -a "$ac_sys_system" != "xrOS"; then
+# tvOS/watchOS/visionOS have some additional methods that can be found, but not used.
+dnl TODO: Can visionOS use those iOS only functions???
+if test "$ac_sys_system" != "tvOS" -a "$ac_sys_system" != "watchOS" -a "$ac_sys_system" != "visionOS"; then
   AC_CHECK_FUNCS([ \
     execv fork fork1 posix_spawn posix_spawnp posix_spawn_file_actions_addclosefrom_np \
     sigaltstack \
@@ -5625,7 +5639,8 @@ PY_CHECK_FUNC([setgroups], [
 
 # check for openpty, login_tty, and forkpty
 # tvOS/watchOS have functions for tty, but can't use them
-if test "$ac_sys_system" != "tvOS" -a "$ac_sys_system" != "watchOS" -a "$ac_sys_system" != "xrOS"; then
+dnl is the same applies for visionOS
+if test "$ac_sys_system" != "tvOS" -a "$ac_sys_system" != "watchOS" -a "$ac_sys_system" != "visionOS"; then
   AC_CHECK_FUNCS([openpty], [],
     [AC_CHECK_LIB([util], [openpty],
       [AC_DEFINE([HAVE_OPENPTY]) LIBS="$LIBS -lutil"],
@@ -5678,10 +5693,10 @@ AC_CHECK_FUNCS([clock_getres], [], [
     ])
 ])
 
-# On Android, iOS, tvOS, watchOS, and xrOS, clock_settime can be linked (so it is found by
+# On Android, iOS, tvOS, watchOS, and visionOS, clock_settime can be linked (so it is found by
 # configure), but when used in an unprivileged process, it crashes rather than
 # returning an error. Force the symbol off.
-if test "$ac_sys_system" != "Linux-android" -a "$ac_sys_system" != "iOS" -a "$ac_sys_system" != "tvOS" -a "$ac_sys_system" != "watchOS" -a "$ac_sys_system" != "xrOS"
+if test "$ac_sys_system" != "Linux-android" -a "$ac_sys_system" != "iOS" -a "$ac_sys_system" != "tvOS" -a "$ac_sys_system" != "watchOS" -a "$ac_sys_system" != "visionOS"
 then
   AC_CHECK_FUNCS([clock_settime], [], [
       AC_CHECK_LIB([rt], [clock_settime], [
@@ -6433,7 +6448,7 @@ if test "$PY_ENABLE_SHARED" = "1" && ( test -n "$ANDROID_API_LEVEL" || test "$MA
 fi
 
 # On iOS/tvOS/watchOS the shared libraries must be linked with the Python framework
-if test "$ac_sys_system" = "iOS" -o $ac_sys_system = "tvOS" -o $ac_sys_system = "watchOS" -o $ac_sys_system = "xrOS"; then
+if test "$ac_sys_system" = "iOS" -o $ac_sys_system = "tvOS" -o $ac_sys_system = "watchOS" -o $ac_sys_system = "visionOS"; then
   MODULE_DEPS_SHARED="$MODULE_DEPS_SHARED \$(PYTHONFRAMEWORKDIR)/\$(PYTHONFRAMEWORK)"
 fi
 
@@ -7092,7 +7107,7 @@ AC_MSG_NOTICE([checking for device files])
 dnl NOTE: Inform user how to proceed with files when cross compiling.
 dnl Some cross-compile builds are predictable; they won't ever
 dnl have /dev/ptmx or /dev/ptc, so we can set them explicitly.
-if test "$ac_sys_system" = "Linux-android" -o "$ac_sys_system" = "iOS" -o "$ac_sys_system" = "tvOS" -o "$ac_sys_system" = "watchOS"  -o "$ac_sys_system" = "xrOS"; then
+if test "$ac_sys_system" = "Linux-android" -o "$ac_sys_system" = "iOS" -o "$ac_sys_system" = "tvOS" -o "$ac_sys_system" = "watchOS"  -o "$ac_sys_system" = "visionOS"; then
   ac_cv_file__dev_ptmx=no
   ac_cv_file__dev_ptc=no
 else
@@ -7373,7 +7388,7 @@ AC_ARG_WITH([ensurepip],
       AS_CASE([$ac_sys_system],
         [Emscripten], [with_ensurepip=no],
         [WASI], [with_ensurepip=no],
-        [iOS|tvOS|watchOS|xrOS], [with_ensurepip=no],
+        [iOS|tvOS|watchOS|visionOS], [with_ensurepip=no],
         [with_ensurepip=upgrade]
       )
     ])
@@ -7784,7 +7799,7 @@ AS_CASE([$ac_sys_system],
   [VxWorks*], [PY_STDLIB_MOD_SET_NA([_scproxy], [termios], [grp])],
   dnl The _scproxy module is available on macOS
   [Darwin], [],
-  [iOS|tvOS|watchOS|xrOS], [
+  [iOS|tvOS|watchOS|visionOS], [
     dnl subprocess and multiprocessing are not supported (no fork syscall).
     dnl curses and tkinter user interface are not available.
     dnl gdbm and nis aren't available
