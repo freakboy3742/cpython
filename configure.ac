@@ -5366,7 +5366,7 @@ if test "$ac_sys_system" != "iOS" -a "$ac_sys_system" != "tvOS" -a "$ac_sys_syst
   AC_CHECK_FUNCS([ getentropy getgroups system ])
 fi
 
-# tvOS/watchOS/visionOS have some additional methods that can be found, but not used.
+# tvOS/watchOS have some additional methods that can be found, but not used.
 if test "$ac_sys_system" != "tvOS" -a "$ac_sys_system" != "watchOS"; then
   AC_CHECK_FUNCS([ \
     execv fork fork1 posix_spawn posix_spawnp posix_spawn_file_actions_addclosefrom_np \
@@ -5627,7 +5627,7 @@ PY_CHECK_FUNC([setgroups], [
 # check for openpty, login_tty, and forkpty
 # tvOS/watchOS have functions for tty, but can't use them
 dnl is the same applies for visionOS
-if test "$ac_sys_system" != "tvOS" -a "$ac_sys_system" != "watchOS" -a "$ac_sys_system" != "visionOS"; then
+if test "$ac_sys_system" != "tvOS" -a "$ac_sys_system" != "watchOS"; then
   AC_CHECK_FUNCS([openpty], [],
     [AC_CHECK_LIB([util], [openpty],
       [AC_DEFINE([HAVE_OPENPTY]) LIBS="$LIBS -lutil"],
