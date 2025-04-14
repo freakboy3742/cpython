@@ -5367,8 +5367,7 @@ if test "$ac_sys_system" != "iOS" -a "$ac_sys_system" != "tvOS" -a "$ac_sys_syst
 fi
 
 # tvOS/watchOS/visionOS have some additional methods that can be found, but not used.
-dnl TODO: Can visionOS use those iOS only functions???
-if test "$ac_sys_system" != "tvOS" -a "$ac_sys_system" != "watchOS" -a "$ac_sys_system" != "visionOS"; then
+if test "$ac_sys_system" != "tvOS" -a "$ac_sys_system" != "watchOS"; then
   AC_CHECK_FUNCS([ \
     execv fork fork1 posix_spawn posix_spawnp posix_spawn_file_actions_addclosefrom_np \
     sigaltstack \

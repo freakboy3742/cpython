@@ -20339,7 +20339,7 @@ fi
 fi
 
 # tvOS/watchOS/visionOS have some additional methods that can be found, but not used.
-if test "$ac_sys_system" != "tvOS" -a "$ac_sys_system" != "watchOS" -a "$ac_sys_system" != "visionOS"; then
+if test "$ac_sys_system" != "tvOS" -a "$ac_sys_system" != "watchOS"; then
   ac_fn_c_check_func "$LINENO" "execv" "ac_cv_func_execv"
 if test "x$ac_cv_func_execv" = xyes
 then :
