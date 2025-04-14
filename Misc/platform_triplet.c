@@ -277,6 +277,12 @@ PLATFORM_TRIPLET=arm64-watchsimulator
 #    else
 PLATFORM_TRIPLET=arm64_32-watchos
 #    endif
+#  elif defined(TARGET_OS_VISION) && TARGET_OS_VISION
+#    if defined(TARGET_OS_SIMULATOR) && TARGET_OS_SIMULATOR
+PLATFORM_TRIPLET=arm64-xrsimulator
+#    else
+PLATFORM_TRIPLET=arm64-xros
+#    endif
 // Older macOS SDKs do not define TARGET_OS_OSX
 #  elif !defined(TARGET_OS_OSX) || TARGET_OS_OSX
 PLATFORM_TRIPLET=darwin
