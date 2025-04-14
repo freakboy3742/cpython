@@ -728,7 +728,7 @@ def get_platform():
             osname = sys.platform
             machine = sys.implementation._multiarch
         elif sys.platform == "visionos":
-            release = get_config_vars().get("VISIONOS_DEPLOYMENT_TARGET", "4.0")
+            release = get_config_vars().get("XROS_DEPLOYMENT_TARGET", "2.0")
             osname = sys.platform
             machine = sys.implementation._multiarch
         else:

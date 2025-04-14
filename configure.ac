@@ -336,7 +336,7 @@ then
 	*-apple-watchos*)
 		ac_sys_system=watchOS
 		;;
-	*-apple-xros*|*apple-visionos*)
+	*-apple-xros*)
 		ac_sys_system=visionOS
 		;;
 	*-*-darwin*)
@@ -438,11 +438,8 @@ if test -z "$AR"; then
 		aarch64-apple-watchos*)           AR=arm64_32-apple-watchos-ar ;;
 		x86_64-apple-watchos*-simulator)  AR=x86_64-apple-watchos-simulator-ar ;;
 
-		aarch64-apple-xros*-simulator) AR=arm64-apple-visionos-simulator-ar ;;
-		aarch64-apple-xros*)           AR=arm64-apple-visionos-ar ;;
-
-		aarch64-apple-visionos*-simulator) AR=arm64-apple-visionos-simulator-ar ;;
-		aarch64-apple-visionos*)           AR=arm64-apple-visionos-ar ;;
+		aarch64-apple-xros*-simulator) AR=arm64-apple-xros-simulator-ar ;;
+		aarch64-apple-xros*)           AR=arm64-apple-xros-ar ;;
 		*)
 	esac
 fi
@@ -460,11 +457,8 @@ if test -z "$CC"; then
 		aarch64-apple-watchos*)           CC=arm64_32-apple-watchos-clang ;;
 		x86_64-apple-watchos*-simulator)  CC=x86_64-apple-watchos-simulator-clang ;;
 
-		aarch64-apple-visionos*-simulator) CC=arm64-apple-visionos-simulator-clang ;;
-		aarch64-apple-visionos*)           CC=arm64-apple-visionos-clang ;;
-
-		aarch64-apple-visionos*-simulator) CC=arm64-apple-visionos-simulator-clang ;;
-		aarch64-apple-visionos*)           CC=arm64-apple-visionos-clang ;;
+		aarch64-apple-xros*-simulator) CC=arm64-apple-xros-simulator-clang ;;
+		aarch64-apple-xros*)           CC=arm64-apple-xros-clang ;;
 		*)
 	esac
 fi
@@ -482,11 +476,8 @@ if test -z "$CPP"; then
 		aarch64-apple-watchos*)           CPP=arm64_32-apple-watchos-cpp ;;
 		x86_64-apple-watchos*-simulator)  CPP=x86_64-apple-watchos-simulator-cpp ;;
 
-		aarch64-apple-xros*-simulator) CPP=arm64-apple-visionos-simulator-cpp ;;
-		aarch64-apple-xros*)           CPP=arm64-apple-visionos-cpp ;;
-
-		aarch64-apple-visionos*-simulator) CPP=arm64-apple-visionos-simulator-cpp ;;
-		aarch64-apple-visionos*)           CPP=arm64-apple-visionos-cpp ;;
+		aarch64-apple-xros*-simulator) CPP=arm64-apple-xros-simulator-cpp ;;
+		aarch64-apple-xros*)           CPP=arm64-apple-xros-cpp ;;
 		*)
 	esac
 fi
@@ -504,11 +495,8 @@ if test -z "$CXX"; then
 		aarch64-apple-watchos*)           CXX=arm64_32-apple-watchos-clang++ ;;
 		x86_64-apple-watchos*-simulator)  CXX=x86_64-apple-watchos-simulator-clang++ ;;
 
-		aarch64-apple-xros*-simulator) CXX=arm64-apple-visionos-simulator-clang++ ;;
-		aarch64-apple-xros*)           CXX=arm64-apple-visionos-clang++ ;;
-
-		aarch64-apple-visionos*-simulator) CXX=arm64-apple-visionos-simulator-clang++ ;;
-		aarch64-apple-visionos*)           CXX=arm64-apple-visionos-clang++ ;;
+		aarch64-apple-xros*-simulator) CXX=arm64-apple-xros-simulator-clang++ ;;
+		aarch64-apple-xros*)           CXX=arm64-apple-xros-clang++ ;;
 		*)
 	esac
 fi
@@ -950,23 +938,23 @@ if test "$cross_compiling" = yes; then
 				;;
 		esac
 		;;
-	*-apple-xros*|*apple-visionos*)
+	*-apple-xros*)
 		_host_os=`echo $host | cut -d '-' -f3`
 		_host_device=`echo $host | cut -d '-' -f4`
 		_host_device=${_host_device:=os}
 
-		# VISIONOS_DEPLOYMENT_TARGET is the minimum supported visionOS version
+		# XROS_DEPLOYMENT_TARGET is the minimum supported visionOS version
 		AC_MSG_CHECKING([visionOS deployment target])
-		VISIONOS_DEPLOYMENT_TARGET=${_host_os:8}
-		VISIONOS_DEPLOYMENT_TARGET=${VISIONOS_DEPLOYMENT_TARGET:=2.0}
-		AC_MSG_RESULT([$VISIONOS_DEPLOYMENT_TARGET])
+		XROS_DEPLOYMENT_TARGET=${_host_os:8}
+		XROS_DEPLOYMENT_TARGET=${XROS_DEPLOYMENT_TARGET:=2.0}
+		AC_MSG_RESULT([$XROS_DEPLOYMENT_TARGET])
 
 		case "$host_cpu" in
 			aarch64)
-				_host_ident=${VISIONOS_DEPLOYMENT_TARGET}-arm64-vision${_host_device}
+				_host_ident=${XROS_DEPLOYMENT_TARGET}-arm64-vision${_host_device}
 				;;
 			*)
-				_host_ident=${VISIONOS_DEPLOYMENT_TARGET}-$host_cpu-vision${_host_device}
+				_host_ident=${XROS_DEPLOYMENT_TARGET}-$host_cpu-vision${_host_device}
 				;;
 		esac
 		;;
@@ -1127,11 +1115,11 @@ CONFIGURE_MACOSX_DEPLOYMENT_TARGET=
 EXPORT_MACOSX_DEPLOYMENT_TARGET='#'
 
 # Record the value of IPHONEOS_DEPLOYMENT_TARGET / TVOS_DEPLOYMENT_TARGET /
-# WATCHOS_DEPLOYMENT_TARGET / VISIONOS_DEPLOYMENT_TARGET enforced by the selected host triple.
+# WATCHOS_DEPLOYMENT_TARGET / XROS_DEPLOYMENT_TARGET enforced by the selected host triple.
 AC_SUBST([IPHONEOS_DEPLOYMENT_TARGET])
 AC_SUBST([TVOS_DEPLOYMENT_TARGET])
 AC_SUBST([WATCHOS_DEPLOYMENT_TARGET])
-AC_SUBST([VISIONOS_DEPLOYMENT_TARGET])
+AC_SUBST([XROS_DEPLOYMENT_TARGET])
 
 # checks for alternative programs
 
@@ -1428,8 +1416,8 @@ AS_CASE([$host/$ac_cv_cc_name],
   [aarch64-apple-watchos*-simulator/clang],   [PY_SUPPORT_TIER=3], dnl watchOS Simulator on arm64
   [arm64_32-apple-watchos*/clang],            [PY_SUPPORT_TIER=3], dnl watchOS on ARM64
 dnl not adding the xros triplet, even though it's recognized
-  [aarch64-apple-visionos*-simulator/clang],   [PY_SUPPORT_TIER=3], dnl visionOS Simulator on arm64
-  [aarch64-apple-visionos*/clang],            [PY_SUPPORT_TIER=3],    dnl visionOS on ARM64
+  [aarch64-apple-xros*-simulator/clang],   [PY_SUPPORT_TIER=3], dnl visionOS Simulator on arm64
+  [aarch64-apple-xros*/clang],            [PY_SUPPORT_TIER=3],    dnl visionOS on ARM64
   [aarch64-*-linux-android/clang],   [PY_SUPPORT_TIER=3], dnl Android on ARM64
   [x86_64-*-linux-android/clang],    [PY_SUPPORT_TIER=3], dnl Android on AMD64
 

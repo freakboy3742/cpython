@@ -1,2 +1,0 @@
-#!/bin/bash
-xcrun --sdk xrsimulator clang -target arm64-apple-visionos-simulator -E "$@"
