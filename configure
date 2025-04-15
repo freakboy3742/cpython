@@ -974,6 +974,7 @@ LDFLAGS
 CFLAGS
 CC
 HAS_XCRUN
+EXPORT_XROS_DEPLOYMENT_TARGET
 XROS_DEPLOYMENT_TARGET
 WATCHOS_DEPLOYMENT_TARGET
 TVOS_DEPLOYMENT_TARGET
@@ -4671,6 +4672,8 @@ fi
 
 
 
+EXPORT_XROS_DEPLOYMENT_TARGET='#'
+
 
 if test "$cross_compiling" = yes; then
 	case "$host" in
@@ -4764,6 +4767,12 @@ printf %s "checking visionOS deployment target... " >&6; }
 		XROS_DEPLOYMENT_TARGET=${XROS_DEPLOYMENT_TARGET:=2.0}
 		{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $XROS_DEPLOYMENT_TARGET" >&5
 printf "%s\n" "$XROS_DEPLOYMENT_TARGET" >&6; }
+		{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking exporting flag of visionOS deployment target" >&5
+printf %s "checking exporting flag of visionOS deployment target... " >&6; }
+        	export XROS_DEPLOYMENT_TARGET
+		EXPORT_XROS_DEPLOYMENT_TARGET=''
+		{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $EXPORT_XROS_DEPLOYMENT_TARGET" >&5
+printf "%s\n" "$EXPORT_XROS_DEPLOYMENT_TARGET" >&6; }
 
 		case "$host_cpu" in
 			aarch64)
@@ -4940,6 +4949,8 @@ EXPORT_MACOSX_DEPLOYMENT_TARGET='#'
 
 
 
+
+# XROS_DEPLOYMENT_TARGET should get exported
 
 
 # checks for alternative programs
