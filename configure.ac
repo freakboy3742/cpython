@@ -1153,8 +1153,9 @@ AS_CASE([$host],
   ],
 )
 
-dnl Add the compiler flag for the iOS/tvOS/watchOS/visionOS minimum supported OS version,
-dnl albeit Apple now encodes the visionOS value into the target triplet.
+dnl Add the compiler flag for the iOS/tvOS/watchOS minimum supported OS
+dnl version. visionOS doesn't use an explicit -mxros-version-min option -
+dnl it encodes the min version into the target triple.
 AS_CASE([$ac_sys_system],
   [iOS], [
     AS_VAR_APPEND([CFLAGS], [" -mios-version-min=${IPHONEOS_DEPLOYMENT_TARGET}"])
@@ -1415,7 +1416,6 @@ AS_CASE([$host/$ac_cv_cc_name],
   [aarch64-apple-tvos*/clang],            [PY_SUPPORT_TIER=3], dnl tvOS on ARM64
   [aarch64-apple-watchos*-simulator/clang],   [PY_SUPPORT_TIER=3], dnl watchOS Simulator on arm64
   [arm64_32-apple-watchos*/clang],            [PY_SUPPORT_TIER=3], dnl watchOS on ARM64
-dnl not adding the xros triplet, even though it's recognized
   [aarch64-apple-xros*-simulator/clang],   [PY_SUPPORT_TIER=3], dnl visionOS Simulator on arm64
   [aarch64-apple-xros*/clang],            [PY_SUPPORT_TIER=3],    dnl visionOS on ARM64
   [aarch64-*-linux-android/clang],   [PY_SUPPORT_TIER=3], dnl Android on ARM64
