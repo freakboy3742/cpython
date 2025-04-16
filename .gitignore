@@ -84,9 +84,9 @@ visionOS/testbed/Python.xcframework/xr*-*/bin
 visionOS/testbed/Python.xcframework/xr*-*/include
 visionOS/testbed/Python.xcframework/xr*-*/lib
 visionOS/testbed/Python.xcframework/xr*-*/Python.framework
-visionOS/testbed/iOSTestbed.xcodeproj/project.xcworkspace
-visionOS/testbed/iOSTestbed.xcodeproj/xcuserdata
-visionOS/testbed/iOSTestbed.xcodeproj/xcshareddata
+visionOS/testbed/visionOSTestbed.xcodeproj/project.xcworkspace
+visionOS/testbed/visionOSTestbed.xcodeproj/xcuserdata
+visionOS/testbed/visionOSTestbed.xcodeproj/xcshareddata
 tvOS/Frameworks
 tvOS/Resources/Info.plist
 watchOS/Frameworks

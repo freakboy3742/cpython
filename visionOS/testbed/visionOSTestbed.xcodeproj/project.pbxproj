@@ -11,7 +11,7 @@
 		607A66222B0EFA390010BFC8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 607A66212B0EFA390010BFC8 /* Assets.xcassets */; };
 		607A66252B0EFA390010BFC8 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 607A66232B0EFA390010BFC8 /* LaunchScreen.storyboard */; };
 		607A66282B0EFA390010BFC8 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 607A66272B0EFA390010BFC8 /* main.m */; };
-		607A66322B0EFA3A0010BFC8 /* iOSTestbedTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 607A66312B0EFA3A0010BFC8 /* iOSTestbedTests.m */; };
+		607A66322B0EFA3A0010BFC8 /* visionOSTestbedTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 607A66312B0EFA3A0010BFC8 /* visionOSTestbedTests.m */; };
 		607A66582B0F079F0010BFC8 /* dylib-Info-template.plist in Resources */ = {isa = PBXBuildFile; fileRef = 607A66572B0F079F0010BFC8 /* dylib-Info-template.plist */; };
 		608619542CB77BA900F46182 /* app_packages in Resources */ = {isa = PBXBuildFile; fileRef = 608619532CB77BA900F46182 /* app_packages */; };
 		608619562CB7819B00F46182 /* app in Resources */ = {isa = PBXBuildFile; fileRef = 608619552CB7819B00F46182 /* app */; };
@@ -57,16 +57,16 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		607A66122B0EFA380010BFC8 /* iOSTestbed.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iOSTestbed.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		607A66122B0EFA380010BFC8 /* visionOSTestbed.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = visionOSTestbed.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		607A66152B0EFA380010BFC8 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		607A66162B0EFA380010BFC8 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		607A66212B0EFA390010BFC8 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		607A66242B0EFA390010BFC8 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		607A66272B0EFA390010BFC8 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		607A662D2B0EFA3A0010BFC8 /* iOSTestbedTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = iOSTestbedTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		607A66312B0EFA3A0010BFC8 /* iOSTestbedTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = iOSTestbedTests.m; sourceTree = "<group>"; };
+		607A662D2B0EFA3A0010BFC8 /* visionOSTestbedTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = visionOSTestbedTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		607A66312B0EFA3A0010BFC8 /* visionOSTestbedTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = visionOSTestbedTests.m; sourceTree = "<group>"; };
 		607A66572B0F079F0010BFC8 /* dylib-Info-template.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "dylib-Info-template.plist"; sourceTree = "<group>"; };
-		607A66592B0F08600010BFC8 /* iOSTestbed-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "iOSTestbed-Info.plist"; sourceTree = "<group>"; };
+		607A66592B0F08600010BFC8 /* visionOStestbed-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "visionOStestbed-Info.plist"; sourceTree = "<group>"; };
 		608619532CB77BA900F46182 /* app_packages */ = {isa = PBXFileReference; lastKnownFileType = folder; path = app_packages; sourceTree = "<group>"; };
 		608619552CB7819B00F46182 /* app */ = {isa = PBXFileReference; lastKnownFileType = folder; path = app; sourceTree = "<group>"; };
 		EEE9C80C2DAB5ECA0056F8C6 /* Python.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = Python.xcframework; sourceTree = "<group>"; };
@@ -96,8 +96,8 @@
 			isa = PBXGroup;
 			children = (
 				EEE9C80C2DAB5ECA0056F8C6 /* Python.xcframework */,
-				607A66142B0EFA380010BFC8 /* iOSTestbed */,
-				607A66302B0EFA3A0010BFC8 /* iOSTestbedTests */,
+				607A66142B0EFA380010BFC8 /* visionOSTestbed */,
+				607A66302B0EFA3A0010BFC8 /* visionOSTestbedTests */,
 				607A66132B0EFA380010BFC8 /* Products */,
 				607A664F2B0EFFE00010BFC8 /* Frameworks */,
 			);
@@ -106,18 +106,18 @@
 		607A66132B0EFA380010BFC8 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				607A66122B0EFA380010BFC8 /* iOSTestbed.app */,
-				607A662D2B0EFA3A0010BFC8 /* iOSTestbedTests.xctest */,
+				607A66122B0EFA380010BFC8 /* visionOSTestbed.app */,
+				607A662D2B0EFA3A0010BFC8 /* visionOSTestbedTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		607A66142B0EFA380010BFC8 /* iOSTestbed */ = {
+		607A66142B0EFA380010BFC8 /* visionOSTestbed */ = {
 			isa = PBXGroup;
 			children = (
 				608619552CB7819B00F46182 /* app */,
 				608619532CB77BA900F46182 /* app_packages */,
-				607A66592B0F08600010BFC8 /* iOSTestbed-Info.plist */,
+				607A66592B0F08600010BFC8 /* visionOStestbed-Info.plist */,
 				607A66572B0F079F0010BFC8 /* dylib-Info-template.plist */,
 				607A66152B0EFA380010BFC8 /* AppDelegate.h */,
 				607A66162B0EFA380010BFC8 /* AppDelegate.m */,
@@ -125,15 +125,15 @@
 				607A66232B0EFA390010BFC8 /* LaunchScreen.storyboard */,
 				607A66272B0EFA390010BFC8 /* main.m */,
 			);
-			path = iOSTestbed;
+			path = visionOSTestbed;
 			sourceTree = "<group>";
 		};
-		607A66302B0EFA3A0010BFC8 /* iOSTestbedTests */ = {
+		607A66302B0EFA3A0010BFC8 /* visionOSTestbedTests */ = {
 			isa = PBXGroup;
 			children = (
-				607A66312B0EFA3A0010BFC8 /* iOSTestbedTests.m */,
+				607A66312B0EFA3A0010BFC8 /* visionOSTestbedTests.m */,
 			);
-			path = iOSTestbedTests;
+			path = visionOSTestbedTests;
 			sourceTree = "<group>";
 		};
 		607A664F2B0EFFE00010BFC8 /* Frameworks */ = {
@@ -146,9 +146,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		607A66112B0EFA380010BFC8 /* iOSTestbed */ = {
+		607A66112B0EFA380010BFC8 /* visionOSTestbed */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 607A66412B0EFA3A0010BFC8 /* Build configuration list for PBXNativeTarget "iOSTestbed" */;
+			buildConfigurationList = 607A66412B0EFA3A0010BFC8 /* Build configuration list for PBXNativeTarget "visionOSTestbed" */;
 			buildPhases = (
 				607A660E2B0EFA380010BFC8 /* Sources */,
 				607A660F2B0EFA380010BFC8 /* Frameworks */,
@@ -161,14 +161,14 @@
 			);
 			dependencies = (
 			);
-			name = iOSTestbed;
+			name = visionOSTestbed;
 			productName = iOSTestbed;
-			productReference = 607A66122B0EFA380010BFC8 /* iOSTestbed.app */;
+			productReference = 607A66122B0EFA380010BFC8 /* visionOSTestbed.app */;
 			productType = "com.apple.product-type.application";
 		};
-		607A662C2B0EFA3A0010BFC8 /* iOSTestbedTests */ = {
+		607A662C2B0EFA3A0010BFC8 /* visionOSTestbedTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 607A66442B0EFA3A0010BFC8 /* Build configuration list for PBXNativeTarget "iOSTestbedTests" */;
+			buildConfigurationList = 607A66442B0EFA3A0010BFC8 /* Build configuration list for PBXNativeTarget "visionOSTestbedTests" */;
 			buildPhases = (
 				607A66292B0EFA3A0010BFC8 /* Sources */,
 				607A662A2B0EFA3A0010BFC8 /* Frameworks */,
@@ -180,9 +180,9 @@
 			dependencies = (
 				607A662F2B0EFA3A0010BFC8 /* PBXTargetDependency */,
 			);
-			name = iOSTestbedTests;
+			name = visionOSTestbedTests;
 			productName = iOSTestbedTests;
-			productReference = 607A662D2B0EFA3A0010BFC8 /* iOSTestbedTests.xctest */;
+			productReference = 607A662D2B0EFA3A0010BFC8 /* visionOSTestbedTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
@@ -203,7 +203,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 607A660D2B0EFA380010BFC8 /* Build configuration list for PBXProject "iOSTestbed" */;
+			buildConfigurationList = 607A660D2B0EFA380010BFC8 /* Build configuration list for PBXProject "visionOSTestbed" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -216,8 +216,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				607A66112B0EFA380010BFC8 /* iOSTestbed */,
-				607A662C2B0EFA3A0010BFC8 /* iOSTestbedTests */,
+				607A66112B0EFA380010BFC8 /* visionOSTestbed */,
+				607A662C2B0EFA3A0010BFC8 /* visionOSTestbedTests */,
 			);
 		};
 /* End PBXProject section */
@@ -301,7 +301,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				607A66322B0EFA3A0010BFC8 /* iOSTestbedTests.m in Sources */,
+				607A66322B0EFA3A0010BFC8 /* visionOSTestbedTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -310,7 +310,7 @@
 /* Begin PBXTargetDependency section */
 		607A662F2B0EFA3A0010BFC8 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 607A66112B0EFA380010BFC8 /* iOSTestbed */;
+			target = 607A66112B0EFA380010BFC8 /* visionOSTestbed */;
 			targetProxy = 607A662E2B0EFA3A0010BFC8 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -454,19 +454,18 @@
 				DEVELOPMENT_TEAM = "";
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				HEADER_SEARCH_PATHS = "\"$(BUILT_PRODUCTS_DIR)/Python.framework/Headers\"";
-				INFOPLIST_FILE = "iOSTestbed/iOSTestbed-Info.plist";
+				INFOPLIST_FILE = "visionOSTestbed/visionOStestbed-Info.plist";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 3.13.0a1;
-				PRODUCT_BUNDLE_IDENTIFIER = org.python.iOSTestbed;
+				PRODUCT_BUNDLE_IDENTIFIER = org.python.visionOSTestbed;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "xros xrsimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -474,6 +473,7 @@
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				TARGETED_DEVICE_FAMILY = 7;
+				XROS_DEPLOYMENT_TARGET = 2.0;
 			};
 			name = Debug;
 		};
@@ -489,19 +489,18 @@
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				HEADER_SEARCH_PATHS = "\"$(BUILT_PRODUCTS_DIR)/Python.framework/Headers\"";
-				INFOPLIST_FILE = "iOSTestbed/iOSTestbed-Info.plist";
+				INFOPLIST_FILE = "visionOSTestbed/visionOStestbed-Info.plist";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 3.13.0a1;
-				PRODUCT_BUNDLE_IDENTIFIER = org.python.iOSTestbed;
+				PRODUCT_BUNDLE_IDENTIFIER = org.python.visionOSTestbed;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "xros xrsimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -509,6 +508,7 @@
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				TARGETED_DEVICE_FAMILY = 7;
+				XROS_DEPLOYMENT_TARGET = 2.0;
 			};
 			name = Release;
 		};
@@ -532,7 +532,7 @@
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				TARGETED_DEVICE_FAMILY = 7;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/iOSTestbed.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/iOSTestbed";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/visionOSTestbed.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/visionOSTestbed";
 			};
 			name = Debug;
 		};
@@ -556,14 +556,14 @@
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				TARGETED_DEVICE_FAMILY = 7;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/iOSTestbed.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/iOSTestbed";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/visionOSTestbed.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/visionOSTestbed";
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		607A660D2B0EFA380010BFC8 /* Build configuration list for PBXProject "iOSTestbed" */ = {
+		607A660D2B0EFA380010BFC8 /* Build configuration list for PBXProject "visionOSTestbed" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				607A663F2B0EFA3A0010BFC8 /* Debug */,
@@ -572,7 +572,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		607A66412B0EFA3A0010BFC8 /* Build configuration list for PBXNativeTarget "iOSTestbed" */ = {
+		607A66412B0EFA3A0010BFC8 /* Build configuration list for PBXNativeTarget "visionOSTestbed" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				607A66422B0EFA3A0010BFC8 /* Debug */,
@@ -581,7 +581,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		607A66442B0EFA3A0010BFC8 /* Build configuration list for PBXNativeTarget "iOSTestbedTests" */ = {
+		607A66442B0EFA3A0010BFC8 /* Build configuration list for PBXNativeTarget "visionOSTestbedTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				607A66452B0EFA3A0010BFC8 /* Debug */,
