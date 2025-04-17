@@ -2155,7 +2155,7 @@ testuniversal: all
 # a full Xcode install that has an iPhone SE (3rd edition) simulator available.
 # This must be run *after* a `make install` has completed the build. The
 # `--with-framework-name` argument *cannot* be used when configuring the build.
-XCFOLDER:=iOSTestbed.$(MULTIARCH).$(shell date +%s).$$PPID
+XCFOLDER-iOS:=iOSTestbed.$(MULTIARCH).$(shell date +%s).$$PPID
 .PHONY: testios
 testios:
 	@if test "$(MACHDEP)" != "ios"; then \
@@ -2175,11 +2175,41 @@ testios:
 		exit 1;\
 	fi
 
-	# Clone the testbed project into the XCFOLDER
-	$(PYTHON_FOR_BUILD) $(srcdir)/iOS/testbed clone --framework $(PYTHONFRAMEWORKPREFIX) "$(XCFOLDER)"
+	# Clone the testbed project into the XCFOLDER-iOS
+	$(PYTHON_FOR_BUILD) $(srcdir)/iOS/testbed clone --framework $(PYTHONFRAMEWORKPREFIX) "$(XCFOLDER-iOS)"
 
 	# Run the testbed project
-	$(PYTHON_FOR_BUILD) "$(XCFOLDER)" run --verbose -- test -uall --single-process --rerun -W
+	$(PYTHON_FOR_BUILD) "$(XCFOLDER-iOS)" run --verbose -- test -uall --single-process --rerun -W
+
+# Run the test suite on the visionOS simulator. Must be run on a macOS machine with
+# a full Xcode install that has an Apple Vision Pro simulator available.
+# This must be run *after* a `make install` has completed the build. The
+# `--with-framework-name` argument *cannot* be used when configuring the build.
+XCFOLDER-visionOS:=visionOSTestbed.$(MULTIARCH).$(shell date +%s).$$PPID
+.PHONY: testvisionos
+testvisionos:
+	@if test "$(MACHDEP)" != "visionos"; then \
+		echo "Cannot run the visionOS testbed for a non-visionOS build."; \
+		exit 1;\
+	fi
+	@if test "$(findstring -xrsimulator,$(MULTIARCH))" != "-xrsimulator"; then \
+		echo "Cannot run the visionOS testbed for non-simulator builds."; \
+		exit 1;\
+	fi
+	@if test $(PYTHONFRAMEWORK) != "Python"; then \
+		echo "Cannot run the visionOS testbed with a non-default framework name."; \
+		exit 1;\
+	fi
+	@if ! test -d $(PYTHONFRAMEWORKPREFIX); then \
+		echo "Cannot find a finalized visionOS Python.framework. Have you run 'make install' to finalize the framework build?"; \
+		exit 1;\
+	fi
+
+	# Clone the testbed project into the XCFOLDER-visionOS
+	$(PYTHON_FOR_BUILD) $(srcdir)/visionOS/testbed clone --framework $(PYTHONFRAMEWORKPREFIX) "$(XCFOLDER-visionOS)"
+
+	# Run the testbed project
+	$(PYTHON_FOR_BUILD) "$(XCFOLDER-visionOS)" run --verbose -- test -uall --single-process --rerun -W
 
 # Like test, but using --slow-ci which enables all test resources and use
 # longer timeout. Run an optional pybuildbot.identify script to include

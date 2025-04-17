@@ -17,14 +17,14 @@ from pathlib import Path
 DECODE_ARGS = ("UTF-8", "backslashreplace")
 
 # The system log prefixes each line:
-#   2025-01-17 16:14:29.090 Df iOSTestbed[23987:1fd393b4] (Python) ...
-#   2025-01-17 16:14:29.090 E  iOSTestbed[23987:1fd393b4] (Python) ...
+#   2025-01-17 16:14:29.090 Df visionOSTestbed[23987:1fd393b4] (Python) ...
+#   2025-01-17 16:14:29.090 E  visionOSTestbed[23987:1fd393b4] (Python) ...
 
 LOG_PREFIX_REGEX = re.compile(
     r"^\d{4}-\d{2}-\d{2}"  # YYYY-MM-DD
     r"\s+\d+:\d{2}:\d{2}\.\d+"  # HH:MM:SS.sss
     r"\s+\w+"  # Df/E
-    r"\s+iOSTestbed\[\d+:\w+\]"  # Process/thread ID
+    r"\s+visionOSTestbed\[\d+:\w+\]"  # Process/thread ID
     r"\s+\(Python\)\s"  # Logger name
 )
 
@@ -42,7 +42,7 @@ class MySystemExit(Exception):
 class SimulatorLock:
     # An fcntl-based filesystem lock that can be used to ensure that
     def __init__(self, timeout):
-        self.filename = Path(tempfile.gettempdir()) / "python-ios-testbed"
+        self.filename = Path(tempfile.gettempdir()) / "python-visionos-testbed"
         self.timeout = timeout
 
         self.fd = None
@@ -68,7 +68,7 @@ class SimulatorLock:
 
         # If we reach the end of the loop, we've exceeded the allowed number of
         # attempts.
-        raise ValueError("Unable to obtain lock on iOS simulator creation")
+        raise ValueError("Unable to obtain lock on visionOS simulator creation")
 
     def release(self):
         # If a lock is held, release it.
@@ -132,12 +132,12 @@ async def list_devices():
         )
         json_data = json.loads(raw_json)
 
-        # Filter out the booted iOS simulators
+        # Filter out the booted visionOS simulators
         return [
             simulator["udid"]
             for runtime, simulators in json_data["devices"].items()
             for simulator in simulators
-            if runtime.split(".")[-1].startswith("iOS") and simulator["state"] == "Booted"
+            if runtime.split(".")[-1].startswith("visionOS") and simulator["state"] == "Booted"
         ]
     except subprocess.CalledProcessError as e:
         # If there's no ~/Library/Developer/XCTestDevices folder (which is the
@@ -169,7 +169,7 @@ async def log_stream_task(initial_devices, lock):
     # Wait up to 5 minutes for the build to complete and the simulator to boot.
     udid = await asyncio.wait_for(find_device(initial_devices, lock), 5 * 60)
 
-    # Stream the iOS device's logs, filtering out messages that come from the
+    # Stream the visionOS device's logs, filtering out messages that come from the
     # XCTest test suite (catching NSLog messages from the test method), or
     # Python itself (catching stdout/stderr content routed to the system log
     # with config->use_system_logger).
@@ -186,7 +186,7 @@ async def log_stream_task(initial_devices, lock):
         "compact",
         "--predicate",
         (
-            'senderImagePath ENDSWITH "/iOSTestbedTests.xctest/iOSTestbedTests"'
+            'senderImagePath ENDSWITH "/visionOSTestbedTests.xctest/visionOSTestbedTests"'
             ' OR senderImagePath ENDSWITH "/Python.framework/Python"'
         ),
     ]
@@ -200,7 +200,7 @@ async def log_stream_task(initial_devices, lock):
         while line := (await process.stdout.readline()).decode(*DECODE_ARGS):
             # Strip the prefix from each log line
             line = LOG_PREFIX_REGEX.sub("", line)
-            # The iOS log streamer can sometimes lag; when it does, it outputs
+            # The visionOS log streamer can sometimes lag; when it does, it outputs
             # a warning about messages being dropped... often multiple times.
             # Only print the first of these duplicated warnings.
             if line.startswith("=== Messages dropped "):
@@ -220,11 +220,11 @@ async def xcode_test(location, simulator, verbose):
         "xcodebuild",
         "test",
         "-project",
-        str(location / "iOSTestbed.xcodeproj"),
+        str(location / "visionOSTestbed.xcodeproj"),
         "-scheme",
-        "iOSTestbed",
+        "visionOSTestbed",
         "-destination",
-        f"platform=iOS Simulator,name={simulator}",
+        f"platform=visionOS Simulator,name={simulator}",
         "-resultBundlePath",
         str(location / f"{datetime.now():%Y%m%d-%H%M%S}.xcresult"),
         "-derivedDataPath",
@@ -258,7 +258,7 @@ def clone_testbed(
 
     if framework is None:
         if not (
-            source / "Python.xcframework/ios-arm64_x86_64-simulator/bin"
+            source / "Python.xcframework/xros-arm64-simulator/bin"
         ).is_dir():
             print(
                 f"The testbed being cloned ({source}) does not contain "
@@ -285,7 +285,7 @@ def clone_testbed(
     print(" done")
 
     xc_framework_path = target / "Python.xcframework"
-    sim_framework_path = xc_framework_path / "ios-arm64_x86_64-simulator"
+    sim_framework_path = xc_framework_path / "xros-arm64_x86_64-simulator"
     if framework is not None:
         if framework.suffix == ".xcframework":
             print("  Installing XCFramework...", end="", flush=True)
@@ -346,11 +346,11 @@ def clone_testbed(
             )
             print(" done")
         else:
-            print("  Using pre-existing iOS framework.")
+            print("  Using pre-existing visionOS framework.")
 
     for app_src in apps:
         print(f"  Installing app {app_src.name!r}...", end="", flush=True)
-        app_target = target / f"iOSTestbed/app/{app_src.name}"
+        app_target = target / f"visionOSTestbed/app/{app_src.name}"
         if app_target.is_dir():
             shutil.rmtree(app_target)
         shutil.copytree(app_src, app_target)
@@ -361,7 +361,7 @@ def clone_testbed(
 
 def update_plist(testbed_path, args):
     # Add the test runner arguments to the testbed's Info.plist file.
-    info_plist = testbed_path / "iOSTestbed" / "iOSTestbed-Info.plist"
+    info_plist = testbed_path / "visionOSTestbed" / "visionOSTestbed-Info.plist"
     with info_plist.open("rb") as f:
         info = plistlib.load(f)
 
@@ -408,7 +408,7 @@ async def run_testbed(simulator: str, args: list[str], verbose: bool=False):
 def main():
     parser = argparse.ArgumentParser(
         description=(
-            "Manages the process of testing a Python project in the iOS simulator."
+            "Manages the process of testing a Python project in the visionOS simulator."
         ),
     )
 
@@ -417,7 +417,7 @@ def main():
     clone = subcommands.add_parser(
         "clone",
         description=(
-            "Clone the testbed project, copying in an iOS Python framework and"
+            "Clone the testbed project, copying in an visionOS Python framework and"
             "any specified application code."
         ),
         help="Clone a testbed project to a new location.",
@@ -446,15 +446,15 @@ def main():
         usage="%(prog)s [-h] [--simulator SIMULATOR] -- <test arg> [<test arg> ...]",
         description=(
             "Run a testbed project. The arguments provided after `--` will be "
-            "passed to the running iOS process as if they were arguments to "
+            "passed to the running visionOS process as if they were arguments to "
             "`python -m`."
         ),
         help="Run a testbed project",
     )
     run.add_argument(
         "--simulator",
-        default="iPhone SE (3rd Generation)",
-        help="The name of the simulator to use (default: 'iPhone SE (3rd Generation)')",
+        default="Apple Vision Pro",
+        help="The name of the simulator to use (default: 'Apple Vision Pro')",
     )
     run.add_argument(
         "-v", "--verbose",
@@ -482,10 +482,10 @@ def main():
     elif context.subcommand == "run":
         if test_args:
             if not (
-                Path(__file__).parent / "Python.xcframework/ios-arm64_x86_64-simulator/bin"
+                Path(__file__).parent / "Python.xcframework/xros-arm64-simulator/bin"
             ).is_dir():
                 print(
-                    f"Testbed does not contain a compiled iOS framework. Use "
+                    f"Testbed does not contain a compiled visionOS framework. Use "
                     f"`python {sys.argv[0]} clone ...` to create a runnable "
                     f"clone of this testbed."
                 )
