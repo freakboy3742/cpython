@@ -359,7 +359,7 @@ class CDLL(object):
         if name:
             name = _os.fspath(name)
 
-            # If the filename that has been provided is an iOS/tvOS/watchOS
+            # If the filename that has been provided is an iOS/tvOS/watchOS/visionOS
             # .fwork file, dereference the location to the true origin of the
             # binary.
             if name.endswith(".fwork"):

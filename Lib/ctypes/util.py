@@ -425,7 +425,7 @@ elif os.name == "posix":
 # https://man.openbsd.org/dl_iterate_phdr
 # https://docs.oracle.com/cd/E88353_01/html/E37843/dl-iterate-phdr-3c.html
 if (os.name == "posix" and
-    sys.platform not in {"darwin", "ios", "tvos", "watchos"}):
+    sys.platform not in {"darwin", "ios", "tvos", "watchos", "visionos"}):
     import ctypes
     if hasattr((_libc := ctypes.CDLL(None)), "dl_iterate_phdr"):
 

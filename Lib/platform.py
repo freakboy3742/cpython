@@ -792,7 +792,7 @@ def _syscmd_file(target, default=''):
         default in case the command should fail.
 
     """
-    if sys.platform in {'dos', 'win32', 'win16', 'ios', 'tvos', 'watchos'}:
+    if sys.platform in {'dos', 'win32', 'win16', 'ios', 'tvos', 'watchos', 'visionos'}:
         # XXX Others too ?
         return default
 
