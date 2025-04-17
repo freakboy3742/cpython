@@ -1,6 +1,6 @@
 //
 //  main.m
-//  iOSTestbed
+//  visionOSTestbed
 //
 
 #import <UIKit/UIKit.h>

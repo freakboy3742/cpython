@@ -1,6 +1,6 @@
 //
 //  AppDelegate.h
-//  iOSTestbed
+//  visionOSTestbed
 //
 
 #import <UIKit/UIKit.h>

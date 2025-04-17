@@ -1,6 +1,6 @@
 //
 //  AppDelegate.m
-//  iOSTestbed
+//  visionOSTestbed
 //
 
 #import "AppDelegate.h"

@@ -1,11 +1,11 @@
 #import <XCTest/XCTest.h>
 #import <Python/Python.h>
 
-@interface iOSTestbedTests : XCTestCase
+@interface visionOSTestbedTests : XCTestCase
 
 @end
 
-@implementation iOSTestbedTests
+@implementation visionOSTestbedTests
 
 
 - (void)testPython {
@@ -39,7 +39,7 @@
         NSLog(@"Unable to identify test arguments.");
     }
     argv = malloc(sizeof(char *) * ([test_args count] + 1));
-    argv[0] = "iOSTestbed";
+    argv[0] = "visionOSTestbed";
     for (int i = 1; i < [test_args count]; i++) {
         argv[i] = [[test_args objectAtIndex:i] UTF8String];
     }
