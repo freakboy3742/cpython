@@ -285,7 +285,7 @@ def clone_testbed(
     print(" done")
 
     xc_framework_path = target / "Python.xcframework"
-    sim_framework_path = xc_framework_path / "xros-arm64_x86_64-simulator"
+    sim_framework_path = xc_framework_path / "xros-arm64-simulator"
     if framework is not None:
         if framework.suffix == ".xcframework":
             print("  Installing XCFramework...", end="", flush=True)
