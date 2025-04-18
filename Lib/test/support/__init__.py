@@ -544,7 +544,7 @@ def skip_android_selinux(name):
         sys.platform == "android", f"Android blocks {name} with SELinux"
     )
 
-if sys.platform not in {"win32", "vxworks", "ios", "tvos", "watchos"}:
+if sys.platform not in {"win32", "vxworks", "ios", "tvos", "watchos", "visionos"}:
     unix_shell = '/system/bin/sh' if is_android else '/bin/sh'
 else:
     unix_shell = None
@@ -560,7 +560,7 @@ def skip_emscripten_stack_overflow():
 def skip_wasi_stack_overflow():
     return unittest.skipIf(is_wasi, "Exhausts stack on WASI")
 
-is_apple_mobile = sys.platform in {"ios", "tvos", "watchos"}
+is_apple_mobile = sys.platform in {"ios", "tvos", "watchos", "visionos"}
 is_apple = is_apple_mobile or sys.platform == "darwin"
 
 has_fork_support = hasattr(os, "fork") and not (
