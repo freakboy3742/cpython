@@ -29,7 +29,6 @@
     // TTY.
     setenv("NO_COLOR", "1", true);
     setenv("PYTHON_COLORS", "0", true);
-    setenv("PYTHONVERBOSE", "1", true);
 
     // Arguments to pass into the test suite runner.
     // argv[0] must identify the process; any subsequent arg
@@ -106,7 +105,6 @@
 
     NSLog(@"Initializing Python runtime...");
     status = Py_InitializeFromConfig(&config);
-    PyErr_Print();
     if (PyStatus_Exception(status)) {
         XCTFail(@"Unable to initialize Python interpreter: %s", status.err_msg);
         PyConfig_Clear(&config);
