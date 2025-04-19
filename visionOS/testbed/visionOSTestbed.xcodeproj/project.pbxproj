@@ -66,7 +66,7 @@
 		607A662D2B0EFA3A0010BFC8 /* visionOSTestbedTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = visionOSTestbedTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		607A66312B0EFA3A0010BFC8 /* visionOSTestbedTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = visionOSTestbedTests.m; sourceTree = "<group>"; };
 		607A66572B0F079F0010BFC8 /* dylib-Info-template.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "dylib-Info-template.plist"; sourceTree = "<group>"; };
-		607A66592B0F08600010BFC8 /* visionOStestbed-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "visionOStestbed-Info.plist"; sourceTree = "<group>"; };
+		607A66592B0F08600010BFC8 /* visionOSTestbed-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "visionOSTestbed-Info.plist"; sourceTree = "<group>"; };
 		608619532CB77BA900F46182 /* app_packages */ = {isa = PBXFileReference; lastKnownFileType = folder; path = app_packages; sourceTree = "<group>"; };
 		608619552CB7819B00F46182 /* app */ = {isa = PBXFileReference; lastKnownFileType = folder; path = app; sourceTree = "<group>"; };
 		EEE9C80C2DAB5ECA0056F8C6 /* Python.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = Python.xcframework; sourceTree = "<group>"; };
@@ -117,7 +117,7 @@
 			children = (
 				608619552CB7819B00F46182 /* app */,
 				608619532CB77BA900F46182 /* app_packages */,
-				607A66592B0F08600010BFC8 /* visionOStestbed-Info.plist */,
+				607A66592B0F08600010BFC8 /* visionOSTestbed-Info.plist */,
 				607A66572B0F079F0010BFC8 /* dylib-Info-template.plist */,
 				607A66152B0EFA380010BFC8 /* AppDelegate.h */,
 				607A66162B0EFA380010BFC8 /* AppDelegate.m */,
@@ -454,7 +454,7 @@
 				DEVELOPMENT_TEAM = "";
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				HEADER_SEARCH_PATHS = "\"$(BUILT_PRODUCTS_DIR)/Python.framework/Headers\"";
-				INFOPLIST_FILE = "visionOSTestbed/visionOStestbed-Info.plist";
+				INFOPLIST_FILE = "visionOSTestbed/visionOSTestbed-Info.plist";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
@@ -489,7 +489,7 @@
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				HEADER_SEARCH_PATHS = "\"$(BUILT_PRODUCTS_DIR)/Python.framework/Headers\"";
-				INFOPLIST_FILE = "visionOSTestbed/visionOStestbed-Info.plist";
+				INFOPLIST_FILE = "visionOSTestbed/visionOSTestbed-Info.plist";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
