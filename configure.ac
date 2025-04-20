@@ -5375,7 +5375,7 @@ if test "$ac_sys_system" != "iOS" -a "$ac_sys_system" != "tvOS" -a "$ac_sys_syst
 fi
 
 # tvOS/watchOS have some additional methods that can be found, but not used.
-if test "$ac_sys_system" != "tvOS" -a "$ac_sys_system" != "watchOS"; then
+if test "$ac_sys_system" != "tvOS" -a "$ac_sys_system" != "watchOS" ; then
   AC_CHECK_FUNCS([ \
     execv fork fork1 posix_spawn posix_spawnp posix_spawn_file_actions_addclosefrom_np \
     sigaltstack \
@@ -5634,8 +5634,7 @@ PY_CHECK_FUNC([setgroups], [
 
 # check for openpty, login_tty, and forkpty
 # tvOS/watchOS have functions for tty, but can't use them
-dnl is the same applies for visionOS
-if test "$ac_sys_system" != "tvOS" -a "$ac_sys_system" != "watchOS"; then
+if test "$ac_sys_system" != "tvOS" -a "$ac_sys_system" != "watchOS" ; then
   AC_CHECK_FUNCS([openpty], [],
     [AC_CHECK_LIB([util], [openpty],
       [AC_DEFINE([HAVE_OPENPTY]) LIBS="$LIBS -lutil"],
@@ -7102,7 +7101,7 @@ AC_MSG_NOTICE([checking for device files])
 dnl NOTE: Inform user how to proceed with files when cross compiling.
 dnl Some cross-compile builds are predictable; they won't ever
 dnl have /dev/ptmx or /dev/ptc, so we can set them explicitly.
-if test "$ac_sys_system" = "Linux-android" -o "$ac_sys_system" = "iOS" -o "$ac_sys_system" = "tvOS" -o "$ac_sys_system" = "watchOS"  -o "$ac_sys_system" = "visionOS"; then
+if test "$ac_sys_system" = "Linux-android" -o "$ac_sys_system" = "iOS" -o "$ac_sys_system" = "tvOS" -o "$ac_sys_system" = "watchOS"  -o "$ac_sys_system" = "visionOS" ; then
   ac_cv_file__dev_ptmx=no
   ac_cv_file__dev_ptc=no
 else
