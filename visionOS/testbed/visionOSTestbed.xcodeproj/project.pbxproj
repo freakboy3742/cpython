@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		607A66172B0EFA380010BFC8 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 607A66162B0EFA380010BFC8 /* AppDelegate.m */; };
 		607A66222B0EFA390010BFC8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 607A66212B0EFA390010BFC8 /* Assets.xcassets */; };
-		607A66252B0EFA390010BFC8 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 607A66232B0EFA390010BFC8 /* LaunchScreen.storyboard */; };
 		607A66282B0EFA390010BFC8 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 607A66272B0EFA390010BFC8 /* main.m */; };
 		607A66322B0EFA3A0010BFC8 /* visionOSTestbedTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 607A66312B0EFA3A0010BFC8 /* visionOSTestbedTests.m */; };
 		607A66582B0F079F0010BFC8 /* dylib-Info-template.plist in Resources */ = {isa = PBXBuildFile; fileRef = 607A66572B0F079F0010BFC8 /* dylib-Info-template.plist */; };
@@ -61,7 +60,6 @@
 		607A66152B0EFA380010BFC8 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		607A66162B0EFA380010BFC8 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		607A66212B0EFA390010BFC8 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		607A66242B0EFA390010BFC8 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		607A66272B0EFA390010BFC8 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		607A662D2B0EFA3A0010BFC8 /* visionOSTestbedTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = visionOSTestbedTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		607A66312B0EFA3A0010BFC8 /* visionOSTestbedTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = visionOSTestbedTests.m; sourceTree = "<group>"; };
@@ -122,7 +120,6 @@
 				607A66152B0EFA380010BFC8 /* AppDelegate.h */,
 				607A66162B0EFA380010BFC8 /* AppDelegate.m */,
 				607A66212B0EFA390010BFC8 /* Assets.xcassets */,
-				607A66232B0EFA390010BFC8 /* LaunchScreen.storyboard */,
 				607A66272B0EFA390010BFC8 /* main.m */,
 			);
 			path = visionOSTestbed;
@@ -227,7 +224,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				607A66252B0EFA390010BFC8 /* LaunchScreen.storyboard in Resources */,
 				607A66582B0F079F0010BFC8 /* dylib-Info-template.plist in Resources */,
 				608619562CB7819B00F46182 /* app in Resources */,
 				607A66222B0EFA390010BFC8 /* Assets.xcassets in Resources */,
@@ -314,17 +310,6 @@
 			targetProxy = 607A662E2B0EFA3A0010BFC8 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
-
-/* Begin PBXVariantGroup section */
-		607A66232B0EFA390010BFC8 /* LaunchScreen.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				607A66242B0EFA390010BFC8 /* Base */,
-			);
-			name = LaunchScreen.storyboard;
-			sourceTree = "<group>";
-		};
-/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		607A663F2B0EFA3A0010BFC8 /* Debug */ = {
