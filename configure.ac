@@ -957,10 +957,10 @@ if test "$cross_compiling" = yes; then
 
 		case "$host_cpu" in
 			aarch64)
-				_host_ident=${XROS_DEPLOYMENT_TARGET}-arm64-vision${_host_device}
+				_host_ident=${XROS_DEPLOYMENT_TARGET}-arm64-xr${_host_device}
 				;;
 			*)
-				_host_ident=${XROS_DEPLOYMENT_TARGET}-$host_cpu-vision${_host_device}
+				_host_ident=${XROS_DEPLOYMENT_TARGET}-$host_cpu-xr${_host_device}
 				;;
 		esac
 		;;
