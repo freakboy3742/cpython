@@ -137,7 +137,7 @@ async def list_devices():
             simulator["udid"]
             for runtime, simulators in json_data["devices"].items()
             for simulator in simulators
-            if runtime.split(".")[-1].startswith("visionOS") and simulator["state"] == "Booted"
+            if runtime.split(".")[-1].startswith("xrOS") and simulator["state"] == "Booted"
         ]
     except subprocess.CalledProcessError as e:
         # If there's no ~/Library/Developer/XCTestDevices folder (which is the
