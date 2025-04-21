@@ -16,7 +16,7 @@
 	<string>1.0</string>
 	<key>CFBundleSupportedPlatforms</key>
 	<array>
-		<string>iPhoneOS</string>
+		<string>VisionOS</string>
 	</array>
 	<key>MinimumOSVersion</key>
 	<string>12.0</string>
