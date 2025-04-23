@@ -23,6 +23,9 @@ __all__ = [
 _ALWAYS_STR = {
     'IPHONEOS_DEPLOYMENT_TARGET',
     'MACOSX_DEPLOYMENT_TARGET',
+    'TVOS_DEPLOYMENT_TARGET',
+    'WATCHOS_DEPLOYMENT_TARGET',
+    'XROS_DEPLOYMENT_TARGET',
 }
 
 _INSTALL_SCHEMES = {
@@ -119,7 +122,7 @@ def _getuserbase():
     # Emscripten, iOS, tvOS, VxWorks, WASI, and watchOS have no home directories.
     # Use _PYTHON_HOST_PLATFORM to get the correct platform when cross-compiling.
     system_name = os.environ.get('_PYTHON_HOST_PLATFORM', sys.platform).split('-')[0]
-    if system_name in {"emscripten", "ios", "tvos", "vxworks", "wasi", "watchos"}:
+    if system_name in {"emscripten", "ios", "tvos", "visionos", "vxworks", "wasi", "watchos"}:
         return None
 
     def joinuser(*args):
@@ -666,34 +669,34 @@ def get_platform():
 
     # Set for cross builds explicitly
     if "_PYTHON_HOST_PLATFORM" in os.environ:
-        return os.environ["_PYTHON_HOST_PLATFORM"]
+        osname, _, machine = os.environ["_PYTHON_HOST_PLATFORM"].partition('-')
+        release = None
+    else:
+        # Try to distinguish various flavours of Unix
+        osname, host, release, version, machine = os.uname()
 
-    # Try to distinguish various flavours of Unix
-    osname, host, release, version, machine = os.uname()
+        # Convert the OS name to lowercase, remove '/' characters, and translate
+        # spaces (for "Power Macintosh")
+        osname = osname.lower().replace('/', '')
+        machine = machine.replace(' ', '_')
+        machine = machine.replace('/', '-')
 
-    # Convert the OS name to lowercase, remove '/' characters, and translate
-    # spaces (for "Power Macintosh")
-    osname = osname.lower().replace('/', '')
-    machine = machine.replace(' ', '_')
-    machine = machine.replace('/', '-')
+    if osname == "android" or sys.platform == "android":
+        osname = "android"
+        release = get_config_var("ANDROID_API_LEVEL")
 
-    if osname[:5] == "linux":
-        if sys.platform == "android":
-            osname = "android"
-            release = get_config_var("ANDROID_API_LEVEL")
-
-            # Wheel tags use the ABI names from Android's own tools.
-            machine = {
-                "x86_64": "x86_64",
-                "i686": "x86",
-                "aarch64": "arm64_v8a",
-                "armv7l": "armeabi_v7a",
-            }[machine]
-        else:
-            # At least on Linux/Intel, 'machine' is the processor --
-            # i386, etc.
-            # XXX what about Alpha, SPARC, etc?
-            return  f"{osname}-{machine}"
+        # Wheel tags use the ABI names from Android's own tools.
+        machine = {
+            "x86_64": "x86_64",
+            "i686": "x86",
+            "aarch64": "arm64_v8a",
+            "armv7l": "armeabi_v7a",
+        }[machine]
+    elif osname == "linux":
+        # At least on Linux/Intel, 'machine' is the processor --
+        # i386, etc.
+        # XXX what about Alpha, SPARC, etc?
+        return  f"{osname}-{machine}"
     elif osname[:5] == "sunos":
         if release[0] >= "5":           # SunOS 5 == Solaris 2
             osname = "solaris"
@@ -727,13 +730,17 @@ def get_platform():
             release = get_config_vars().get("WATCHOS_DEPLOYMENT_TARGET", "4.0")
             osname = sys.platform
             machine = sys.implementation._multiarch
+        elif sys.platform == "visionos":
+            release = get_config_vars().get("XROS_DEPLOYMENT_TARGET", "2.0")
+            osname = sys.platform
+            machine = sys.implementation._multiarch
         else:
             import _osx_support
             osname, release, machine = _osx_support.get_platform_osx(
                                                 get_config_vars(),
                                                 osname, release, machine)
 
-    return f"{osname}-{release}-{machine}"
+    return '-'.join(map(str, filter(None, (osname, release, machine))))
 
 
 def get_python_version():

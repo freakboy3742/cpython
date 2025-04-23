@@ -209,6 +209,12 @@ MACOSX_DEPLOYMENT_TARGET=@CONFIGURE_MACOSX_DEPLOYMENT_TARGET@
 # the build, and is only listed here so it will be included in sysconfigdata.
 IPHONEOS_DEPLOYMENT_TARGET=@IPHONEOS_DEPLOYMENT_TARGET@
 
+# visionOS Deployment target is *actually* used during the build, by the
+# compiler shims; export.
+XROS_DEPLOYMENT_TARGET=@XROS_DEPLOYMENT_TARGET@
+@EXPORT_XROS_DEPLOYMENT_TARGET@export XROS_DEPLOYMENT_TARGET
+
+
 # Option to install to strip binaries
 STRIPFLAG=-s
 
@@ -728,7 +734,7 @@ list-targets:
 
 .PHONY: build_all
 build_all:	check-clean-src check-app-store-compliance $(BUILDPYTHON) platform sharedmods \
-		gdbhooks Programs/_testembed scripts checksharedmods rundsymutil
+		gdbhooks Programs/_testembed scripts checksharedmods rundsymutil build-details.json
 
 .PHONY: build_wasm
 build_wasm: check-clean-src $(BUILDPYTHON) platform sharedmods \
@@ -933,6 +939,9 @@ pybuilddir.txt: $(PYTHON_FOR_BUILD_DEPS)
 		rm -f ./pybuilddir.txt ; \
 		exit 1 ; \
 	fi
+
+build-details.json: pybuilddir.txt
+	$(RUNSHARED) $(PYTHON_FOR_BUILD) $(srcdir)/Tools/build/generate-build-details.py `cat pybuilddir.txt`/build-details.json
 
 # Build static library
 $(LIBRARY): $(LIBRARY_OBJS)
@@ -2146,7 +2155,7 @@ testuniversal: all
 # a full Xcode install that has an iPhone SE (3rd edition) simulator available.
 # This must be run *after* a `make install` has completed the build. The
 # `--with-framework-name` argument *cannot* be used when configuring the build.
-XCFOLDER:=iOSTestbed.$(MULTIARCH).$(shell date +%s)
+XCFOLDER-iOS:=iOSTestbed.$(MULTIARCH).$(shell date +%s).$$PPID
 .PHONY: testios
 testios:
 	@if test "$(MACHDEP)" != "ios"; then \
@@ -2166,11 +2175,41 @@ testios:
 		exit 1;\
 	fi
 
-	# Clone the testbed project into the XCFOLDER
-	$(PYTHON_FOR_BUILD) $(srcdir)/iOS/testbed clone --framework $(PYTHONFRAMEWORKPREFIX) "$(XCFOLDER)"
+	# Clone the testbed project into the XCFOLDER-iOS
+	$(PYTHON_FOR_BUILD) $(srcdir)/iOS/testbed clone --framework $(PYTHONFRAMEWORKPREFIX) "$(XCFOLDER-iOS)"
 
 	# Run the testbed project
-	$(PYTHON_FOR_BUILD) "$(XCFOLDER)" run --verbose -- test -uall --single-process --rerun -W
+	$(PYTHON_FOR_BUILD) "$(XCFOLDER-iOS)" run --verbose -- test -uall --single-process --rerun -W
+
+# Run the test suite on the visionOS simulator. Must be run on a macOS machine with
+# a full Xcode install that has an Apple Vision Pro simulator available.
+# This must be run *after* a `make install` has completed the build. The
+# `--with-framework-name` argument *cannot* be used when configuring the build.
+XCFOLDER-visionOS:=visionOSTestbed.$(MULTIARCH).$(shell date +%s).$$PPID
+.PHONY: testvisionos
+testvisionos:
+	@if test "$(MACHDEP)" != "visionos"; then \
+		echo "Cannot run the visionOS testbed for a non-visionOS build."; \
+		exit 1;\
+	fi
+	@if test "$(findstring -xrsimulator,$(MULTIARCH))" != "-xrsimulator"; then \
+		echo "Cannot run the visionOS testbed for non-simulator builds."; \
+		exit 1;\
+	fi
+	@if test $(PYTHONFRAMEWORK) != "Python"; then \
+		echo "Cannot run the visionOS testbed with a non-default framework name."; \
+		exit 1;\
+	fi
+	@if ! test -d $(PYTHONFRAMEWORKPREFIX); then \
+		echo "Cannot find a finalized visionOS Python.framework. Have you run 'make install' to finalize the framework build?"; \
+		exit 1;\
+	fi
+
+	# Clone the testbed project into the XCFOLDER-visionOS
+	$(PYTHON_FOR_BUILD) $(srcdir)/visionOS/testbed clone --framework $(PYTHONFRAMEWORKPREFIX) "$(XCFOLDER-visionOS)"
+
+	# Run the testbed project
+	$(PYTHON_FOR_BUILD) "$(XCFOLDER-visionOS)" run --verbose -- test -uall --single-process --rerun -W
 
 # Like test, but using --slow-ci which enables all test resources and use
 # longer timeout. Run an optional pybuildbot.identify script to include
@@ -2521,6 +2560,7 @@ TESTSUBDIRS=	idlelib/idle_test \
 		test/test_multiprocessing_forkserver \
 		test/test_multiprocessing_spawn \
 		test/test_pathlib \
+		test/test_pathlib/support \
 		test/test_peg_generator \
 		test/test_pydoc \
 		test/test_pyrepl \
@@ -2546,6 +2586,7 @@ TESTSUBDIRS=	idlelib/idle_test \
 		test/test_tomllib/data/valid/multiline-basic-str \
 		test/test_tools \
 		test/test_tools/i18n_data \
+		test/test_tools/msgfmt_data \
 		test/test_ttk \
 		test/test_unittest \
 		test/test_unittest/namespace_test_pkg \
@@ -2644,6 +2685,7 @@ libinstall:	all $(srcdir)/Modules/xxmodule.c
 	done
 	$(INSTALL_DATA) `cat pybuilddir.txt`/_sysconfigdata_$(ABIFLAGS)_$(MACHDEP)_$(MULTIARCH).py $(DESTDIR)$(LIBDEST); \
 	$(INSTALL_DATA) `cat pybuilddir.txt`/_sysconfig_vars_$(ABIFLAGS)_$(MACHDEP)_$(MULTIARCH).json $(DESTDIR)$(LIBDEST); \
+	$(INSTALL_DATA) `cat pybuilddir.txt`/build-details.json $(DESTDIR)$(LIBDEST); \
 	$(INSTALL_DATA) $(srcdir)/LICENSE $(DESTDIR)$(LIBDEST)/LICENSE.txt
 	@ # If app store compliance has been configured, apply the patch to the
 	@ # installed library code. The patch has been previously validated against

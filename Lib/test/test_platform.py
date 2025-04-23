@@ -268,7 +268,7 @@ class PlatformTest(unittest.TestCase):
             if sys.platform == "android":
                 self.assertEqual(res.system, "Android")
                 self.assertEqual(res.release, platform.android_ver().release)
-            elif sys.platform == "ios":
+            elif sys.platform == "ios" or sys.platform == "visionos" or sys.platform == "watchos" or sys.platform == "tvos":
                 # Platform module needs ctypes for full operation. If ctypes
                 # isn't available, there's no ObjC module, and dummy values are
                 # returned.

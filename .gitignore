@@ -70,6 +70,7 @@ Lib/test/data/*
 /Makefile
 /Makefile.pre
 /iOSTestbed.*
+/visionOSTestbed.*
 iOS/Frameworks/
 iOS/Resources/Info.plist
 iOS/testbed/build
@@ -80,10 +81,19 @@ iOS/testbed/Python.xcframework/ios-*/Python.framework
 iOS/testbed/iOSTestbed.xcodeproj/project.xcworkspace
 iOS/testbed/iOSTestbed.xcodeproj/xcuserdata
 iOS/testbed/iOSTestbed.xcodeproj/xcshareddata
+visionOS/testbed/Python.xcframework/xr*-*/bin
+visionOS/testbed/Python.xcframework/xr*-*/include
+visionOS/testbed/Python.xcframework/xr*-*/lib
+visionOS/testbed/Python.xcframework/xr*-*/Python.framework
+visionOS/testbed/visionOSTestbed.xcodeproj/project.xcworkspace
+visionOS/testbed/visionOSTestbed.xcodeproj/xcuserdata
+visionOS/testbed/visionOSTestbed.xcodeproj/xcshareddata
 tvOS/Frameworks
 tvOS/Resources/Info.plist
 watchOS/Frameworks
 watchOS/Resources/Info.plist
+visionOS/Frameworks
+visionOS/Resources/Info.plist
 Mac/Makefile
 Mac/PythonLauncher/Info.plist
 Mac/PythonLauncher/Makefile

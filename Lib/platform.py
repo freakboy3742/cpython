@@ -569,6 +569,30 @@ def watchos_ver(system="", release="", model="", is_simulator=False):
     return WatchOSVersionInfo(system, release, model, is_simulator)
 
 
+# A namedtuple for visionOS version information.
+VisionOSVersionInfo = collections.namedtuple(
+    "VisionOSVersionInfo",
+    ["system", "release", "model", "is_simulator"]
+)
+
+
+def visionos_ver(system="", release="", model="", is_simulator=False):
+    """Get visionOS version information, and return it as a namedtuple:
+        (system, release, model, is_simulator).
+
+    If values can't be determined, they are set to values provided as
+    parameters.
+    """
+    if sys.platform == "visionos":
+        # TODO: Can the iOS implementation be used here?
+        import _ios_support
+        result = _ios_support.get_platform_ios()
+        if result is not None:
+            return VisionOSVersionInfo(*result)
+
+    return VisionOSVersionInfo(system, release, model, is_simulator)
+
+
 def _java_getprop(name, default):
     """This private helper is deprecated in 3.13 and will be removed in 3.15"""
     from java.lang import System
@@ -768,7 +792,7 @@ def _syscmd_file(target, default=''):
         default in case the command should fail.
 
     """
-    if sys.platform in {'dos', 'win32', 'win16', 'ios', 'tvos', 'watchos'}:
+    if sys.platform in {'dos', 'win32', 'win16', 'ios', 'tvos', 'watchos', 'visionos'}:
         # XXX Others too ?
         return default
 
@@ -932,7 +956,7 @@ class _Processor:
             csid, cpu_number = vms_lib.getsyi('SYI$_CPU', 0)
             return 'Alpha' if cpu_number >= 128 else 'VAX'
 
-    # On the iOS/tvOS/watchOS simulator, os.uname returns the architecture as
+    # On the iOS/tvOS/watchOS/visionOS simulator, os.uname returns the architecture as
     # uname.machine. On device it returns the model name for some reason; but
     # there's only one CPU architecture for devices, so we know the right
     # answer.
@@ -950,6 +974,11 @@ class _Processor:
         if sys.implementation._multiarch.endswith("simulator"):
             return os.uname().machine
         return 'arm64_32'
+
+    def get_visionos():
+        if sys.implementation._multiarch.endswith("simulator"):
+            return os.uname().machine
+        return 'arm64'
 
     def from_subprocess():
         """
@@ -1117,6 +1146,8 @@ def uname():
         system, release, _, _ = tvos_ver()
     if sys.platform == 'watchos':
         system, release, _, _ = watchos_ver()
+    if sys.platform == 'visionos':
+        system, release, _, _ = visionos_ver()
 
     vals = system, node, release, version, machine
     # Replace 'unknown' values with the more portable ''
@@ -1410,6 +1441,8 @@ def platform(aliased=False, terse=False):
             system, release, _, _ = tvos_ver()
         elif sys.platform == "watchos":
             system, release, _, _ = watchos_ver()
+        elif sys.platform == "visionos":
+            system, release, _, _ = visionos_ver()
         else:
             macos_release = mac_ver()[0]
             if macos_release:
