@@ -81,6 +81,36 @@ async def async_check_output(*args, **kwargs):
             )
 
 
+# Select a simulator device to use.
+async def select_simulator_device():
+    # List the testing simulators, in JSON format
+    raw_json = await async_check_output(
+        "xcrun", "simctl", "--set", "testing", "list", "-j"
+    )
+    json_data = json.loads(raw_json)
+
+    # Any device will do; we'll look for "SE" devices - but the name isn't
+    # consistent over time. Older Xcode versions will use "iPhone SE (Nth
+    # generation)"; As of 2025, they've started using "iPhone 16e".
+    #
+    # When Xcode is updated after a new release, new devices will be available
+    # and old ones will be dropped from the set available on the latest iOS
+    # version. Select the one with the highest minimum runtime version - this
+    # is an indicator of the "newest" released device, which should always be
+    # supported on the "most recent" iOS version.
+    se_simulators = sorted(
+        (devicetype["minRuntimeVersion"], devicetype["name"])
+        for devicetype in json_data["devicetypes"]
+        if devicetype["productFamily"] == "iPhone"
+        and (
+            ("iPhone " in devicetype["name"] and devicetype["name"].endswith("e"))
+            or "iPhone SE " in devicetype["name"]
+        )
+    )
+
+    return se_simulators[-1][1]
+
+
 # Return a list of UDIDs associated with booted simulators
 async def list_devices():
     try:
@@ -339,11 +369,25 @@ def update_plist(testbed_path, args):
         plistlib.dump(info, f)
 
 
-async def run_testbed(simulator: str, args: list[str], verbose: bool=False):
+async def run_testbed(simulator: str | None, args: list[str], verbose: bool=False):
     location = Path(__file__).parent
     print("Updating plist...", end="", flush=True)
     update_plist(location, args)
-    print(" done.")
+    print(" done.", flush=True)
+
+    if simulator is None:
+        simulator = await select_simulator_device()
+    print(f"Running test on {simulator}", flush=True)
+
+    # We need to get an exclusive lock on simulator creation, to avoid issues
+    # with multiple simulators starting and being unable to tell which
+    # simulator is due to which testbed instance. See
+    # https://github.com/python/cpython/issues/130294 for details. Wait up to
+    # 10 minutes for a simulator to boot.
+    print("Obtaining lock on simulator creation...", flush=True)
+    simulator_lock = SimulatorLock(timeout=10*60)
+    await simulator_lock.acquire()
+    print("Simulator lock acquired.", flush=True)
 
     # Get the list of devices that are booted at the start of the test run.
     # The simulator started by the test suite will be detected as the new
@@ -409,8 +453,10 @@ def main():
     )
     run.add_argument(
         "--simulator",
-        default="iPhone SE (3rd Generation)",
-        help="The name of the simulator to use (default: 'iPhone SE (3rd Generation)')",
+        help=(
+            "The name of the simulator to use (eg: 'iPhone 16e'). Defaults to ",
+            "the most recently released 'entry level' iPhone device."
+        )
     )
     run.add_argument(
         "-v", "--verbose",
