@@ -53,10 +53,10 @@ the simulator or a physical device.
 
 Information about the specific runtime environment, including the iOS version,
 device model, and whether the device is a simulator, can be obtained using
-:func:`platform.ios_ver()`. :func:`platform.system()` will report ``iOS`` or
+:func:`platform.ios_ver`. :func:`platform.system` will report ``iOS`` or
 ``iPadOS``, depending on the device.
 
-:func:`os.uname()` reports kernel-level details; it will report a name of
+:func:`os.uname` reports kernel-level details; it will report a name of
 ``Darwin``.
 
 Standard library availability
@@ -371,6 +371,17 @@ You can also open the testbed project in Xcode by running:
     $ open app-testbed/iOSTestbed.xcodeproj
 
 This will allow you to use the full Xcode suite of tools for debugging.
+
+The arguments used to run the test suite are defined as part of the test plan.
+To modify the test plan, select the test plan node of the project tree (it
+should be the first child of the root node), and select the "Configurations"
+tab. Modify the "Arguments Passed On Launch" value to change the testing
+arguments.
+
+The test plan also disables parallel testing, and specifies the use of the
+``iOSTestbed.lldbinit`` file for providing configuration of the debugger. The
+default debugger configuration disables automatic breakpoints on the
+``SIGINT``, ``SIGUSR1``, ``SIGUSR2``, and ``SIGXFSZ`` signals.
 
 App Store Compliance
 ====================
