@@ -168,6 +168,36 @@ Lib/ast.py                    @isidentical
 # zipfile.Path
 **/*zipfile/_path/*           @jaraco
 
+# Argument Clinic
+/Tools/clinic/**              @erlend-aasland
+/Lib/test/test_clinic.py      @erlend-aasland
+Doc/howto/clinic.rst          @erlend-aasland
+
+# Subinterpreters
+**/*interpreteridobject.*     @ericsnowcurrently
+**/*crossinterp*              @ericsnowcurrently
+Lib/test/support/interpreters/  @ericsnowcurrently
+Modules/_interp*module.c      @ericsnowcurrently
+Lib/test/test_interpreters/   @ericsnowcurrently
+
+# Android
+**/*Android*                  @mhsmith @freakboy3742
+**/*android*                  @mhsmith @freakboy3742
+
+# Apple
+/Apple                        @freakboy3742
+
+# iOS (but not termios)
+**/iOS*                       @freakboy3742
+**/ios*                       @freakboy3742
+**/*_iOS*                     @freakboy3742
+**/*_ios*                     @freakboy3742
+**/*-iOS*                     @freakboy3742
+**/*-ios*                     @freakboy3742
+
+# WebAssembly
+/Tools/wasm/                  @brettcannon
+
 # SBOM
 /Misc/externals.spdx.json     @sethmlarson
 /Misc/sbom.spdx.json          @sethmlarson
