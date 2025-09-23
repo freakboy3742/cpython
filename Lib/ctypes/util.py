@@ -132,7 +132,7 @@ if os.name == "nt":
                         if (name := _get_module_filename(h)) is not None]
         return libraries
 
-elif os.name == "posix" and sys.platform in {"darwin", "ios", "tvos", "watchos"}:
+elif os.name == "posix" and sys.platform in {"darwin", "ios", "tvos", "visionos", "watchos"}:
     from ctypes.macholib.dyld import dyld_find as _dyld_find
     def find_library(name):
         possible = ['lib%s.dylib' % name,
@@ -450,7 +450,7 @@ elif os.name == "posix":
 # https://man.openbsd.org/dl_iterate_phdr
 # https://docs.oracle.com/cd/E88353_01/html/E37843/dl-iterate-phdr-3c.html
 if (os.name == "posix" and
-    sys.platform not in {"darwin", "ios", "tvos", "watchos"}):
+    sys.platform not in {"darwin", "ios", "tvos", "watchos", "visionos"}):
     import ctypes
     if hasattr((_libc := ctypes.CDLL(None)), "dl_iterate_phdr"):
 
