@@ -594,7 +594,7 @@ is_jython = sys.platform.startswith('java')
 
 is_android = sys.platform == "android"
 
-if sys.platform not in {"win32", "vxworks", "ios", "tvos", "watchos"}:
+if sys.platform not in {"win32", "vxworks", "ios", "tvos", "visionos", "watchos"}:
     unix_shell = '/system/bin/sh' if is_android else '/bin/sh'
 else:
     unix_shell = None
@@ -604,7 +604,7 @@ else:
 is_emscripten = sys.platform == "emscripten"
 is_wasi = sys.platform == "wasi"
 
-is_apple_mobile = sys.platform in {"ios", "tvos", "watchos"}
+is_apple_mobile = sys.platform in {"ios", "tvos", "visionos", "watchos"}
 is_apple = is_apple_mobile or sys.platform == "darwin"
 
 has_fork_support = hasattr(os, "fork") and not (
