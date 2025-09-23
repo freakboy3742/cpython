@@ -202,6 +202,12 @@ MACOSX_DEPLOYMENT_TARGET=@CONFIGURE_MACOSX_DEPLOYMENT_TARGET@
 # the build, and is only listed here so it will be included in sysconfigdata.
 IPHONEOS_DEPLOYMENT_TARGET=@IPHONEOS_DEPLOYMENT_TARGET@
 
+# visionOS Deployment target is *actually* used during the build, by the
+# compiler shims; export.
+XROS_DEPLOYMENT_TARGET=@XROS_DEPLOYMENT_TARGET@
+@EXPORT_XROS_DEPLOYMENT_TARGET@export XROS_DEPLOYMENT_TARGET
+
+
 # Option to install to strip binaries
 STRIPFLAG=-s
 
