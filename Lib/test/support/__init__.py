@@ -55,6 +55,7 @@ __all__ = [
     "run_with_tz", "PGO", "missing_compiler_executable",
     "ALWAYS_EQ", "NEVER_EQ", "LARGEST", "SMALLEST",
     "LOOPBACK_TIMEOUT", "INTERNET_TIMEOUT", "SHORT_TIMEOUT", "LONG_TIMEOUT",
+    "on_github_actions"
     ]
 
 
@@ -1047,6 +1048,9 @@ def refcount_test(test):
 
     """
     return no_tracing(cpython_only(test))
+
+
+on_github_actions = "GITHUB_ACTIONS" in os.environ
 
 
 def _filter_suite(suite, pred):
