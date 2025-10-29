@@ -59,6 +59,7 @@ __all__ = [
     "Py_DEBUG", "EXCEEDS_RECURSION_LIMIT", "C_RECURSION_LIMIT",
     "skip_on_s390x",
     "BrokenIter",
+    "reset_code", "on_github_actions"
     ]
 
 
@@ -1237,6 +1238,8 @@ def requires_specialization(test):
     return unittest.skipUnless(
         opcode.ENABLE_SPECIALIZATION, "requires specialization")(test)
 
+
+on_github_actions = "GITHUB_ACTIONS" in os.environ
 
 #=======================================================================
 # Check for the presence of docstrings.
