@@ -57,6 +57,7 @@ __all__ = [
     "ALWAYS_EQ", "NEVER_EQ", "LARGEST", "SMALLEST",
     "LOOPBACK_TIMEOUT", "INTERNET_TIMEOUT", "SHORT_TIMEOUT", "LONG_TIMEOUT",
     "skip_on_s390x",
+    "on_github_actions"
     ]
 
 
@@ -1154,6 +1155,8 @@ def refcount_test(test):
     """
     return no_tracing(cpython_only(test))
 
+
+on_github_actions = "GITHUB_ACTIONS" in os.environ
 
 #=======================================================================
 # Check for the presence of docstrings.
