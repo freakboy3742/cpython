@@ -65,6 +65,7 @@ __all__ = [
     "force_not_colorized_test_class",
     "make_clean_env",
     "BrokenIter",
+    "reset_code", "on_github_actions"
     ]
 
 
@@ -1340,6 +1341,8 @@ def requires_specialization(test):
     return unittest.skipUnless(
         _opcode.ENABLE_SPECIALIZATION, "requires specialization")(test)
 
+
+on_github_actions = "GITHUB_ACTIONS" in os.environ
 
 #=======================================================================
 # Check for the presence of docstrings.
