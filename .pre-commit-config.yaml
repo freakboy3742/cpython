@@ -3,6 +3,10 @@ repos:
     rev: v0.9.1
     hooks:
       - id: ruff
+        name: Run Ruff (lint) on Apple/
+        args: [--exit-non-zero-on-fix, --config=Apple/.ruff.toml]
+        files: ^Apple/
+      - id: ruff
         name: Run Ruff (lint) on Doc/
         args: [--exit-non-zero-on-fix]
         files: ^Doc/
@@ -14,6 +18,10 @@ repos:
         name: Run Ruff (lint) on Argument Clinic
         args: [--exit-non-zero-on-fix, --config=Tools/clinic/.ruff.toml]
         files: ^Tools/clinic/|Lib/test/test_clinic.py
+      - id: ruff-format
+        name: Run Ruff (format) on Apple/
+        args: [--config=Apple/.ruff.toml]
+        files: ^Apple
       - id: ruff-format
         name: Run Ruff (format) on Doc/
         args: [--check]
