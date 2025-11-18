@@ -3,6 +3,10 @@ repos:
     rev: a27a2e47c7751b639d2b5badf0ef6ff11fee893f  # frozen: v0.15.4
     hooks:
       - id: ruff-check
+        name: Run Ruff (lint) on Apple/
+        args: [--exit-non-zero-on-fix, --config=Apple/.ruff.toml]
+        files: ^Apple/
+      - id: ruff-check
         name: Run Ruff (lint) on Doc/
         args: [--exit-non-zero-on-fix]
         files: ^Doc/
@@ -26,6 +30,10 @@ repos:
         name: Run Ruff (lint) on Tools/wasm/
         args: [--exit-non-zero-on-fix, --config=Tools/wasm/.ruff.toml]
         files: ^Tools/wasm/
+      - id: ruff-format
+        name: Run Ruff (format) on Apple/
+        args: [--exit-non-zero-on-fix, --config=Apple/.ruff.toml]
+        files: ^Apple
       - id: ruff-format
         name: Run Ruff (format) on Doc/
         args: [--exit-non-zero-on-fix]
