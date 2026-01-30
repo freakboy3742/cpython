@@ -795,6 +795,14 @@ def get_platform():
             release = get_config_vars().get("IPHONEOS_DEPLOYMENT_TARGET", "13.0")
             osname = sys.platform
             machine = sys.implementation._multiarch
+        elif sys.platform == "tvos":
+            release = get_config_vars().get("TVOS_DEPLOYMENT_TARGET", "9.0")
+            osname = sys.platform
+            machine = sys.implementation._multiarch
+        elif sys.platform == "watchos":
+            release = get_config_vars().get("WATCHOS_DEPLOYMENT_TARGET", "4.0")
+            osname = sys.platform
+            machine = sys.implementation._multiarch
         else:
             import _osx_support
             osname, release, machine = _osx_support.get_platform_osx(

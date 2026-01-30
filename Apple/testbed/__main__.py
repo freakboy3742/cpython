@@ -2,6 +2,7 @@ import argparse
 import json
 import os
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -10,6 +11,9 @@ from pathlib import Path
 
 TEST_SLICES = {
     "iOS": "ios-arm64_x86_64-simulator",
+    "tvOS": "tvos-arm64_x86_64-simulator",
+    "visionOS": "xros-arm64-simulator",
+    "watchOS": "watchos-arm64_x86_64-simulator",
 }
 
 DECODE_ARGS = ("UTF-8", "backslashreplace")
@@ -21,7 +25,7 @@ DECODE_ARGS = ("UTF-8", "backslashreplace")
 LOG_PREFIX_REGEX = re.compile(
     r"^\d{4}-\d{2}-\d{2}"  # YYYY-MM-DD
     r"\s+\d+:\d{2}:\d{2}\.\d+\+\d{4}"  # HH:MM:SS.ssssss+ZZZZ
-    r"\s+iOSTestbed\[\d+:\w+\] "  # Process/thread ID
+    r"\s+.*Testbed\[\d+:\w+\] "  # Process/thread ID
 )
 
 
@@ -54,10 +58,41 @@ def select_simulator_device(platform):
             )
         )
         simulator = se_simulators[-1][1]
+    elif platform == "tvOS":
+        # Find the most recent tvOS release.
+        simulators = sorted(
+            (devicetype["minRuntimeVersion"], devicetype["name"])
+            for devicetype in json_data["devicetypes"]
+            if devicetype["productFamily"] == "Apple TV"
+        )
+        simulator = simulators[-1][1]
+    elif platform == "visionOS":
+        # Find the most recent visionOS release.
+        simulators = sorted(
+            (devicetype["minRuntimeVersion"], devicetype["name"])
+            for devicetype in json_data["devicetypes"]
+            if devicetype["productFamily"] == "Apple Vision"
+        )
+        simulator = simulators[-1][1]
+    elif platform == "watchOS":
+        raise NotImplementedError("Don't know how to launch watchOS (yet)")
     else:
         raise ValueError(f"Unknown platform {platform}")
 
     return simulator
+
+
+# A backport of Path.relative_to(*, walk_up=True)
+def relative_to(target, other):
+    for step, path in enumerate(chain([other], other.parents)):
+        if path == target or path in target.parents:
+            break
+    else:
+        raise ValueError(
+            f"{str(target)!r} and {str(other)!r} have different anchors"
+        )
+    parts = [".."] * step + list(target.parts[len(path.parts) :])
+    return Path("/".join(parts))
 
 
 def xcode_test(location: Path, platform: str, simulator: str, verbose: bool):
@@ -104,19 +139,6 @@ def xcode_test(location: Path, platform: str, simulator: str, verbose: bool):
 
     status = process.wait(timeout=5)
     exit(status)
-
-
-# A backport of Path.relative_to(*, walk_up=True)
-def relative_to(target, other):
-    for step, path in enumerate(chain([other], other.parents)):
-        if path == target or path in target.parents:
-            break
-    else:
-        raise ValueError(
-            f"{str(target)!r} and {str(other)!r} have different anchors"
-        )
-    parts = [".."] * step + list(target.parts[len(path.parts) :])
-    return Path("/".join(parts))
 
 
 def copy(src, tgt):
@@ -223,8 +245,9 @@ def clone_testbed(
             ).resolve()
             xc_framework_path.unlink()
             xc_framework_path.symlink_to(
-                resolved_xc_framework_path.relative_to(
-                    xc_framework_path.parent, walk_up=True
+                relative_to(
+                    resolved_xc_framework_path,
+                    xc_framework_path.parent,
                 )
             )
             print(" done")
@@ -240,8 +263,9 @@ def clone_testbed(
             ).resolve()
             test_framework_path.unlink()
             test_framework_path.symlink_to(
-                orig_test_framework_path.relative_to(
-                    test_framework_path.parent, walk_up=True
+                relative_to(
+                    orig_test_framework_path,
+                    test_framework_path.parent,
                 )
             )
             print(" done")
@@ -266,7 +290,7 @@ def update_test_plan(testbed_path, platform, args):
         test_plan = json.load(f)
 
     test_plan["defaultOptions"]["commandLineArgumentEntries"] = [
-        {"argument": arg} for arg in args
+        {"argument": shlex.quote(arg)} for arg in args
     ]
 
     with test_plan_path.open("w", encoding="utf-8") as f:
@@ -302,7 +326,7 @@ def main():
     # many platforms, but when cloned, only one platform is preserved.
     available_platforms = [
         platform
-        for platform in ["iOS"]
+        for platform in ["iOS", "tvOS", "visionOS", "watchOS"]
         if (Path(__file__).parent / f"{platform}Testbed").is_dir()
     ]
 
@@ -356,7 +380,7 @@ def main():
         ),
         description=(
             "Run a testbed project. The arguments provided after `--` will be "
-            "passed to the running iOS process as if they were arguments to "
+            "passed to the running test process as if they were arguments to "
             "`python -m`."
         ),
         help="Run a testbed project",
