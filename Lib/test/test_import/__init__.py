@@ -1970,23 +1970,23 @@ class SubinterpImportTests(unittest.TestCase):
         loader.exec_module(module)
         sys.modules[modname] = module
 
-                filename = _testmultiphase.__file__
-                loader = ExtensionFileLoader(modname, filename)
-                spec = importlib.util.spec_from_loader(modname, loader)
-                module = importlib.util.module_from_spec(spec)
-                loader.exec_module(module)
-                sys.modules[modname] = module
+        filename = _testmultiphase.__file__
+        loader = ExtensionFileLoader(modname, filename)
+        spec = importlib.util.spec_from_loader(modname, loader)
+        module = importlib.util.module_from_spec(spec)
+        loader.exec_module(module)
+        sys.modules[modname] = module
 
-                require_extension(module)
-                with self.subTest(f'{modname}: isolated, strict'):
-                    self.check_incompatible_here(modname, filename,
-                                                 isolated=True)
-                with self.subTest(f'{modname}: not isolated, strict'):
-                    self.check_compatible_here(modname, filename,
-                                               strict=True, isolated=False)
-                with self.subTest(f'{modname}: not isolated, not strict'):
-                    self.check_compatible_here(
-                        modname, filename, strict=False, isolated=False)
+        require_extension(module)
+        with self.subTest(f'{modname}: isolated, strict'):
+            self.check_incompatible_here(modname, filename,
+                                            isolated=True)
+        with self.subTest(f'{modname}: not isolated, strict'):
+            self.check_compatible_here(modname, filename,
+                                        strict=True, isolated=False)
+        with self.subTest(f'{modname}: not isolated, not strict'):
+            self.check_compatible_here(
+                modname, filename, strict=False, isolated=False)
 
     def test_python_compat(self):
         module = 'threading'

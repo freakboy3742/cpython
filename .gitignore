@@ -80,6 +80,10 @@ Apple/testbed/Python.xcframework/*/lib
 Apple/testbed/Python.xcframework/*/Python.framework
 Apple/testbed/*Testbed.xcodeproj/project.xcworkspace
 Apple/testbed/*Testbed.xcodeproj/xcuserdata
+Apple/tvOS/Frameworks
+Apple/tvOS/Resources/Info.plist
+Apple/watchOS/Frameworks
+Apple/watchOS/Resources/Info.plist
 Mac/Makefile
 Mac/PythonLauncher/Info.plist
 Mac/PythonLauncher/Makefile
