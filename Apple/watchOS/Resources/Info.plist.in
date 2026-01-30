@@ -19,16 +19,16 @@
 	<key>CFBundleShortVersionString</key>
 	<string>%VERSION%</string>
 	<key>CFBundleLongVersionString</key>
-	<string>%VERSION%, (c) 2001-2024 Python Software Foundation.</string>
+	<string>%VERSION%, (c) 2001-2023 Python Software Foundation.</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>%VERSION%</string>
 	<key>CFBundleSupportedPlatforms</key>
 	<array>
-		<string>iPhoneOS</string>
+		<string>watchOS</string>
 	</array>
 	<key>MinimumOSVersion</key>
-	<string>@IPHONEOS_DEPLOYMENT_TARGET@</string>
+	<string>@WATCHOS_DEPLOYMENT_TARGET@</string>
 </dict>
 </plist>
