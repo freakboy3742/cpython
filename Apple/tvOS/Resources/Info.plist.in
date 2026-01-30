@@ -23,12 +23,12 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>%VERSION%</string>
+	<string>1</string>
 	<key>CFBundleSupportedPlatforms</key>
 	<array>
-		<string>iPhoneOS</string>
+		<string>tvOS</string>
 	</array>
 	<key>MinimumOSVersion</key>
-	<string>@IPHONEOS_DEPLOYMENT_TARGET@</string>
+	<string>@TVOS_DEPLOYMENT_TARGET@</string>
 </dict>
 </plist>

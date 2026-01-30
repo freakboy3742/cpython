@@ -5,17 +5,20 @@
 # This script simplifies the process of configuring, compiling and packaging an
 # XCframework for an Apple platform.
 #
-# At present, it only supports iOS, but it has been constructed so that it
-# could be used on any Apple platform.
+# At present, it supports iOS, tvOS, visionOS and watchOS, but it has been
+# constructed so that it could be used on any Apple platform.
 #
 # The simplest entry point is:
 #
 #   $ python Apple ci iOS
 #
+# (replace iOS with tvOS, visionOS or watchOS as required.)
+#
 # which will:
 # * Clean any pre-existing build artefacts
 # * Configure and make a Python that can be used for the build
-# * Configure and make a Python for each supported iOS architecture and ABI
+# * Configure and make a Python for each supported iOS/tvOS/watchOS/visionOS
+#   architecture and ABI
 # * Combine the outputs of the builds from the previous step into a single
 #   XCframework, merging binaries into a "fat" binary if necessary
 # * Clone a copy of the testbed, configured to use the XCframework
@@ -73,6 +76,32 @@ HOSTS: dict[str, dict[str, dict[str, str]]] = {
         "ios-arm64_x86_64-simulator": {
             "arm64-apple-ios-simulator": "arm64-iphonesimulator",
             "x86_64-apple-ios-simulator": "x86_64-iphonesimulator",
+        },
+    },
+    "tvOS": {
+        "tvos-arm64": {
+            "arm64-apple-tvos": "arm64-appletvos",
+        },
+        "tvos-arm64_x86_64-simulator": {
+            "arm64-apple-tvos-simulator": "arm64-appletvsimulator",
+            "x86_64-apple-tvos-simulator": "x86_64-appletvsimulator",
+        },
+    },
+    "visionOS": {
+        "xros-arm64": {
+            "arm64-apple-xros": "arm64-xros",
+        },
+        "xros-arm64-simulator": {
+            "arm64-apple-xros-simulator": "arm64-xrsimulator",
+        },
+    },
+    "watchOS": {
+        "watchos-arm64_32": {
+            "arm64_32-apple-watchos": "arm64_32-watchos",
+        },
+        "watchos-arm64_x86_64-simulator": {
+            "arm64-apple-watchos-simulator": "arm64-watchsimulator",
+            "x86_64-apple-watchos-simulator": "x86_64-watchsimulator",
         },
     },
 }
@@ -136,11 +165,21 @@ def print_env(env: EnvironmentT) -> None:
         print(f"export {key}={shlex.quote(value)}")
 
 
+def platform_for_host(host):
+    """Determine the platform for a given host triple."""
+    for plat, slices in HOSTS.items():
+        for _, candidates in slices.items():
+            for candidate in candidates:
+                if candidate == host:
+                    return plat
+    raise KeyError(host)
+
+
 def apple_env(host: str) -> EnvironmentT:
     """Construct an Apple development environment for the given host."""
     env = {
         "PATH": ":".join([
-            str(PYTHON_DIR / "Apple/iOS/Resources/bin"),
+            str(PYTHON_DIR / f"Apple/{platform_for_host(host)}/Resources/bin"),
             str(subdir(host) / "prefix"),
             "/usr/bin",
             "/bin",
@@ -305,8 +344,8 @@ def unpack_deps(
     Downloads binaries if they aren't already present. Downloads will be stored
     in provided cache directory.
 
-    On iOS, as a safety mechanism, any dynamic libraries will be purged from
-    the unpacked dependencies.
+    On non-macOS platforms, as a safety mechanism, any dynamic libraries will
+    be purged from the unpacked dependencies.
     """
     # To create new builds of these dependencies, usually all that's necessary
     # is to push a tag to the cpython-apple-source-deps repository, and GitHub
@@ -408,9 +447,7 @@ def configure_host_python(
             f"LIBFFI_CFLAGS=-I{prefix_dir}/include",
             f"LIBFFI_LIBS=-L{prefix_dir}/lib -lffi",
             f"LIBMPDEC_CFLAGS=-I{prefix_dir}/include",
-            f"LIBMPDEC_LIBS=-L{prefix_dir}/lib -lmpdec",
-            f"LIBZSTD_CFLAGS=-I{prefix_dir}/include",
-            f"LIBZSTD_LIBS=-L{prefix_dir}/lib -lzstd",
+            f"LIBMPDEC_LDFLAGS=-L{prefix_dir}/lib -lmpdec",
         ]
 
         if context.args:
@@ -430,7 +467,7 @@ def make_host_python(
         group(f"Compiling host Python ({host})"),
         cwd(subdir(host)),
     ):
-        run(["make", "-j", str(os.cpu_count())], host=host)
+        run(["make"], host=host)
         run(["make", "install"], host=host)
 
 
@@ -440,7 +477,11 @@ def framework_path(host_triple: str, multiarch: str) -> Path:
     :param host_triple: The host triple (e.g., arm64-apple-ios-simulator)
     :param multiarch: The multiarch identifier (e.g., arm64-simulator)
     """
-    return CROSS_BUILD_DIR / f"{host_triple}/Apple/iOS/Frameworks/{multiarch}"
+    return (
+        CROSS_BUILD_DIR
+        / f"{host_triple}/Apple/{platform_for_host(host_triple)}"
+        / f"Frameworks/{multiarch}"
+    )
 
 
 def package_version(prefix_path: Path) -> str:
@@ -513,7 +554,7 @@ def lib_non_platform_files(dirname, names):
 def create_xcframework(platform: str) -> str:
     """Build an XCframework from the component parts for the platform.
 
-    :return: The version number of the Python verion that was packaged.
+    :return: The version number of the Python version that was packaged.
     """
     package_path = CROSS_BUILD_DIR / platform
     try:
@@ -661,7 +702,7 @@ def create_xcframework(platform: str) -> str:
             host_path = (
                 CROSS_BUILD_DIR
                 / host_triple
-                / "Apple/iOS/Frameworks"
+                / f"Apple/{platform}/Frameworks"
                 / multiarch
             )
             host_framework = host_path / "Python.framework"
@@ -707,18 +748,20 @@ def package(context: argparse.Namespace) -> None:
         # Create an XCframework
         version = create_xcframework(context.platform)
 
-        # Clone testbed
-        print()
-        run([
-            sys.executable,
-            "Apple/testbed",
-            "clone",
-            "--platform",
-            context.platform,
-            "--framework",
-            CROSS_BUILD_DIR / context.platform / "Python.xcframework",
-            CROSS_BUILD_DIR / context.platform / "testbed",
-        ])
+        # watchOS doesn't have a testbed (yet!)
+        if context.platform != "watchOS":
+            # Clone testbed
+            print()
+            run([
+                sys.executable,
+                "Apple/testbed",
+                "clone",
+                "--platform",
+                context.platform,
+                "--framework",
+                CROSS_BUILD_DIR / context.platform / "Python.xcframework",
+                CROSS_BUILD_DIR / context.platform / "testbed",
+            ])
 
         # Build the final archive
         archive_name = (
@@ -836,9 +879,11 @@ def test(context: argparse.Namespace, host: str | None = None) -> None:
             + [
                 "--",
                 "test",
-                f"--{context.ci_mode or 'fast'}-ci",
+                # f"--{context.ci_mode}-ci",
+                "-uall",
+                "--rerun",
                 "--single-process",
-                "--no-randomize",
+                "-W",
                 # Timeout handling requires subprocesses; explicitly setting
                 # the timeout to -1 disables the faulthandler.
                 "--timeout=-1",
