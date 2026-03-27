@@ -399,7 +399,7 @@ jobs:
           persist-credentials: false
 
       - name: Build and test
-        run: python3 Apple ci iOS --fast-ci
+        run: python3 Platforms/Apple ci iOS --fast-ci
 
   build-emscripten:
     name: 'Emscripten'
